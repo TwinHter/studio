@@ -9,14 +9,28 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { sampleProperties, type Property, propertyTypes, bedroomOptions, regionOptions as allRegionOptions } from '@/lib/data/properties_data';
-import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter } from 'lucide-react';
+import { 
+  sampleProperties, 
+  type Property, 
+  propertyTypeOptions, 
+  bedroomOptions, 
+  regionOptions as allRegionOptions,
+  energyRatingOptions,
+  tenureOptions,
+  bathroomOptions,
+  receptionOptions
+} from '@/lib/data/properties_data';
+import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2 } from 'lucide-react'; // Added Bath, Sofa, Zap, FileText, Tv2
 
 type RecommendationFilters = {
   maxPrice?: number;
   propertyType?: Property['type'];
   region?: string;
   bedrooms?: number;
+  bathrooms?: number;
+  receptionRooms?: number;
+  tenure?: Property['tenure'];
+  energyRating?: Property['energyRating'];
 };
 
 const MAX_POSSIBLE_PRICE = Math.max(...sampleProperties.map(p => p.price), 5000000);
@@ -44,6 +58,10 @@ export default function RecommendationsPage() {
       if (filters.propertyType && property.type !== filters.propertyType) return false;
       if (filters.region && property.region !== filters.region) return false;
       if (filters.bedrooms && property.bedrooms < filters.bedrooms) return false;
+      if (filters.bathrooms && property.bathrooms < filters.bathrooms) return false;
+      if (filters.receptionRooms && property.receptionRooms < filters.receptionRooms) return false;
+      if (filters.tenure && property.tenure !== filters.tenure) return false;
+      if (filters.energyRating && property.energyRating !== filters.energyRating) return false;
       if (searchTerm && !`${property.name} ${property.address} ${property.description}`.toLowerCase().includes(searchTerm.toLowerCase())) return false;
       return true;
     });
@@ -53,7 +71,7 @@ export default function RecommendationsPage() {
     let processedValue = value;
     if (value === 'all' || value === '') {
       processedValue = undefined;
-    } else if (key === 'bedrooms' && typeof value === 'string') {
+    } else if ((key === 'bedrooms' || key === 'bathrooms' || key === 'receptionRooms') && typeof value === 'string') {
       processedValue = parseInt(value);
     }
     setFilters(prev => ({ ...prev, [key]: processedValue }));
@@ -66,19 +84,19 @@ export default function RecommendationsPage() {
   return (
     <div className="space-y-12">
       <PageHero
-        title="Gợi ý Căn nhà Phù hợp"
-        description="Tìm kiếm bất động sản lý tưởng tại London dựa trên ngân sách và yêu cầu của bạn. Khám phá danh sách được tuyển chọn của chúng tôi."
+        title="Suitable Property Recommendations"
+        description="Find your ideal London property based on your budget and requirements. Explore our curated list."
       />
 
       <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
         <CardHeader>
-          <CardTitle className="font-headline text-xl flex items-center"><ListFilter className="mr-2 h-5 w-5 text-primary"/>Bộ lọc Tìm kiếm</CardTitle>
-          <CardDescription>Tinh chỉnh các tiêu chí để tìm căn nhà mơ ước của bạn.</CardDescription>
+          <CardTitle className="font-headline text-xl flex items-center"><ListFilter className="mr-2 h-5 w-5 text-primary"/>Search Filters</CardTitle>
+          <CardDescription>Refine your criteria to find your dream home.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
             <div>
-              <label htmlFor="maxPriceFilterRec" className="block text-sm font-medium text-foreground mb-1">Giá tối đa (£)</label>
+              <label htmlFor="maxPriceFilterRec" className="block text-sm font-medium text-foreground mb-1">Max Price (£)</label>
               <Slider
                 id="maxPriceFilterRec"
                 value={[filters.maxPrice || MAX_POSSIBLE_PRICE]}
@@ -92,47 +110,95 @@ export default function RecommendationsPage() {
               </div>
             </div>
             <div>
-              <label htmlFor="propertyTypeFilterRec" className="block text-sm font-medium text-foreground mb-1">Loại nhà</label>
+              <label htmlFor="propertyTypeFilterRec" className="block text-sm font-medium text-foreground mb-1">Property Type</label>
               <Select onValueChange={(value) => handleFilterChange('propertyType', value)} value={filters.propertyType || 'all'}>
                 <SelectTrigger id="propertyTypeFilterRec">
-                  <SelectValue placeholder="Tất cả loại nhà" />
+                  <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả loại nhà</SelectItem>
-                  {propertyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                  <SelectItem value="all">All types</SelectItem>
+                  {propertyTypeOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label htmlFor="regionFilterRec" className="block text-sm font-medium text-foreground mb-1">Khu vực (Outcode)</label>
+              <label htmlFor="regionFilterRec" className="block text-sm font-medium text-foreground mb-1">Region (Outcode)</label>
               <Select onValueChange={(value) => handleFilterChange('region', value)} value={filters.region || 'all'}>
                 <SelectTrigger id="regionFilterRec">
-                  <SelectValue placeholder="Tất cả khu vực" />
+                  <SelectValue placeholder="All regions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả khu vực</SelectItem>
+                  <SelectItem value="all">All regions</SelectItem>
                   {allRegionOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label htmlFor="bedroomsFilterRec" className="block text-sm font-medium text-foreground mb-1">Số phòng ngủ (tối thiểu)</label>
+              <label htmlFor="bedroomsFilterRec" className="block text-sm font-medium text-foreground mb-1">Min. Bedrooms</label>
               <Select onValueChange={(value) => handleFilterChange('bedrooms', value)} value={filters.bedrooms?.toString() || 'all'}>
                 <SelectTrigger id="bedroomsFilterRec">
-                  <SelectValue placeholder="Bất kỳ" />
+                  <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Bất kỳ</SelectItem>
-                  {bedroomOptions.map(num => <SelectItem key={num} value={String(num)}>{num}+ phòng</SelectItem>)}
+                  <SelectItem value="all">Any</SelectItem>
+                  {bedroomOptions.map(num => <SelectItem key={num} value={String(num)}>{num}+ beds</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label htmlFor="bathroomsFilterRec" className="block text-sm font-medium text-foreground mb-1">Min. Bathrooms</label>
+              <Select onValueChange={(value) => handleFilterChange('bathrooms', value)} value={filters.bathrooms?.toString() || 'all'}>
+                <SelectTrigger id="bathroomsFilterRec">
+                  <SelectValue placeholder="Any" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any</SelectItem>
+                  {bathroomOptions.map(num => <SelectItem key={num} value={String(num)}>{num}+ baths</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+             <div>
+              <label htmlFor="receptionFilterRec" className="block text-sm font-medium text-foreground mb-1">Min. Receptions</label>
+              <Select onValueChange={(value) => handleFilterChange('receptionRooms', value)} value={filters.receptionRooms?.toString() || 'all'}>
+                <SelectTrigger id="receptionFilterRec">
+                  <SelectValue placeholder="Any" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any</SelectItem>
+                  {receptionOptions.map(num => <SelectItem key={num} value={String(num)}>{num}+ rooms</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+             <div>
+              <label htmlFor="tenureFilterRec" className="block text-sm font-medium text-foreground mb-1">Tenure</label>
+              <Select onValueChange={(value) => handleFilterChange('tenure', value)} value={filters.tenure || 'all'}>
+                <SelectTrigger id="tenureFilterRec">
+                  <SelectValue placeholder="Any tenure" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any tenure</SelectItem>
+                  {tenureOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label htmlFor="energyRatingFilterRec" className="block text-sm font-medium text-foreground mb-1">Energy Rating</label>
+              <Select onValueChange={(value) => handleFilterChange('energyRating', value)} value={filters.energyRating || 'all'}>
+                <SelectTrigger id="energyRatingFilterRec">
+                  <SelectValue placeholder="Any rating" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any rating</SelectItem>
+                  {energyRatingOptions.map(rating => <SelectItem key={rating} value={rating}>Rating {rating}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div>
-            <label htmlFor="searchTermRec" className="block text-sm font-medium text-foreground mb-1">Tìm kiếm từ khóa</label>
+            <label htmlFor="searchTermRec" className="block text-sm font-medium text-foreground mb-1">Keyword Search</label>
             <Input 
               id="searchTermRec" 
-              placeholder="Ví dụ: gần công viên, ban công, victorian..." 
+              placeholder="e.g., near park, balcony, victorian..." 
               value={searchTerm}
               onChange={handleSearchChange}
               className="bg-card"
@@ -143,7 +209,7 @@ export default function RecommendationsPage() {
 
       <div className="animate-fadeIn" style={{animationDelay: '0.4s'}}>
         <h2 className="text-2xl font-headline font-semibold mb-6 text-foreground">
-          {filteredProperties.length} bất động sản được tìm thấy
+          {filteredProperties.length} propert{filteredProperties.length === 1 ? 'y' : 'ies'} found
         </h2>
         {filteredProperties.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -155,31 +221,36 @@ export default function RecommendationsPage() {
                     alt={property.name} 
                     width={600} 
                     height={400} 
-                    className="w-full h-56 object-cover" // Increased height
+                    className="w-full h-56 object-cover"
                     data-ai-hint={property.dataAiHint || 'house exterior'}
                   />
                    <div className="absolute top-2 right-2 bg-primary/80 text-primary-foreground px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm">
                     {property.region}
                   </div>
+                  <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm flex items-center">
+                    <Zap size={12} className="mr-1 text-yellow-400" /> Energy Rating: {property.energyRating}
+                  </div>
                 </CardHeader>
                 <CardContent className="p-6 flex-grow">
                   <CardTitle className="font-headline text-xl mb-2 text-primary hover:underline cursor-pointer">{property.name}</CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground mb-1 flex items-center">
+                  <CardDescription className="text-sm text-muted-foreground mb-2 flex items-center">
                     <MapPin size={14} className="mr-1.5 flex-shrink-0" /> {property.address}
                   </CardDescription>
-                  <div className="flex items-center text-sm text-muted-foreground mb-3 flex-wrap">
-                    <span className="flex items-center mr-3"><Home size={14} className="mr-1.5" /> {property.type}</span>
-                    <span className="flex items-center"><BedDouble size={14} className="mr-1.5" /> {property.bedrooms} phòng ngủ</span>
-                    {property.area && <span className="flex items-center ml-3">{property.area} m²</span>}
+                  <div className="text-sm text-muted-foreground mb-3 space-y-1">
+                    <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.type} - {property.tenure}</div>
+                    <div className="flex items-center"><BedDouble size={14} className="mr-1.5" /> {property.bedrooms} bed{property.bedrooms > 1 ? 's':'_short'}</div>
+                    <div className="flex items-center"><Bath size={14} className="mr-1.5" /> {property.bathrooms} bath{property.bathrooms > 1 ? 's':'_short'}</div>
+                    <div className="flex items-center"><Tv2 size={14} className="mr-1.5" /> {property.receptionRooms} reception{property.receptionRooms > 1 ? 's':'_short'}</div>
+                    {property.area && <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.area} m²</div>}
                   </div>
                   <p className="text-foreground/90 text-sm mb-4 line-clamp-3">{property.description}</p>
                 </CardContent>
                 <CardFooter className="p-6 bg-muted/20 border-t">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-2xl font-bold text-primary flex items-center">
-                      <DollarSign size={20} className="mr-1" />{property.price.toLocaleString()}
+                      £{property.price.toLocaleString()}
                     </p>
-                    <Button variant="default">Xem chi tiết</Button>
+                    <Button variant="default">View Details</Button>
                   </div>
                 </CardFooter>
               </Card>
@@ -188,12 +259,11 @@ export default function RecommendationsPage() {
         ) : (
           <div className="text-center py-12">
             <Search size={48} className="mx-auto text-muted-foreground mb-4" />
-            <p className="text-xl text-muted-foreground">Không tìm thấy bất động sản nào phù hợp với tiêu chí của bạn.</p>
-            <p className="text-sm text-muted-foreground mt-2">Hãy thử điều chỉnh bộ lọc hoặc mở rộng tìm kiếm.</p>
+            <p className="text-xl text-muted-foreground">No properties found matching your criteria.</p>
+            <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or broadening your search.</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-

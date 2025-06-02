@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
-// import Footer from '@/components/layout/Footer'; // Removed Footer import
+// import Footer from '@/components/layout/Footer'; // Footer already removed
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'London Dwellings AI',
-  description: 'AI-powered London house price prediction and insights.',
+  title: 'London Dwellings AI - Price Prediction & Insights',
+  description: 'AI-powered London house price prediction and property insights.',
 };
 
 export default function RootLayout({
@@ -26,7 +26,6 @@ export default function RootLayout({
         <main className="flex-grow container mx-auto px-4 py-8">
           {children}
         </main>
-        {/* <Footer /> Removed Footer component */}
         <Toaster />
       </body>
     </html>

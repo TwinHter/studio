@@ -3,19 +3,19 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import PageHero from '@/components/shared/PageHero';
-import { BarChart, TrendingUp, Database, Users } from 'lucide-react'; // Added Users icon
+import { BarChart, TrendingUp, Database, Users, Building, Sparkles, CheckCircle } from 'lucide-react';
 
 export default function IntroductionPage() {
   return (
     <div className="space-y-16">
       <PageHero
-        title="Dự đoán giá nhà London bằng AI"
-        description="Khám phá tương lai thị trường bất động sản London với công cụ dự đoán giá nhà thông minh, sử dụng công nghệ AI tiên tiến và dữ liệu lịch sử chi tiết."
+        title="AI-Powered London House Price Prediction"
+        description="Explore the future of London's property market with our intelligent house price prediction tool, utilizing advanced AI and detailed historical data."
       />
 
       <section className="text-center animate-fadeIn" style={{animationDelay: '0.2s'}}>
         <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Link href="/prediction">Bắt đầu dự đoán ngay</Link>
+          <Link href="/prediction">Get Started with Prediction</Link>
         </Button>
       </section>
 
@@ -25,43 +25,49 @@ export default function IntroductionPage() {
             <CardHeader>
               <div className="flex items-center mb-2">
                 <Database className="w-8 h-8 text-primary mr-3" />
-                <CardTitle className="font-headline text-2xl">Dữ liệu và Mô hình AI</CardTitle>
+                <CardTitle className="font-headline text-2xl">Data & AI Model</CardTitle>
               </div>
-              <CardDescription>Nền tảng phân tích của chúng tôi</CardDescription>
+              <CardDescription>The foundation of our analysis</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-foreground/90 flex-grow">
               <p>
-                Dự án sử dụng nguồn dữ liệu giá nhà tổng hợp và chi tiết tại London, bao gồm dữ liệu lịch sử giao dịch từ <strong>UK Land Registry Price Paid Data</strong> kéo dài từ năm 1991 đến năm 2023. 
-                Thông tin này được làm giàu thêm bởi các yếu tố như vị trí địa lý chính xác (tọa độ), loại hình bất động sản (chung cư, nhà liền kề, biệt thự,...), số phòng ngủ, diện tích sử dụng, diện tích đất (nếu có), năm xây dựng, tình trạng bất động sản, và các tiện ích lân cận (trường học, bệnh viện, giao thông công cộng).
+                Our project utilizes comprehensive and detailed London housing data, including historical transaction records from the <strong>UK Land Registry Price Paid Data</strong> spanning from 1991 to 2023.
+                This information is enriched with crucial property features such as:
               </p>
+              <ul className="list-disc list-inside space-y-1 pl-4">
+                <li><strong>Full Address & Geolocation:</strong> Precise location (latitude, longitude) and outcode.</li>
+                <li><strong>Property Characteristics:</strong> Type (Flat, Detached, Terraced, etc.), tenure (Freehold, Leasehold), number of bedrooms, bathrooms, and reception rooms.</li>
+                <li><strong>Physical Attributes:</strong> Internal area (square meters), and current energy efficiency rating (A-G).</li>
+                <li><strong>Transactional Context:</strong> Month of sale for price prediction.</li>
+              </ul>
               <p>
-                Chúng tôi áp dụng một bộ các mô hình học máy tiên tiến, bao gồm <strong>Ridge Regression</strong> để xử lý đa cộng tuyến, <strong>XGBoost</strong> và <strong>LightGBM</strong> cho hiệu suất dự đoán cao và khả năng xử lý dữ liệu lớn, cùng với các kỹ thuật <strong>Ensemble Learning</strong> để kết hợp thế mạnh của nhiều mô hình. 
-                Các mô hình này được huấn luyện trên tập dữ liệu đã qua xử lý, bao gồm các bước làm sạch, chuẩn hóa, và tạo đặc trưng (feature engineering) để tối ưu hóa khả năng nhận diện các xu hướng phức tạp và yếu tố đa chiều ảnh hưởng đến giá nhà.
+                We employ a suite of advanced machine learning models, including <strong>Ridge Regression</strong> for handling multicollinearity, <strong>XGBoost</strong> and <strong>LightGBM</strong> for high predictive performance and scalability, along with <strong>Ensemble Learning</strong> techniques to combine the strengths of multiple models.
+                These models are trained on meticulously processed data, involving cleaning, normalization, and feature engineering to optimize the identification of complex trends and multifaceted factors influencing house prices.
               </p>
             </CardContent>
           </Card>
           <Card className="shadow-lg flex flex-col">
              <CardHeader>
               <div className="flex items-center mb-2">
-                <BarChart className="w-8 h-8 text-primary mr-3" />
-                <CardTitle className="font-headline text-2xl">Minh họa Độ chính xác</CardTitle>
+                <CheckCircle className="w-8 h-8 text-primary mr-3" />
+                <CardTitle className="font-headline text-2xl">Accuracy Showcase</CardTitle>
               </div>
-              <CardDescription>Đánh giá hiệu suất mô hình</CardDescription>
+              <CardDescription>Evaluating our model's performance</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-foreground/90 flex-grow">
               <p>
-                Độ chính xác của mô hình AI là ưu tiên hàng đầu. Chúng tôi liên tục đánh giá hiệu suất thông qua các chỉ số như MAE (Mean Absolute Error) và MSE (Mean Squared Error).
+                The accuracy of our AI model is a top priority. We continuously evaluate its performance using metrics like MAE (Mean Absolute Error) and MSE (Mean Squared Error).
               </p>
               <div className="bg-muted p-4 rounded-md text-center">
                 <Image 
                   src="https://placehold.co/600x300.png" 
-                  alt="Biểu đồ độ chính xác mẫu" 
+                  alt="Sample accuracy chart" 
                   width={600} 
                   height={300} 
                   className="rounded-md mx-auto shadow-md"
                   data-ai-hint="graph accuracy" 
                 />
-                <p className="text-sm text-muted-foreground mt-2">Biểu đồ ví dụ về độ chính xác của mô hình (MAE/MSE).</p>
+                <p className="text-sm text-muted-foreground mt-2">Example chart showing model accuracy (MAE/MSE).</p>
               </div>
             </CardContent>
           </Card>
@@ -72,13 +78,13 @@ export default function IntroductionPage() {
         <Card className="max-w-2xl mx-auto shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-center mb-2">
-              <TrendingUp className="w-8 h-8 text-primary mr-3" />
-              <CardTitle className="font-headline text-2xl">Mục tiêu của Dự án</CardTitle>
+              <Sparkles className="w-8 h-8 text-primary mr-3" />
+              <CardTitle className="font-headline text-2xl">Project Goal</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="text-foreground/90">
             <p>
-              Mục tiêu của London Dwellings AI là cung cấp một công cụ minh bạch và dễ sử dụng, giúp người mua, người bán, và các nhà đầu tư đưa ra quyết định sáng suốt hơn trên thị trường bất động sản London. Chúng tôi mong muốn dân chủ hóa việc tiếp cận thông tin và phân tích chuyên sâu.
+              The goal of London Dwellings AI is to provide a transparent and user-friendly tool that empowers buyers, sellers, and investors to make more informed decisions in the London property market. We aim to democratize access to in-depth information and analysis.
             </p>
           </CardContent>
         </Card>
@@ -89,15 +95,15 @@ export default function IntroductionPage() {
           <CardHeader>
             <div className="flex items-center justify-center mb-2">
               <Users className="w-8 h-8 text-primary mr-3" />
-              <CardTitle className="font-headline text-2xl">Thành viên Dự án</CardTitle>
+              <CardTitle className="font-headline text-2xl">Project Team</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="text-foreground/90">
             <ul className="list-disc list-inside space-y-2 text-left sm:text-center">
-              <li><strong>Nguyễn Văn An:</strong> Trưởng dự án & Kiến trúc sư AI</li>
-              <li><strong>Trần Thị Bình:</strong> Chuyên gia Dữ liệu & Phát triển Backend</li>
-              <li><strong>Lê Minh Cường:</strong> Kỹ sư Frontend & Thiết kế Giao diện</li>
-              <li><strong>Phạm Hoài Dung:</strong> Kiểm thử & Đảm bảo Chất lượng</li>
+              <li><strong>An Nguyen:</strong> Project Lead & AI Architect</li>
+              <li><strong>Binh Tran:</strong> Data Specialist & Backend Developer</li>
+              <li><strong>Cuong Le:</strong> Frontend Engineer & UI/UX Designer</li>
+              <li><strong>Dung Pham:</strong> QA & Testing Lead</li>
             </ul>
           </CardContent>
         </Card>
