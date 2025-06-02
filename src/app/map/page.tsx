@@ -31,19 +31,15 @@ export default function MapInteractionPage() {
   const MAX_PRICE = 5000000;
 
   useEffect(() => {
-    // Set initial price range for slider display
     setFilters(prev => ({ ...prev, priceRange: [MIN_PRICE, MAX_PRICE] }));
   }, []);
 
 
   const filteredRegions = useMemo(() => {
-    // This is a placeholder for actual filtering logic based on filters.
-    // For now, it returns all regions, filtered by the mock avgPrice if priceRange is set.
     return londonOutcodes.filter(region => {
       if (filters.priceRange && (region.avgPrice < filters.priceRange[0] || region.avgPrice > filters.priceRange[1])) {
         return false;
       }
-      // Add other filter conditions here if propertyType and bedrooms were part of OutcodeData or linked
       return true;
     });
   }, [filters]);
@@ -143,12 +139,12 @@ export default function MapInteractionPage() {
             </CardHeader>
             <CardContent>
               <Image 
-                src="https://placehold.co/800x500.png?text=London+Map+Placeholder" 
+                src="https://placehold.co/800x500.png" 
                 alt="Bản đồ London Placeholder" 
                 width={800} 
                 height={500} 
                 className="rounded-md shadow-md w-full h-auto"
-                data-ai-hint="london map"
+                data-ai-hint="london map outline"
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 Hình ảnh này là placeholder. Trong ứng dụng thực tế, đây sẽ là bản đồ tương tác.
@@ -214,7 +210,7 @@ export default function MapInteractionPage() {
                   </h4>
                   <div className="bg-muted p-4 rounded-md text-center">
                      <Image 
-                        src={`https://placehold.co/600x300.png?text=Price+Chart+${selectedRegion.id}`}
+                        src={`https://placehold.co/600x300.png`}
                         alt={`Biểu đồ giá cho ${selectedRegion.id}`}
                         width={600}
                         height={300}

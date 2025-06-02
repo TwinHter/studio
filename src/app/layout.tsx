@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+// import Footer from '@/components/layout/Footer'; // Removed Footer import
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default function RootLayout({
         <main className="flex-grow container mx-auto px-4 py-8">
           {children}
         </main>
-        <Footer />
+        {/* <Footer /> Removed Footer component */}
         <Toaster />
       </body>
     </html>

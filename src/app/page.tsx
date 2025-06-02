@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import PageHero from '@/components/shared/PageHero';
-import { BarChart, TrendingUp, Database } from 'lucide-react';
+import { BarChart, TrendingUp, Database, Users } from 'lucide-react'; // Added Users icon
 
 export default function IntroductionPage() {
   return (
@@ -31,12 +31,12 @@ export default function IntroductionPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-foreground/90 flex-grow">
               <p>
-                Dự án sử dụng nguồn dữ liệu giá nhà phong phú tại London, kéo dài từ năm 1991 đến năm 2023. 
-                Thông tin này bao gồm các yếu tố như vị trí, loại hình bất động sản, số phòng ngủ, diện tích, và nhiều đặc điểm khác.
+                Dự án sử dụng nguồn dữ liệu giá nhà tổng hợp và chi tiết tại London, bao gồm dữ liệu lịch sử giao dịch từ <strong>UK Land Registry Price Paid Data</strong> kéo dài từ năm 1991 đến năm 2023. 
+                Thông tin này được làm giàu thêm bởi các yếu tố như vị trí địa lý chính xác (tọa độ), loại hình bất động sản (chung cư, nhà liền kề, biệt thự,...), số phòng ngủ, diện tích sử dụng, diện tích đất (nếu có), năm xây dựng, tình trạng bất động sản, và các tiện ích lân cận (trường học, bệnh viện, giao thông công cộng).
               </p>
               <p>
-                Chúng tôi áp dụng các mô hình học máy tiên tiến như Ridge Regression và XGBoost để phân tích và đưa ra dự đoán. 
-                Các mô hình này được huấn luyện kỹ lưỡng để nhận diện các xu hướng phức tạp và yếu tố ảnh hưởng đến giá nhà.
+                Chúng tôi áp dụng một bộ các mô hình học máy tiên tiến, bao gồm <strong>Ridge Regression</strong> để xử lý đa cộng tuyến, <strong>XGBoost</strong> và <strong>LightGBM</strong> cho hiệu suất dự đoán cao và khả năng xử lý dữ liệu lớn, cùng với các kỹ thuật <strong>Ensemble Learning</strong> để kết hợp thế mạnh của nhiều mô hình. 
+                Các mô hình này được huấn luyện trên tập dữ liệu đã qua xử lý, bao gồm các bước làm sạch, chuẩn hóa, và tạo đặc trưng (feature engineering) để tối ưu hóa khả năng nhận diện các xu hướng phức tạp và yếu tố đa chiều ảnh hưởng đến giá nhà.
               </p>
             </CardContent>
           </Card>
@@ -54,7 +54,7 @@ export default function IntroductionPage() {
               </p>
               <div className="bg-muted p-4 rounded-md text-center">
                 <Image 
-                  src="https://placehold.co/600x300.png?text=Sample+Accuracy+Chart" 
+                  src="https://placehold.co/600x300.png" 
                   alt="Biểu đồ độ chính xác mẫu" 
                   width={600} 
                   height={300} 
@@ -80,6 +80,25 @@ export default function IntroductionPage() {
             <p>
               Mục tiêu của London Dwellings AI là cung cấp một công cụ minh bạch và dễ sử dụng, giúp người mua, người bán, và các nhà đầu tư đưa ra quyết định sáng suốt hơn trên thị trường bất động sản London. Chúng tôi mong muốn dân chủ hóa việc tiếp cận thông tin và phân tích chuyên sâu.
             </p>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="animate-fadeIn" style={{animationDelay: '0.8s'}}>
+        <Card className="max-w-3xl mx-auto shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-center mb-2">
+              <Users className="w-8 h-8 text-primary mr-3" />
+              <CardTitle className="font-headline text-2xl">Thành viên Dự án</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="text-foreground/90">
+            <ul className="list-disc list-inside space-y-2 text-left sm:text-center">
+              <li><strong>Nguyễn Văn An:</strong> Trưởng dự án & Kiến trúc sư AI</li>
+              <li><strong>Trần Thị Bình:</strong> Chuyên gia Dữ liệu & Phát triển Backend</li>
+              <li><strong>Lê Minh Cường:</strong> Kỹ sư Frontend & Thiết kế Giao diện</li>
+              <li><strong>Phạm Hoài Dung:</strong> Kiểm thử & Đảm bảo Chất lượng</li>
+            </ul>
           </CardContent>
         </Card>
       </section>
