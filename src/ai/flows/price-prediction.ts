@@ -69,7 +69,7 @@ Here's an example of the expected output format for the priceHistoryChartData:
   // ... remaining months
 ]
 
-Ensure that the priceHistoryChartData includes predictions for each month of the next 12 months from now and that prices are realistic for the London property market.`, 
+Ensure that the priceHistoryChartData includes predictions for each month of the next 12 months from now and that prices are realistic for the London property market.`,
 });
 
 const predictPriceFlow = ai.defineFlow(
@@ -78,8 +78,40 @@ const predictPriceFlow = ai.defineFlow(
     inputSchema: PredictionInputSchema,
     outputSchema: PredictionOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input: PredictionInput): Promise<PredictionOutput> => {
+    // Fake data implementation
+    const basePrice = 500000 + (input.bedrooms * 50000) + (input.area ? input.area * 1000 : 0);
+    const currentYear = new Date().getFullYear();
+    const yearDifference = input.year - currentYear;
+    const predictedPrice = basePrice * (1 + (yearDifference * 0.05)); // 5% increase per year
+
+    const priceHistoryChartData = [];
+    let lastPrice = predictedPrice * 0.95; // Start 12 months ago price a bit lower
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const today = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() + i, 1);
+      const month = monthNames[date.getMonth()];
+      const year = date.getFullYear();
+      lastPrice = lastPrice * (1 + (Math.random() * 0.02 - 0.005)); // Slight random fluctuation
+      priceHistoryChartData.push({
+        month: `${month} ${year}`,
+        price: Math.round(lastPrice / 1000) * 1000, // Round to nearest 1000
+      });
+    }
+    
+    const fakeOutput: PredictionOutput = {
+      predictedPrice: Math.round(predictedPrice / 1000) * 1000,
+      priceTrend: 'increasing',
+      averageAreaPrice: Math.round((basePrice * 0.9) / 1000) * 1000,
+      priceHistoryChartData: priceHistoryChartData,
+    };
+    
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000)); 
+
+    return fakeOutput;
   }
 );
+

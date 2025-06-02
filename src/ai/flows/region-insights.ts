@@ -43,8 +43,25 @@ const regionPriceInsightsFlow = ai.defineFlow(
     inputSchema: RegionPriceInsightsInputSchema,
     outputSchema: RegionPriceInsightsOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
+    // Fake data implementation
+    const fakeSummaries: Record<string, string> = {
+      'E1': `Region ${input.region} (Whitechapel, Stepney, Mile End) is experiencing a surge in new developments, particularly around transport hubs. This presents opportunities for capital growth, but also means increased construction and potential for oversupply in certain micro-locations. Rental demand remains strong.`,
+      'SW1': `The prestigious ${input.region} (Westminster, Belgravia, Pimlico) continues to be a global prime market. Prices are relatively stable but high, appealing to UHNWIs. Potential risks include changes to international buyer regulations and global economic shifts. Opportunities lie in long-term secure investments.`,
+      'N1': `${input.region} (Islington, Barnsbury, Canonbury) maintains its popularity with affluent families and young professionals. Strong school catchments and boutique amenities drive demand. Limited housing stock creates upward price pressure. Risks are mainly tied to higher mortgage rates impacting affordability.`,
+      'DEFAULT': `This is a fake insight for region ${input.region}. It shows consistent demand with potential for moderate growth. Key factors include local regeneration projects and transport improvements. Consider exploring opportunities in both residential and commercial properties, but be mindful of market fluctuations.`,
+    };
+    
+    const summary = fakeSummaries[input.region] || fakeSummaries['DEFAULT'];
+
+    const fakeOutput: RegionPriceInsightsOutput = {
+      summary: summary,
+    };
+
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    return fakeOutput;
   }
 );
+
