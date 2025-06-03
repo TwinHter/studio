@@ -1,15 +1,14 @@
 
 "use client";
 
-import type { LatLngExpression, GeoJSON as LeafletGeoJSON, StyleFunction } from 'leaflet';
+import React, { useMemo } from 'react'; // Import useMemo
+import L, { type LatLngExpression, type GeoJSON as LeafletGeoJSON, type StyleFunction, type LeafletEvent } from 'leaflet'; // Explicitly import L
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import type { OutcodeData } from '@/types';
-import { PLACEHOLDER_HINTS } from '@/lib/constants';
 
 // Embedded simplified GeoJSON data for demonstration
-// In a real app, this would come from a file or API and be more detailed.
 const sampleGeoJson: FeatureCollection = {
   type: 'FeatureCollection',
   features: [
@@ -107,70 +106,78 @@ interface InteractiveMapProps {
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSelect, selectedRegionId }) => {
-  const londonCenter: LatLngExpression = [51.5074, -0.1278]; // Approx center of London
+  const londonCenter: LatLngExpression = [51.5074, -0.1278];
+  const mapStyle = useMemo(() => ({ height: '500px', width: '100%' }), []);
 
-  const getRegionStyle: StyleFunction = (feature?: Feature<Geometry, any>) => {
-    if (!feature) return { color: '#cccccc', weight: 1, fillOpacity: 0.5 };
-    const regionId = feature.properties.id;
-    const region = regionsData.find(r => r.id === regionId);
-    
-    let fillColor = '#cccccc'; // Default color
-    let weight = 1;
-    let opacity = 0.65;
+  const getRegionStyle = useMemo((): StyleFunction => {
+    return (feature?: Feature<Geometry, any>) => {
+      if (!feature) return { color: '#cccccc', weight: 1, fillOpacity: 0.5 };
+      const regionId = feature.properties.id;
+      const region = regionsData.find(r => r.id === regionId);
+      
+      let fillColor = '#cccccc'; // Default color
+      let weight = 1;
+      let opacity = 0.65;
 
-    if (region) {
-      switch (region.priceCategory) {
-        case 'low': fillColor = '#66bb6a'; break; // Softer Green
-        case 'medium': fillColor = '#ffee58'; break; // Softer Yellow
-        case 'high': fillColor = '#ef5350'; break; // Softer Red
-        default: fillColor = '#90a4ae'; // Bluish Grey for others
-      }
-    }
-    
-    if (selectedRegionId === regionId) {
-        weight = 3;
-        opacity = 0.85;
-        fillColor = region ? fillColor : '#3388ff'; // Keep category color or blue if no category
-    }
-
-    return {
-      fillColor,
-      weight,
-      opacity,
-      color: 'white', // Border color for polygons
-      fillOpacity: opacity,
-    };
-  };
-
-  const onEachFeature = (feature: Feature<Geometry, any>, layer: LeafletGeoJSON) => {
-    layer.on({
-      click: () => {
-        onRegionSelect(feature.properties.id);
-      },
-      mouseover: (e) => {
-        const l = e.target;
-        l.setStyle({
-            weight: 2.5,
-            fillOpacity: selectedRegionId === feature.properties.id ? 0.85: 0.75,
-        });
-        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-            l.bringToFront();
+      if (region) {
+        switch (region.priceCategory) {
+          case 'low': fillColor = '#66bb6a'; break; 
+          case 'medium': fillColor = '#ffee58'; break; 
+          case 'high': fillColor = '#ef5350'; break; 
+          default: fillColor = '#90a4ae'; 
         }
-      },
-      mouseout: (e) => {
-         const l = e.target;
-         // Reset to default style based on selection
-         const baseStyle = getRegionStyle(feature);
-         l.setStyle(baseStyle);
       }
-    });
-  };
+      
+      if (selectedRegionId === regionId) {
+          weight = 3;
+          opacity = 0.85;
+          fillColor = region ? fillColor : '#3388ff'; 
+      }
+
+      return {
+        fillColor,
+        weight,
+        opacity,
+        color: 'white', 
+        fillOpacity: opacity,
+      };
+    };
+  }, [regionsData, selectedRegionId]);
+
+
+  const onEachFeature = useMemo(() => {
+    return (feature: Feature<Geometry, any>, layer: L.Layer) => {
+        layer.on({
+          click: () => {
+            onRegionSelect(feature.properties.id);
+          },
+          mouseover: (e: LeafletEvent) => {
+            const l = e.target;
+            l.setStyle({
+                weight: 2.5,
+                fillOpacity: selectedRegionId === feature.properties.id ? 0.85 : 0.75,
+            });
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                l.bringToFront();
+            }
+          },
+          mouseout: (e: LeafletEvent) => {
+             const l = e.target;
+             const styleFunction = getRegionStyle;
+             const baseStyle = styleFunction(feature);
+             l.setStyle(baseStyle);
+          }
+        });
+      };
+  }, [onRegionSelect, selectedRegionId, getRegionStyle]);
+
 
   return (
-    <MapContainer 
-        center={londonCenter} 
-        zoom={10} 
-        style={{ height: '500px', width: '100%' }} 
+    <MapContainer
+        id="london-interactive-map" // Added a stable ID
+        center={londonCenter}
+        zoom={10}
+        style={mapStyle} // Use memoized style
         className="rounded-md shadow-md"
         scrollWheelZoom={true}
     >
@@ -178,15 +185,15 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <GeoJSON 
-        key={selectedRegionId || 'geojson-layer'} // Force re-render on selection change for styling
-        data={sampleGeoJson} 
+      <GeoJSON
+        key={selectedRegionId || 'geojson-layer'} // This key is important for GeoJSON updates
+        data={sampleGeoJson}
         style={getRegionStyle}
-        onEachFeature={onEachFeature} 
+        onEachFeature={onEachFeature}
       />
     </MapContainer>
   );
 };
 
 export default InteractiveMap;
-
+    
