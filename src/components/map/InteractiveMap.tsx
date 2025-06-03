@@ -163,18 +163,17 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
           },
           mouseout: (e: LeafletEvent) => {
              const l = e.target;
-             const styleFunction = getRegionStyle;
+             const styleFunction = getRegionStyle; // getRegionStyle is stable due to useMemo
              const baseStyle = styleFunction(feature);
              l.setStyle(baseStyle);
           }
         });
       };
-  }, [onRegionSelect, selectedRegionId, getRegionStyle]);
+  }, [onRegionSelect, selectedRegionId, getRegionStyle]); // getRegionStyle is a dependency
 
 
   return (
     <MapContainer
-        id="london-interactive-map" // Added a stable ID
         center={londonCenter}
         zoom={10}
         style={mapStyle} // Use memoized style
