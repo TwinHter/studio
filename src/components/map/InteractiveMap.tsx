@@ -9,6 +9,7 @@ import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import type { OutcodeData } from '@/types';
 
 // Embedded simplified GeoJSON data for demonstration
+// In a real app, this would likely come from a file or API
 const sampleGeoJson: FeatureCollection = {
   type: 'FeatureCollection',
   features: [
@@ -107,41 +108,45 @@ interface InteractiveMapProps {
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSelect, selectedRegionId }) => {
   const londonCenter: LatLngExpression = [51.5074, -0.1278];
-  const mapStyle = useMemo(() => ({ height: '500px', width: '100%' }), []);
-
-  // Use a simple Math.random key for aggressive re-mount debugging in development
-  const mapKey = Math.random().toString();
+  
+  // Style for the outer wrapper div, defining map dimensions
+  const wrapperMapStyle = useMemo(() => ({ height: '500px', width: '100%' }), []);
+  
+  // Key for the wrapper div to force re-mount in development (HMR fix)
+  const mapWrapperKey = process.env.NODE_ENV === 'development' ? Math.random().toString() : 'map-wrapper-prod';
 
   const getRegionStyle = useMemo((): StyleFunction<any> => {
     return (feature?: Feature<Geometry, any>) => {
-      if (!feature || !feature.properties) return { color: '#cccccc', weight: 1, fillOpacity: 0.5, fillColor: '#cccccc' };
+      if (!feature || !feature.properties) {
+        return { color: '#cccccc', weight: 1, fillOpacity: 0.5, fillColor: '#cccccc' };
+      }
       const regionId = feature.properties.id;
       const region = regionsData.find(r => r.id === regionId);
       
-      let fillColor = '#cccccc';
+      let fillColor = '#cccccc'; // Default color for regions not in regionsData or without category
       let weight = 1;
       let opacity = 0.65;
 
       if (region) {
         switch (region.priceCategory) {
-          case 'low': fillColor = '#66bb6a'; break;
-          case 'medium': fillColor = '#ffee58'; break;
-          case 'high': fillColor = '#ef5350'; break;
-          default: fillColor = '#90a4ae'; 
+          case 'low': fillColor = 'hsl(var(--chart-4))'; break; // Green
+          case 'medium': fillColor = 'hsl(var(--chart-3))'; break; // Orange/Yellow
+          case 'high': fillColor = 'hsl(var(--destructive))'; break; // Red
+          default: fillColor = '#90a4ae'; // Grey for uncategorized but present in data
         }
       }
       
       if (selectedRegionId === regionId) {
           weight = 3;
           opacity = 0.85;
-          fillColor = region ? fillColor : '#3388ff';
+          fillColor = region ? fillColor : 'hsl(var(--primary))'; // Highlight selected with its color or primary if not found
       }
 
       return {
         fillColor,
         weight,
         opacity,
-        color: 'white',
+        color: 'white', // Border color for features
         fillOpacity: opacity,
       };
     };
@@ -151,50 +156,58 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
   const onEachFeature = useMemo(() => {
     return (feature: Feature<Geometry, any>, layer: L.Layer) => {
         layer.on({
-          click: () => {
+          click: (e: LeafletEvent) => {
+            L.DomEvent.stopPropagation(e); // Prevent map click if feature is clicked
             if (feature && feature.properties) {
               onRegionSelect(feature.properties.id);
             }
           },
           mouseover: (e: LeafletEvent) => {
             const targetLayer = e.target as Path;
-            targetLayer.setStyle({
-                weight: 2.5,
-                fillOpacity: (feature.properties && selectedRegionId === feature.properties.id) ? 0.85 : 0.75,
-            });
+            if (targetLayer.setStyle) { // Check if setStyle exists
+                targetLayer.setStyle({
+                    weight: 2.5,
+                    fillOpacity: (feature.properties && selectedRegionId === feature.properties.id) ? 0.85 : 0.75,
+                });
+            }
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                targetLayer.bringToFront();
+                if (targetLayer.bringToFront) targetLayer.bringToFront();
             }
           },
           mouseout: (e: LeafletEvent) => {
              const targetLayer = e.target as Path;
-             targetLayer.setStyle(getRegionStyle(feature));
+             if (targetLayer.setStyle) { // Check if setStyle exists
+                targetLayer.setStyle(getRegionStyle(feature)); // Re-apply original or selected style
+             }
           }
         });
       };
   }, [onRegionSelect, selectedRegionId, getRegionStyle]);
 
+  // Key for GeoJSON to re-render when selectedRegionId changes (for styling) or if regionsData were dynamic
+  const geoJsonKey = `geojson-${selectedRegionId}-${regionsData.length}`;
+
   return (
-    <MapContainer
-        key={mapKey} // Aggressive key for HMR debugging
-        center={londonCenter}
-        zoom={10}
-        style={mapStyle}
-        className="rounded-md shadow-md"
-        scrollWheelZoom={true}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {/*
-      <GeoJSON
-        data={sampleGeoJson}
-        style={getRegionStyle}
-        onEachFeature={onEachFeature}
-      />
-      */}
-    </MapContainer>
+    <div key={mapWrapperKey} style={wrapperMapStyle} className="rounded-md shadow-md bg-muted">
+      <MapContainer
+          center={londonCenter}
+          zoom={10}
+          style={{ height: '100%', width: '100%' }} // MapContainer fills the wrapper
+          className="rounded-md" // Keep rounded corners if desired on the map itself
+          scrollWheelZoom={true}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" // Using a CartoDB base map
+        />
+        <GeoJSON
+          key={geoJsonKey}
+          data={sampleGeoJson} // Ensure this GeoJSON data is valid
+          style={getRegionStyle}
+          onEachFeature={onEachFeature}
+        />
+      </MapContainer>
+    </div>
   );
 };
 
