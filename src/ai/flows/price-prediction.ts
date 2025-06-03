@@ -14,13 +14,13 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 // Import general types if needed by Zod schema, e.g. for enums
 import type { PropertyType, EnergyRating, Tenure } from '@/types';
-import { PROPERTY_TYPE_OPTIONS, ENERGY_RATING_OPTIONS, TENURE_OPTIONS, PREDICTION_MONTH_OF_SALE_FORMAT_DESC } from '@/lib/constants';
+import { PROPERTY_TYPE_OPTIONS, ENERGY_RATING_OPTIONS, TENURE_OPTIONS, REGION_OPTIONS, PREDICTION_MONTH_OF_SALE_FORMAT_DESC } from '@/lib/constants';
 
 
 // Zod schema (NOT EXPORTED, but used internally by the flow)
 const PredictionInputSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address is required.' }).describe('The full address of the property.'),
-  outcode: z.string().min(2, { message: 'Outcode is required.' }).describe('The outcode part of the postcode (e.g., SW1, E1).'),
+  outcode: z.enum(REGION_OPTIONS as [string, ...string[]]).describe('The outcode part of the postcode (e.g., SW1, E1).'),
   longitude: z.number().optional().describe('The longitude of the property (derived from address).'),
   latitude: z.number().optional().describe('The latitude of the property (derived from address).'),
   bedrooms: z.number().int().min(0, {message: 'Bedrooms cannot be negative.'}).max(10, { message: 'Cannot exceed 10 bedrooms.' }).describe('The number of bedrooms.'),
@@ -114,38 +114,59 @@ const predictPriceFlow = ai.defineFlow(
     const energyRatingModifiers: Record<EnergyRating, number> = { 'A': 1.1, 'B': 1.05, 'C': 1.0, 'D': 0.95, 'E': 0.9, 'F': 0.85, 'G': 0.8 };
     basePrice *= energyRatingModifiers[input.currentEnergyRating];
 
-    if (input.outcode.startsWith('SW') || input.outcode.startsWith('W') || input.outcode.startsWith('N')) {
-      basePrice *= 1.2;
-    } else if (input.outcode.startsWith('E') || input.outcode.startsWith('SE')) {
-      basePrice *= 1.05;
+    // Refined price modification based on outcode groups
+    const highValueOutcodes = ['SW1', 'W1', 'WC1', 'NW1']; // Added WC1, NW1
+    const midValueOutcodes = ['N1', 'E1', 'SE1', 'EC1']; // Added EC1
+    // Low value outcodes are implicitly others like IG1, CR0
+
+    if (highValueOutcodes.some(oc => input.outcode.startsWith(oc))) {
+      basePrice *= 1.25;
+    } else if (midValueOutcodes.some(oc => input.outcode.startsWith(oc))) {
+      basePrice *= 1.10;
+    } else { // Default/lower value areas
+        basePrice *= 1.0;
     }
+
 
     const [saleYear, saleMonth] = input.monthOfSale.split('-').map(Number);
     const predictedPrice = Math.round(basePrice / 1000) * 1000;
 
     const priceHistoryChartData = [];
-    let lastPrice = predictedPrice * 0.98;
+    let lastPrice = predictedPrice * 0.98; // Start slightly lower for trend
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     for (let i = 0; i < 12; i++) {
       const date = new Date(saleYear, saleMonth -1 + i, 1);
       const month = monthNames[date.getMonth()];
       const year = date.getFullYear();
-      lastPrice = lastPrice * (1 + (Math.random() * 0.015 - 0.004));
+      lastPrice = lastPrice * (1 + (Math.random() * 0.015 - 0.004)); // Slight random fluctuation for trend
       priceHistoryChartData.push({
         month: `${month} ${year}`,
         price: Math.round(lastPrice / 1000) * 1000,
       });
     }
+    
+    // Ensure the first month in chart data aligns with the predicted price (or is very close)
+    if (priceHistoryChartData.length > 0) {
+        const initialChartPrice = priceHistoryChartData[0].price;
+        const adjustmentFactor = predictedPrice / initialChartPrice;
+        // Adjust all chart prices to be relative to the predicted price, maintaining their trend.
+        priceHistoryChartData.forEach(item => {
+            item.price = Math.round((item.price * adjustmentFactor) / 1000) * 1000;
+        });
+        // Recalculate the first price to be very close to predicted after scaling the trend
+        priceHistoryChartData[0].price = Math.round((predictedPrice * (0.99 + Math.random() * 0.02)) /1000) * 1000;
+    }
+
 
     const fakeOutput: PredictionOutput = {
       predictedPrice: predictedPrice,
       priceTrend: ['increasing', 'decreasing', 'stable'][Math.floor(Math.random() * 3)] as 'increasing' | 'decreasing' | 'stable',
-      averageAreaPrice: Math.round((predictedPrice * (0.8 + Math.random() * 0.3)) / 1000) * 1000,
+      averageAreaPrice: Math.round((predictedPrice * (0.85 + Math.random() * 0.25)) / 1000) * 1000, // Adjusted range
       priceHistoryChartData: priceHistoryChartData,
     };
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Removed artificial delay: await new Promise(resolve => setTimeout(resolve, 1000));
 
     return fakeOutput;
   }

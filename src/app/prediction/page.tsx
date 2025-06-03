@@ -1,13 +1,10 @@
 
 "use client";
 
-// Removed useState for predictionResult
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-// import { useMutation } from '@tanstack/react-query'; // No longer directly used
-// import { fetchPricePrediction } from '@/services/api'; // Original API call
-import { usePredict } from '@/hooks/usePredict'; // Import the new hook
+import { usePredict } from '@/hooks/usePredict';
 import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
@@ -18,13 +15,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, TrendingUp, Home, Coins, LineChart as LineChartIcon, MapPin, Building2, Bath, Sofa, Zap, FileText, CalendarDays, Tv2 } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-// import { useToast } from '@/hooks/use-toast'; // Toast is handled by the hook now
 import { 
   PREDICTION_PAGE_HERO_TITLE, 
   PREDICTION_PAGE_HERO_DESCRIPTION,
   PROPERTY_TYPE_OPTIONS,
   ENERGY_RATING_OPTIONS,
   TENURE_OPTIONS,
+  REGION_OPTIONS, // Import REGION_OPTIONS
   PREDICTION_FORM_DEFAULT_BEDROOMS,
   PREDICTION_FORM_DEFAULT_BATHROOMS,
   PREDICTION_FORM_DEFAULT_RECEPTIONS,
@@ -34,7 +31,7 @@ import type { PropertyType, EnergyRating, Tenure } from '@/types';
 
 const predictionFormSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address must be at least 5 characters.' }),
-  outcode: z.string().min(2, { message: 'Outcode must be at least 2 characters (e.g., E1, SW1A).' }),
+  outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: 'Outcode is required.' }), // Updated outcode validation
   longitude: z.coerce.number().optional(),
   latitude: z.coerce.number().optional(),
   bedrooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more bedrooms.' }).max(10, { message: 'Cannot exceed 10 bedrooms.' }),
@@ -50,9 +47,7 @@ const predictionFormSchema = z.object({
 type PredictionFormValues = z.infer<typeof predictionFormSchema>;
 
 export default function PredictionPage() {
-  // Use the new hook
   const { predict, isPredicting, predictionData, predictionError, resetPrediction } = usePredict();
-  // const { toast } = useToast(); // No longer needed here
   const currentYear = new Date().getFullYear();
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
 
@@ -60,7 +55,7 @@ export default function PredictionPage() {
     resolver: zodResolver(predictionFormSchema),
     defaultValues: {
       fullAddress: '',
-      outcode: '',
+      outcode: undefined, // Default to undefined for Select placeholder
       longitude: undefined,
       latitude: undefined,
       bedrooms: PREDICTION_FORM_DEFAULT_BEDROOMS,
@@ -75,16 +70,16 @@ export default function PredictionPage() {
   });
 
   const onSubmit: SubmitHandler<PredictionFormValues> = async (data) => {
-    resetPrediction(); // Clear previous results from the hook's state
+    resetPrediction();
     const inputData: PredictionInput = {
       ...data,
+      outcode: data.outcode, // Ensure outcode is passed correctly
       ...(data.longitude && { longitude: data.longitude }),
       ...(data.latitude && { latitude: data.latitude }),
     };
     try {
-      await predict(inputData); // Call predict from the hook
+      await predict(inputData);
     } catch (e) {
-      // Error handling is done within the hook via toast
       console.error("Submit error", e)
     }
   };
@@ -131,9 +126,18 @@ export default function PredictionPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4" />Outcode</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., SW1A" {...field} />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select outcode" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {REGION_OPTIONS.map((region) => (
+                            <SelectItem key={region} value={region}>{region}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

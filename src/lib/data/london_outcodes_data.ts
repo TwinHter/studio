@@ -11,4 +11,8 @@ export const londonOutcodes: OutcodeData[] = [
   { id: 'W1', name: 'Mayfair, Marylebone, Soho', avgPrice: 3000000, priceCategory: 'high', description: 'An ultra-exclusive central London area, renowned for luxury retail, dining, and prime real estate.' },
   { id: 'IG1', name: 'Ilford', avgPrice: 350000, priceCategory: 'low', description: 'An East London suburban town offering more affordable housing options with good transport links.' },
   { id: 'CR0', name: 'Croydon', avgPrice: 400000, priceCategory: 'low', description: 'A major South London hub undergoing significant development, known for its relative affordability.' },
+  { id: 'NW1', name: 'Camden Town, Regent\'s Park', avgPrice: 1100000, priceCategory: 'high', description: 'Known for its vibrant markets, music scene, and proximity to Regent\'s Park.' },
+  { id: 'WC1', name: 'Bloomsbury, Holborn', avgPrice: 1300000, priceCategory: 'high', description: 'A historic and intellectual hub, home to universities, museums, and garden squares.' },
+  { id: 'EC1', name: 'Clerkenwell, Farringdon, Barbican', avgPrice: 950000, priceCategory: 'medium', description: 'A trendy area with a mix of tech companies, design studios, and historic buildings.' },
 ];
+
