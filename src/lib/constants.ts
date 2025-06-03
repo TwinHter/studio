@@ -1,7 +1,7 @@
 
 import type { PropertyType, EnergyRating, Tenure } from '@/types';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data'; // Updated to use the processed extended data
-import { TrendingUp, MapIcon, ListChecksIcon, Database, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { TrendingUp, MapIcon as PageMapIcon, ListChecksIcon, Database, ShieldCheck, Sparkles, Users } from 'lucide-react'; // Renamed MapIcon to PageMapIcon to avoid conflict
 
 // App Info
 export const APP_NAME = "London Housing";
@@ -32,9 +32,9 @@ export const INTRO_FEATURE_CARDS = [
     IconComponent: TrendingUp 
   },
   { 
-    title: "Interactive Map Exploration", 
-    description: "Discover London regions with a map color-coded by average prices. Click areas for detailed local market insights powered by AI.", 
-    IconComponent: MapIcon
+    title: "London Outcode Explorer", 
+    description: "View average prices and AI-generated insights for different London outcodes. The map image is illustrative; select regions from the list.", 
+    IconComponent: PageMapIcon
   },
   { 
     title: "Property Recommendations", 
@@ -80,8 +80,8 @@ export const INTRO_TEAM_MEMBERS = [
 export const PREDICTION_PAGE_HERO_TITLE = "Property Price Prediction";
 export const PREDICTION_PAGE_HERO_DESCRIPTION = "Enter the property details below to receive an AI-powered price prediction and market insights. Note: Longitude and Latitude are optional; in a full app, they would be derived from the address.";
 
-export const MAP_PAGE_HERO_TITLE = "Interactive London Outcode Map";
-export const MAP_PAGE_HERO_DESCRIPTION = "Explore London's outcodes using the interactive map below. Regions are colored by average price. Click an area on the map or select from the list for details and AI-driven insights.";
+export const MAP_PAGE_HERO_TITLE = "London Outcode Explorer";
+export const MAP_PAGE_HERO_DESCRIPTION = "Explore London's outcodes. The map image is for illustrative purposes. Use the filters and list below to select a region and view its average price and AI-driven market insights.";
 
 export const RECOMMENDATIONS_PAGE_HERO_TITLE = "Suitable Property Recommendations";
 export const RECOMMENDATIONS_PAGE_HERO_DESCRIPTION = "Find your ideal London property based on your budget and requirements. Explore our curated list or upload your own.";
@@ -101,7 +101,7 @@ export const REGION_OPTIONS: string[] = Array.from(new Set(londonOutcodes.map(o 
 
 // Placeholder Image Hints
 export const PLACEHOLDER_HINTS = {
-  londonMap: "london outcode map interactive", // Updated hint
+  londonMap: "london regions map illustrative", // Updated hint
   accuracyChart: "graph accuracy",
   priceChart: "graph price trend",
   defaultHouse: "house exterior",
