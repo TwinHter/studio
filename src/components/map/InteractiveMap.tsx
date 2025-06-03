@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import type { GeoJsonObject } from 'geojson';
 import L, { type PathOptions, type LatLngExpression } from 'leaflet';
@@ -172,3 +172,4 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
 };
 
 export default InteractiveMap;
+
