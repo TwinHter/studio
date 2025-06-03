@@ -13,12 +13,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 // Import general types if needed by Zod schema, e.g. for enums
-import type { PropertyType, EnergyRating, Tenure } from '@/types'; 
-import { PROPERTY_TYPE_OPTIONS, ENERGY_RATING_OPTIONS, TENURE_OPTIONS } from '@/lib/constants';
+import type { PropertyType, EnergyRating, Tenure } from '@/types';
+import { PROPERTY_TYPE_OPTIONS, ENERGY_RATING_OPTIONS, TENURE_OPTIONS, PREDICTION_MONTH_OF_SALE_FORMAT_DESC } from '@/lib/constants';
 
 
-// Zod schemas remain here as they define the contract for the AI flow
-export const PredictionInputSchema = z.object({
+// Zod schema (NOT EXPORTED, but used internally by the flow)
+const PredictionInputSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address is required.' }).describe('The full address of the property.'),
   outcode: z.string().min(2, { message: 'Outcode is required.' }).describe('The outcode part of the postcode (e.g., SW1, E1).'),
   longitude: z.number().optional().describe('The longitude of the property (derived from address).'),
@@ -30,12 +30,13 @@ export const PredictionInputSchema = z.object({
   tenure: z.enum(TENURE_OPTIONS as [Tenure, ...Tenure[]]).describe('The tenure type of the property (e.g., Freehold, Leasehold).'),
   propertyType: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]]).describe('The type of property.'),
   currentEnergyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]]).describe('The current energy efficiency rating of the property.'),
-  monthOfSale: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: 'Month of sale must be in YYYY-MM format.' }).describe('The month and year of sale (YYYY-MM).'),
+  monthOfSale: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: PREDICTION_MONTH_OF_SALE_FORMAT_DESC }).describe('The month and year of sale (YYYY-MM).'),
 });
 // Type inferred from Zod schema, exported for use in components/services
 export type PredictionInput = z.infer<typeof PredictionInputSchema>;
 
-export const PredictionOutputSchema = z.object({
+// Zod schema (NOT EXPORTED, but used internally by the flow)
+const PredictionOutputSchema = z.object({
   predictedPrice: z.number().describe('The predicted price of the property.'),
   priceTrend: z.enum(['increasing', 'decreasing', 'stable']).describe('The predicted price trend for the next 12 months.'),
   averageAreaPrice: z.number().describe('The average price for similar properties in the area.'),
@@ -112,7 +113,7 @@ const predictPriceFlow = ai.defineFlow(
 
     const energyRatingModifiers: Record<EnergyRating, number> = { 'A': 1.1, 'B': 1.05, 'C': 1.0, 'D': 0.95, 'E': 0.9, 'F': 0.85, 'G': 0.8 };
     basePrice *= energyRatingModifiers[input.currentEnergyRating];
-    
+
     if (input.outcode.startsWith('SW') || input.outcode.startsWith('W') || input.outcode.startsWith('N')) {
       basePrice *= 1.2;
     } else if (input.outcode.startsWith('E') || input.outcode.startsWith('SE')) {
@@ -123,28 +124,28 @@ const predictPriceFlow = ai.defineFlow(
     const predictedPrice = Math.round(basePrice / 1000) * 1000;
 
     const priceHistoryChartData = [];
-    let lastPrice = predictedPrice * 0.98; 
+    let lastPrice = predictedPrice * 0.98;
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
+
     for (let i = 0; i < 12; i++) {
-      const date = new Date(saleYear, saleMonth -1 + i, 1); 
+      const date = new Date(saleYear, saleMonth -1 + i, 1);
       const month = monthNames[date.getMonth()];
       const year = date.getFullYear();
-      lastPrice = lastPrice * (1 + (Math.random() * 0.015 - 0.004)); 
+      lastPrice = lastPrice * (1 + (Math.random() * 0.015 - 0.004));
       priceHistoryChartData.push({
         month: `${month} ${year}`,
         price: Math.round(lastPrice / 1000) * 1000,
       });
     }
-    
+
     const fakeOutput: PredictionOutput = {
       predictedPrice: predictedPrice,
       priceTrend: ['increasing', 'decreasing', 'stable'][Math.floor(Math.random() * 3)] as 'increasing' | 'decreasing' | 'stable',
       averageAreaPrice: Math.round((predictedPrice * (0.8 + Math.random() * 0.3)) / 1000) * 1000,
       priceHistoryChartData: priceHistoryChartData,
     };
-    
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     return fakeOutput;
   }

@@ -12,14 +12,15 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-// Zod schemas remain here
-export const RegionPriceInsightsInputSchema = z.object({
+// Zod schema (NOT EXPORTED, but used internally by the flow)
+const RegionPriceInsightsInputSchema = z.object({
   region: z.string().describe('The London region (outcode) to get price insights for, e.g., E1, SW1.'),
 });
 // Type inferred from Zod schema, exported for use in components/services
 export type RegionPriceInsightsInput = z.infer<typeof RegionPriceInsightsInputSchema>;
 
-export const RegionPriceInsightsOutputSchema = z.object({
+// Zod schema (NOT EXPORTED, but used internally by the flow)
+const RegionPriceInsightsOutputSchema = z.object({
   summary: z.string().describe('A summary of the price forecast for the region, including potential opportunities and risks.'),
 });
 // Type inferred from Zod schema, exported for use in components/services
@@ -54,7 +55,7 @@ const regionPriceInsightsFlow = ai.defineFlow(
       'N1': `${input.region} (Islington, Barnsbury, Canonbury) maintains its popularity with affluent families and young professionals. Strong school catchments and boutique amenities drive demand. Limited housing stock creates upward price pressure. Risks are mainly tied to higher mortgage rates impacting affordability.`,
       'DEFAULT': `This is a fake insight for region ${input.region}. It shows consistent demand with potential for moderate growth. Key factors include local regeneration projects and transport improvements. Consider exploring opportunities in both residential and commercial properties, but be mindful of market fluctuations.`,
     };
-    
+
     const summary = fakeSummaries[input.region] || fakeSummaries['DEFAULT'];
 
     const fakeOutput: RegionPriceInsightsOutput = {
