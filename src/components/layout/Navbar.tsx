@@ -17,18 +17,20 @@ const Navbar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-primary text-primary-foreground shadow-md sticky top-0 z-50">
+    <nav className="bg-card text-card-foreground shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Logo />
-        <ul className="flex space-x-2 sm:space-x-4 items-center">
+        <ul className="flex space-x-1 sm:space-x-2 items-center">
           {navItems.map((item) => (
             <li key={item.href}>
               <Button
                 variant="ghost"
                 asChild
                 className={cn(
-                  "text-sm sm:text-base font-medium transition-opacity hover:opacity-100",
-                  pathname === item.href ? "font-semibold opacity-100" : "opacity-80"
+                  "text-sm sm:text-base font-medium transition-colors duration-150 ease-in-out px-3 py-2 rounded-md",
+                  pathname === item.href 
+                    ? "bg-accent text-accent-foreground hover:bg-accent/90" // Active state
+                    : "text-primary hover:text-primary hover:bg-accent/20" // Inactive state
                 )}
               >
                 <Link href={item.href}>{item.label}</Link>
