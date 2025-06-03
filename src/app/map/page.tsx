@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import Image from 'next/image';
+import dynamic from 'next/dynamic'; // Import dynamic
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
 import PageHero from '@/components/shared/PageHero';
@@ -12,7 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data';
 import type { OutcodeData } from '@/types';
 import { fetchRegionInsights } from '@/services/api';
-import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights'; // Import flow types directly
+import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
 import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -22,6 +22,13 @@ import {
   MAX_PRICE_FILTER_DEFAULT,
   PLACEHOLDER_HINTS
 } from '@/lib/constants';
+import Image from 'next/image'; // Keep for illustrative chart placeholder
+
+// Dynamically import the InteractiveMap component
+const InteractiveMap = dynamic(() => import('@/components/map/InteractiveMap'), {
+  ssr: false, // Disable server-side rendering for this component
+  loading: () => <div className="flex justify-center items-center h-[500px] w-full bg-muted rounded-md shadow-md"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading map...</p></div>,
+});
 
 type RegionFilters = {
   priceRange?: [number, number];
@@ -119,17 +126,13 @@ export default function MapInteractionPage() {
               <CardTitle className="font-headline text-xl flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary"/>London Map (Outcodes)</CardTitle>
             </CardHeader>
             <CardContent>
-              <Image
-                src="https://placehold.co/800x500.png"
-                alt="London Map Placeholder"
-                width={800}
-                height={500}
-                className="rounded-md shadow-md w-full h-auto"
-                data-ai-hint={PLACEHOLDER_HINTS.londonMap}
+              <InteractiveMap 
+                regionsData={londonOutcodes} 
+                onRegionSelect={handleRegionSelect}
+                selectedRegionId={selectedRegion?.id}
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                This image is a placeholder. In a real application, this would be a fully interactive map.
-                Please select a region from the list below to view details.
+                Click on a region on the map or select from the list below to view details.
               </p>
             </CardContent>
           </Card>
@@ -217,3 +220,4 @@ export default function MapInteractionPage() {
     </div>
   );
 }
+
