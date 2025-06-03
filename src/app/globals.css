@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 220 60% 97%; /* Very Pale Blue */
+    --background: 220 70% 94%; /* Vivid Pale Blue */
     --foreground: 220 25% 25%; /* Dark Cool Gray */
 
     --card: 0 0% 100%; /* White */
@@ -106,3 +106,4 @@
 .animate-fadeIn {
   animation: fadeIn 0.6s ease-out forwards;
 }
+
