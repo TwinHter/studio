@@ -55,14 +55,14 @@ const londonOutcodesGeoJson: GeoJsonObject = {
       geometry: { type: "Polygon", coordinates: [[[-0.12, 51.36], [-0.08, 51.36], [-0.08, 51.38], [-0.12, 51.38], [-0.12, 51.36]]] }
     }
   ]
-} as GeoJsonObject; // Cast to GeoJsonObject to satisfy react-leaflet types
+} as GeoJsonObject;
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSelect, selectedRegionId }) => {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true); // Set to true after initial mount on client
-    // Fix for default icon issue in Leaflet
+    setIsClient(true);
+    // Fix for default icon issue in Leaflet with Webpack/Next.js
     // @ts-ignore
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
@@ -70,15 +70,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
     });
-  }, []);
+  }, []); // Empty dependency array ensures this runs once on mount
 
-  const londonCenter: LatLngExpression = [51.505, -0.09]; // London center coordinates
-
+  const londonCenter: LatLngExpression = [51.505, -0.09];
   const mapStyle = useMemo(() => ({ height: '500px', width: '100%', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }), []);
 
   const getRegionStyle = useCallback((feature?: GeoJSON.Feature): PathOptions => {
     if (!feature || !feature.properties) return {
-      fillColor: 'hsl(var(--muted))', // Default color for features not in regionsData
+      fillColor: 'hsl(var(--muted))',
       color: 'hsl(var(--border))',
       weight: 1,
       opacity: 1,
@@ -86,13 +85,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
     };
 
     const regionDetails = regionsData.find(r => r.id === feature.properties.id);
-    let fillColor = 'hsl(var(--muted-foreground))'; // Default if no category match
+    let fillColor = 'hsl(var(--muted-foreground))';
 
     if (regionDetails) {
       switch (regionDetails.priceCategory) {
-        case 'low': fillColor = 'hsl(var(--chart-4))'; break; // Green
-        case 'medium': fillColor = 'hsl(var(--chart-3))'; break; // Orange/Yellow
-        case 'high': fillColor = 'hsl(var(--destructive))'; break; // Red
+        case 'low': fillColor = 'hsl(var(--chart-4))'; break;
+        case 'medium': fillColor = 'hsl(var(--chart-3))'; break;
+        case 'high': fillColor = 'hsl(var(--destructive))'; break;
       }
     }
     
@@ -100,7 +99,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
 
     return {
       fillColor,
-      color: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--card-foreground))', // Primary border if selected
+      color: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--card-foreground))',
       weight: isSelected ? 3 : 1,
       opacity: 1,
       fillOpacity: isSelected ? 0.7 : 0.4,
@@ -125,7 +124,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
         },
         mouseout: (e) => {
            const l = e.target;
-           // Check if this layer is the currently selected one before resetting style
            const currentStyle = getRegionStyle(feature);
            l.setStyle({
              weight: currentStyle.weight,
@@ -136,21 +134,16 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
     }
   }, [onRegionSelect, getRegionStyle]);
   
-  // Key for GeoJSON layer to force re-render when selectedRegionId changes, ensuring styles update
   const geoJsonKey = useMemo(() => `geojson-${selectedRegionId}-${regionsData.length}`, [selectedRegionId, regionsData.length]);
 
-  // Key for MapContainer only for development to try and mitigate HMR issues
-  const mapContainerKey = process.env.NODE_ENV === 'development' ? Math.random().toString() : 'map-container';
-
   if (!isClient) {
-    // Fallback for SSR or before client-side hydration is complete
-    return <div style={mapStyle} className="flex items-center justify-center bg-muted rounded-md shadow-md"><p>Loading map...</p></div>;
+    // Return null and rely on the dynamic import's loading state in the parent component.
+    return null; 
   }
 
   return (
     <div style={mapStyle}> {/* Wrapper div to ensure fixed dimensions */}
       <MapContainer
-        key={mapContainerKey} // Development HMR fix
         center={londonCenter}
         zoom={10}
         style={{ height: '100%', width: '100%' }} // MapContainer fills its parent
@@ -161,7 +154,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <GeoJSON
-          key={geoJsonKey} // Force re-render on selection change for style updates
+          key={geoJsonKey} 
           data={londonOutcodesGeoJson}
           style={getRegionStyle}
           onEachFeature={onEachFeature}
@@ -172,4 +165,3 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
 };
 
 export default InteractiveMap;
-
