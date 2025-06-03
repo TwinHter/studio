@@ -12,7 +12,7 @@ import { londonOutcodes } from '@/lib/data/london_outcodes_data';
 import type { OutcodeData } from '@/types';
 import { useMap } from '@/hooks/useMap';
 import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
-import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign } from 'lucide-react';
+import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign, Image as ImageIcon } from 'lucide-react';
 import { 
   MAP_PAGE_HERO_TITLE, 
   MAP_PAGE_HERO_DESCRIPTION, 
@@ -22,7 +22,7 @@ import {
 } from '@/lib/constants';
 import Image from 'next/image'; 
 
-const InteractiveMap = dynamic(() => import('@/components/map/InteractiveMap'), {
+const StaticMapDisplay = dynamic(() => import('@/components/map/InteractiveMap'), {
   ssr: false, 
   loading: () => <div className="flex justify-center items-center h-[500px] w-full bg-muted rounded-md shadow-md"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading map area...</p></div>,
 });
@@ -111,16 +111,16 @@ export default function MapInteractionPage() {
         <div className="lg:col-span-2 space-y-8">
           <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.4s'}}>
             <CardHeader>
-              <CardTitle className="font-headline text-xl flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary"/>Interactive London Outcodes Map</CardTitle>
+              <CardTitle className="font-headline text-xl flex items-center"><ImageIcon className="mr-2 h-5 w-5 text-primary"/>Illustrative London Outcodes Map</CardTitle>
             </CardHeader>
             <CardContent>
-              <InteractiveMap 
+              <StaticMapDisplay 
                 regionsData={londonOutcodes} 
-                onRegionSelect={handleRegionSelect} 
-                selectedRegionId={selectedRegion?.id} 
+                onRegionSelect={handleRegionSelect} // Prop still passed but not used by static map for interaction
+                selectedRegionId={selectedRegion?.id} // Prop still passed for consistency
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                Click an outcode area on the map or select from the list below to view details.
+                The map above is illustrative. Please select an outcode area from the list below to view details.
               </p>
             </CardContent>
           </Card>
@@ -208,4 +208,3 @@ export default function MapInteractionPage() {
     </div>
   );
 }
-
