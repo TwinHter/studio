@@ -1,7 +1,7 @@
 
-"use client"; 
+"use client";
 
-import React, { useMemo } from 'react'; 
+import React, { useMemo } from 'react';
 import L, { type LatLngExpression, type StyleFunction, type LeafletEvent, type Path } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
@@ -109,26 +109,24 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
   const londonCenter: LatLngExpression = [51.5074, -0.1278];
   const mapStyle = useMemo(() => ({ height: '500px', width: '100%' }), []);
 
-  // Development-only key to help with HMR issues for Leaflet.
-  // This will cause the map to reset on save in dev, but can avoid initialization errors.
-  const mapDevKey = process.env.NODE_ENV === 'development' ? Math.random().toString() : 'map';
+  // Use a simple Math.random key for aggressive re-mount debugging in development
+  const mapKey = Math.random().toString();
 
-
-  const getRegionStyle = useMemo((): StyleFunction<any> => { 
+  const getRegionStyle = useMemo((): StyleFunction<any> => {
     return (feature?: Feature<Geometry, any>) => {
       if (!feature || !feature.properties) return { color: '#cccccc', weight: 1, fillOpacity: 0.5, fillColor: '#cccccc' };
       const regionId = feature.properties.id;
       const region = regionsData.find(r => r.id === regionId);
       
-      let fillColor = '#cccccc'; 
+      let fillColor = '#cccccc';
       let weight = 1;
       let opacity = 0.65;
 
       if (region) {
         switch (region.priceCategory) {
-          case 'low': fillColor = '#66bb6a'; break; 
-          case 'medium': fillColor = '#ffee58'; break; 
-          case 'high': fillColor = '#ef5350'; break; 
+          case 'low': fillColor = '#66bb6a'; break;
+          case 'medium': fillColor = '#ffee58'; break;
+          case 'high': fillColor = '#ef5350'; break;
           default: fillColor = '#90a4ae'; 
         }
       }
@@ -136,14 +134,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
       if (selectedRegionId === regionId) {
           weight = 3;
           opacity = 0.85;
-          fillColor = region ? fillColor : '#3388ff'; 
+          fillColor = region ? fillColor : '#3388ff';
       }
 
       return {
         fillColor,
         weight,
-        opacity, 
-        color: 'white', 
+        opacity,
+        color: 'white',
         fillOpacity: opacity,
       };
     };
@@ -174,11 +172,11 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
           }
         });
       };
-  }, [onRegionSelect, selectedRegionId, getRegionStyle]); 
+  }, [onRegionSelect, selectedRegionId, getRegionStyle]);
 
   return (
     <MapContainer
-        key={mapDevKey} // Development-only key for HMR
+        key={mapKey} // Aggressive key for HMR debugging
         center={londonCenter}
         zoom={10}
         style={mapStyle}
@@ -189,11 +187,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {/*
       <GeoJSON
         data={sampleGeoJson}
         style={getRegionStyle}
         onEachFeature={onEachFeature}
       />
+      */}
     </MapContainer>
   );
 };
