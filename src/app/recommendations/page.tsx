@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect, type ChangeEvent } from 'react';
+import { useState, useMemo, useEffect, type ChangeEvent, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -28,7 +28,7 @@ import {
   receptionOptions
 } from '@/lib/data/properties_data';
 import type { PropertyType, EnergyRating, Tenure } from '@/lib/data/properties_data';
-import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact, UploadCloud, User, MailIcon, Building2, Coins, CalendarDays } from 'lucide-react';
+import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact, UploadCloud, User, MailIcon, Building2, Coins, CalendarDays, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type RecommendationFilters = {
@@ -85,6 +85,8 @@ export default function RecommendationsPage() {
   const { toast } = useToast();
 
   const [displayedProperties, setDisplayedProperties] = useState<Property[]>(sampleProperties);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   const [filters, setFilters] = useState<RecommendationFilters>({
     maxPrice: MAX_POSSIBLE_PRICE,
@@ -118,6 +120,12 @@ export default function RecommendationsPage() {
       setFilters(prev => ({ ...prev, region: initialRegion }));
     }
   }, [initialRegion]);
+
+  useEffect(() => {
+    if (showUploadForm && uploadSectionRef.current) {
+      uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [showUploadForm]);
 
   const filteredProperties = useMemo(() => {
     return displayedProperties.filter(property => {
@@ -178,6 +186,7 @@ export default function RecommendationsPage() {
         description: `${data.name} has been added to the listings. (Uploaded by ${data.uploaderName})`,
       });
       uploadForm.reset();
+      setShowUploadForm(false); // Close form on successful upload
     };
 
     reader.onerror = () => {
@@ -318,233 +327,250 @@ export default function RecommendationsPage() {
         </CardContent>
       </Card>
 
-      <Card className="shadow-xl animate-fadeIn" style={{ animationDelay: '0.3s' }}>
-        <CardHeader>
-          <CardTitle className="font-headline text-xl flex items-center"><UploadCloud className="mr-2 h-5 w-5 text-primary" />Upload New Property Listing</CardTitle>
-          <CardDescription>Contribute to our listings by adding property information.</CardDescription>
-        </CardHeader>
-        <Form {...uploadForm}>
-          <form onSubmit={uploadForm.handleSubmit(handleFileUploadSubmit)}>
-            <CardContent className="space-y-6">
-              <h3 className="text-lg font-semibold text-foreground border-b pb-2">Property Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={uploadForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground" />Property Name</FormLabel>
-                      <FormControl><Input placeholder="e.g., Modern City Apartment" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={uploadForm.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Full Address</FormLabel>
-                      <FormControl><Input placeholder="e.g., 123 Main St, London, E1 1AB" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField
-                  control={uploadForm.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><Coins className="mr-2 h-4 w-4 text-muted-foreground" />Price (£)</FormLabel>
-                      <FormControl><Input type="number" placeholder="e.g., 500000" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={uploadForm.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />Property Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          {propertyTypeOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={uploadForm.control}
-                  name="region"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Region (Outcode)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          {allRegionOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 <FormField
-                  control={uploadForm.control}
-                  name="bedrooms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><BedDouble className="mr-2 h-4 w-4 text-muted-foreground" />Bedrooms</FormLabel>
-                      <FormControl><Input type="number" placeholder="e.g., 2" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={uploadForm.control}
-                  name="bathrooms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><Bath className="mr-2 h-4 w-4 text-muted-foreground" />Bathrooms</FormLabel>
-                      <FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={uploadForm.control}
-                  name="receptionRooms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4 text-muted-foreground" />Receptions</FormLabel>
-                      <FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                    control={uploadForm.control}
-                    name="area"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground"/>Area (sqm)</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="e.g., 70 (optional)" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                 />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <FormField
-                  control={uploadForm.control}
-                  name="tenure"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Tenure</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select tenure" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          {tenureOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={uploadForm.control}
-                  name="energyRating"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><Zap className="mr-2 h-4 w-4 text-muted-foreground" />Energy Rating</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select rating" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          {energyRatingOptions.map(rating => <SelectItem key={rating} value={rating}>Rating {rating}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={uploadForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl><Textarea placeholder="Detailed description of the property..." {...field} rows={4} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={uploadForm.control}
-                name="imageFile"
-                render={({ field: { onChange, value, ...rest } }) => (
-                  <FormItem>
-                    <FormLabel>Property Image</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={(e) => onChange(e.target.files)} 
-                        {...rest} 
-                        className="file:text-primary file:font-medium"
-                      />
-                    </FormControl>
-                    <FormDescription>Max file size: {MAX_FILE_SIZE_MB}MB. Accepted formats: JPG, PNG, WEBP.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <div className="my-8 text-center animate-fadeIn" style={{animationDelay: '0.2s'}}>
+        {!showUploadForm && (
+          <Button onClick={() => setShowUploadForm(true)} size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
+            <UploadCloud className="mr-2 h-5 w-5" /> List Your Property
+          </Button>
+        )}
+      </div>
 
-              <h3 className="text-lg font-semibold text-foreground border-b pt-4 pb-2">Your Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={uploadForm.control}
-                  name="uploaderName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><User className="mr-2 h-4 w-4 text-muted-foreground" />Your Name</FormLabel>
-                      <FormControl><Input placeholder="e.g., John Doe" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={uploadForm.control}
-                  name="uploaderEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center"><MailIcon className="mr-2 h-4 w-4 text-muted-foreground" />Your Email</FormLabel>
-                      <FormControl><Input type="email" placeholder="e.g., john.doe@example.com" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      {showUploadForm && (
+        <div ref={uploadSectionRef}>
+          <Card className="shadow-xl animate-fadeIn mb-12" style={{ animationDelay: '0.1s' }}>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="font-headline text-xl flex items-center"><UploadCloud className="mr-2 h-5 w-5 text-primary" />Upload New Property Listing</CardTitle>
+                <Button variant="ghost" size="icon" onClick={() => setShowUploadForm(false)} aria-label="Close upload form">
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" disabled={uploadForm.formState.isSubmitting} className="w-full">
-                {uploadForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                Upload Property
-              </Button>
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+              <CardDescription>Contribute to our listings by adding property information.</CardDescription>
+            </CardHeader>
+            <Form {...uploadForm}>
+              <form onSubmit={uploadForm.handleSubmit(handleFileUploadSubmit)}>
+                <CardContent className="space-y-6">
+                  <h3 className="text-lg font-semibold text-foreground border-b pb-2">Property Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={uploadForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground" />Property Name</FormLabel>
+                          <FormControl><Input placeholder="e.g., Modern City Apartment" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={uploadForm.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Full Address</FormLabel>
+                          <FormControl><Input placeholder="e.g., 123 Main St, London, E1 1AB" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <FormField
+                      control={uploadForm.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><Coins className="mr-2 h-4 w-4 text-muted-foreground" />Price (£)</FormLabel>
+                          <FormControl><Input type="number" placeholder="e.g., 500000" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={uploadForm.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />Property Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {propertyTypeOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={uploadForm.control}
+                      name="region"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Region (Outcode)</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {allRegionOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <FormField
+                      control={uploadForm.control}
+                      name="bedrooms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><BedDouble className="mr-2 h-4 w-4 text-muted-foreground" />Bedrooms</FormLabel>
+                          <FormControl><Input type="number" placeholder="e.g., 2" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={uploadForm.control}
+                      name="bathrooms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><Bath className="mr-2 h-4 w-4 text-muted-foreground" />Bathrooms</FormLabel>
+                          <FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={uploadForm.control}
+                      name="receptionRooms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4 text-muted-foreground" />Receptions</FormLabel>
+                          <FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                        control={uploadForm.control}
+                        name="area"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground"/>Area (sqm)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="e.g., 70 (optional)" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={uploadForm.control}
+                      name="tenure"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Tenure</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select tenure" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {tenureOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={uploadForm.control}
+                      name="energyRating"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><Zap className="mr-2 h-4 w-4 text-muted-foreground" />Energy Rating</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select rating" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {energyRatingOptions.map(rating => <SelectItem key={rating} value={rating}>Rating {rating}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={uploadForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl><Textarea placeholder="Detailed description of the property..." {...field} rows={4} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={uploadForm.control}
+                    name="imageFile"
+                    render={({ field: { onChange, value, ...rest } }) => (
+                      <FormItem>
+                        <FormLabel>Property Image</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(e) => onChange(e.target.files)} 
+                            {...rest} 
+                            className="file:text-primary file:font-medium"
+                          />
+                        </FormControl>
+                        <FormDescription>Max file size: {MAX_FILE_SIZE_MB}MB. Accepted formats: JPG, PNG, WEBP.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <h3 className="text-lg font-semibold text-foreground border-b pt-4 pb-2">Your Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={uploadForm.control}
+                      name="uploaderName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><User className="mr-2 h-4 w-4 text-muted-foreground" />Your Name</FormLabel>
+                          <FormControl><Input placeholder="e.g., John Doe" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={uploadForm.control}
+                      name="uploaderEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center"><MailIcon className="mr-2 h-4 w-4 text-muted-foreground" />Your Email</FormLabel>
+                          <FormControl><Input type="email" placeholder="e.g., john.doe@example.com" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" disabled={uploadForm.formState.isSubmitting} className="w-full">
+                    {uploadForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                    Upload Property
+                  </Button>
+                </CardFooter>
+              </form>
+            </Form>
+          </Card>
+        </div>
+      )}
 
 
       <div className="animate-fadeIn" style={{animationDelay: '0.4s'}}>
@@ -572,7 +598,9 @@ export default function RecommendationsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 flex-grow">
-                  <CardTitle className="font-headline text-xl mb-2 text-primary hover:underline cursor-pointer">{property.name}</CardTitle>
+                  <CardTitle className="font-headline text-xl mb-2 text-primary hover:underline">
+                     <Link href={`/contact/${property.id}`}>{property.name}</Link>
+                  </CardTitle>
                   <CardDescription className="text-sm text-muted-foreground mb-2 flex items-center">
                     <MapPin size={14} className="mr-1.5 flex-shrink-0" /> {property.address}
                   </CardDescription>
