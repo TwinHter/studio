@@ -16,12 +16,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { sampleProperties } from '@/lib/data/properties_data';
+// import { sampleProperties } from '@/lib/data/properties_data'; // No longer directly used for initial state
+import { useRecommend, type NewPropertyData } from '@/hooks/useRecommend'; // Import the hook and NewPropertyData type
 import type { Property, PropertyType, EnergyRating, Tenure } from '@/types';
 import { 
   DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact, UploadCloud, User, MailIcon, Building2, Coins, X, Loader2 
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+// import { useToast } from '@/hooks/use-toast'; // Toast handled by the hook
 import {
   RECOMMENDATIONS_PAGE_HERO_TITLE,
   RECOMMENDATIONS_PAGE_HERO_DESCRIPTION,
@@ -82,16 +83,21 @@ type UploadPropertyFormValues = z.infer<typeof uploadPropertyFormSchema>;
 export default function RecommendationsPage() {
   const searchParams = useSearchParams();
   const initialRegion = searchParams.get('region');
-  const { toast } = useToast();
+  // const { toast } = useToast(); // No longer needed here
 
-  const [displayedProperties, setDisplayedProperties] = useState<Property[]>(sampleProperties);
+  const { 
+    properties: displayedProperties, 
+    isLoadingProperties, 
+    fetchPropertiesError,
+    addProperty,
+    isAddingProperty
+  } = useRecommend();
+
   const [showUploadForm, setShowUploadForm] = useState(false);
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
-  // Calculate dynamic max/min price from current properties for slider, fallback to defaults
-  const currentMaxPrice = useMemo(() => Math.max(...displayedProperties.map(p => p.price), MAX_PRICE_FILTER_DEFAULT), [displayedProperties]);
-  const currentMinPrice = useMemo(() => Math.min(...displayedProperties.map(p => p.price), MIN_PRICE_FILTER_DEFAULT), [displayedProperties]);
-
+  const currentMaxPrice = useMemo(() => Math.max(...(displayedProperties || []).map(p => p.price), MAX_PRICE_FILTER_DEFAULT), [displayedProperties]);
+  const currentMinPrice = useMemo(() => Math.min(...(displayedProperties || []).map(p => p.price), MIN_PRICE_FILTER_DEFAULT), [displayedProperties]);
 
   const [filters, setFilters] = useState<RecommendationFilters>({
     maxPrice: currentMaxPrice,
@@ -118,12 +124,19 @@ export default function RecommendationsPage() {
   }, [initialRegion, currentMaxPrice]);
 
   useEffect(() => {
+    // Update filters.maxPrice if displayedProperties (and thus currentMaxPrice) changes
+    // This ensures the slider's max value is correctly set initially and on property list updates
+    setFilters(prev => ({ ...prev, maxPrice: currentMaxPrice }));
+  }, [currentMaxPrice]);
+
+  useEffect(() => {
     if (showUploadForm && uploadSectionRef.current) {
       uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [showUploadForm]);
 
   const filteredProperties = useMemo(() => {
+    if (!displayedProperties) return [];
     return displayedProperties.filter(property => {
       if (filters.maxPrice && property.price > filters.maxPrice) return false;
       if (filters.propertyType && property.type !== filters.propertyType) return false;
@@ -144,7 +157,7 @@ export default function RecommendationsPage() {
       processedValue = undefined;
     } else if ((key === 'bedrooms' || key === 'bathrooms' || key === 'receptionRooms') && typeof value === 'string') {
       processedValue = parseInt(value);
-      if (isNaN(processedValue)) processedValue = undefined; // Handle "Any" or invalid parseInt
+      if (isNaN(processedValue)) processedValue = undefined;
     }
     setFilters(prev => ({ ...prev, [key]: processedValue }));
   };
@@ -154,36 +167,31 @@ export default function RecommendationsPage() {
   };
 
   const handleFileUploadSubmit: SubmitHandler<UploadPropertyFormValues> = async (data) => {
-    const imageFile = data.imageFile[0];
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      const imageAsDataUrl = reader.result as string;
-      const newProperty: Property = {
-        id: Date.now().toString(), name: data.name, address: data.address, price: data.price,
-        type: data.type, bedrooms: data.bedrooms, bathrooms: data.bathrooms, receptionRooms: data.receptionRooms,
-        area: data.area, energyRating: data.energyRating, tenure: data.tenure, region: data.region,
-        description: data.description, image: imageAsDataUrl, dataAiHint: PLACEHOLDER_HINTS.uploadedProperty,
-      };
-
-      setDisplayedProperties(prev => [newProperty, ...prev]);
-      toast({
-        title: "Property Uploaded",
-        description: `${data.name} has been added. (Uploaded by ${data.uploaderName})`,
-      });
+    const propertyDataForHook: NewPropertyData = {
+      name: data.name,
+      address: data.address,
+      price: data.price,
+      type: data.type,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      receptionRooms: data.receptionRooms,
+      area: data.area,
+      energyRating: data.energyRating,
+      tenure: data.tenure,
+      region: data.region,
+      description: data.description,
+      imageFile: data.imageFile, // Pass the FileList
+      // uploaderName and uploaderEmail are not part of the Property type for the hook to save
+    };
+    try {
+      await addProperty(propertyDataForHook); // Call addProperty from the hook
       uploadForm.reset();
       setShowUploadForm(false);
-    };
-
-    reader.onerror = () => {
-      toast({
-        title: "Image Upload Failed",
-        description: "Could not process the image. Please try again.",
-        variant: "destructive",
-      });
-    };
-    
-    reader.readAsDataURL(imageFile);
+      // Toast notification is handled by the hook
+    } catch (e) {
+      // Error handling is done within the hook
+      console.error("Upload submit error", e);
+    }
   };
 
   return (
@@ -196,7 +204,7 @@ export default function RecommendationsPage() {
       <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center"><ListFilter className="mr-2 h-5 w-5 text-primary"/>Search Filters</CardTitle>
-          <CardDescription>Refine your criteria to find your dream home.</CardDescription>
+          <CardDescription>Refine your criteria to find your dream home. Data from hook.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
@@ -209,6 +217,7 @@ export default function RecommendationsPage() {
                 min={currentMinPrice}
                 step={50000}
                 onValueChange={(value) => handleFilterChange('maxPrice', value[0])}
+                disabled={isLoadingProperties || !displayedProperties || displayedProperties.length === 0}
               />
               <div className="text-xs text-muted-foreground mt-1 text-right">
                 £{(filters.maxPrice || currentMaxPrice).toLocaleString()}
@@ -301,7 +310,7 @@ export default function RecommendationsPage() {
       <div className="my-8 text-center animate-fadeIn" style={{animationDelay: '0.2s'}}>
         {!showUploadForm && (
           <Button onClick={() => setShowUploadForm(true)} size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
-            <UploadCloud className="mr-2 h-5 w-5" /> List Your Property
+            <UploadCloud className="mr-2 h-5 w-5" /> List Your Property (via Hook)
           </Button>
         )}
       </div>
@@ -316,7 +325,7 @@ export default function RecommendationsPage() {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              <CardDescription>Contribute to our listings by adding property information.</CardDescription>
+              <CardDescription>Contribute to our listings. This will use the `addProperty` from hook.</CardDescription>
             </CardHeader>
             <Form {...uploadForm}>
               <form onSubmit={uploadForm.handleSubmit(handleFileUploadSubmit)}>
@@ -354,7 +363,7 @@ export default function RecommendationsPage() {
                   </div>
                   <FormField control={uploadForm.control} name="description" render={({ field }) => (
                     <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Detailed description of the property..." {...field} rows={4} /></FormControl><FormMessage /></FormItem>)} />
-                  <FormField control={uploadForm.control} name="imageFile" render={({ field: { onChange, value, ...rest } }) => (
+                  <FormField control={uploadForm.control} name="imageFile" render={({ field: { onChange, value, ...rest } }) => ( // Ensure `value` is destructured to avoid passing it to Input if it's managed by RHF and is a FileList
                     <FormItem><FormLabel>Property Image</FormLabel><FormControl><Input type="file" accept={ACCEPTED_IMAGE_TYPES_STRING} onChange={(e) => onChange(e.target.files)} {...rest} className="file:text-primary file:font-medium"/></FormControl><FormDescription>Max file size: {MAX_FILE_SIZE_MB}MB. Accepted: {ACCEPTED_IMAGE_TYPES_STRING}.</FormDescription><FormMessage /></FormItem>)} />
                   <h3 className="text-lg font-semibold text-foreground border-b pt-4 pb-2">Your Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -365,9 +374,9 @@ export default function RecommendationsPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button type="submit" disabled={uploadForm.formState.isSubmitting} className="w-full">
-                    {uploadForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                    Upload Property
+                  <Button type="submit" disabled={isAddingProperty || uploadForm.formState.isSubmitting} className="w-full">
+                    { (isAddingProperty || uploadForm.formState.isSubmitting) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                    {(isAddingProperty || uploadForm.formState.isSubmitting) ? 'Uploading...' : 'Upload Property'}
                   </Button>
                 </CardFooter>
               </form>
@@ -375,70 +384,90 @@ export default function RecommendationsPage() {
           </Card>
         </div>
       )}
+    
+      {isLoadingProperties && (
+        <div className="flex justify-center items-center min-h-[300px]">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="ml-4 text-lg">Loading properties...</p>
+        </div>
+      )}
 
-      <div className="animate-fadeIn" style={{animationDelay: '0.4s'}}>
-        <h2 className="text-2xl font-headline font-semibold mb-6 text-foreground">
-          {filteredProperties.length} propert{filteredProperties.length === 1 ? 'y' : 'ies'} found
-        </h2>
-        {filteredProperties.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProperties.map((property) => (
-              <Card key={property.id} className="overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col bg-card">
-                <CardHeader className="p-0 relative">
-                  <Image 
-                    src={property.image} 
-                    alt={property.name} 
-                    width={600} 
-                    height={400} 
-                    className="w-full h-56 object-cover"
-                    data-ai-hint={property.dataAiHint || PLACEHOLDER_HINTS.defaultHouse}
-                  />
-                   <div className="absolute top-2 right-2 bg-primary/80 text-primary-foreground px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm">
-                    {property.region}
-                  </div>
-                  <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm flex items-center">
-                    <Zap size={12} className="mr-1 text-yellow-400" /> Energy Rating: {property.energyRating}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6 flex-grow">
-                  <CardTitle className="font-headline text-xl mb-2 text-primary hover:underline">
-                     <Link href={`/contact/${property.id}`}>{property.name}</Link>
-                  </CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground mb-2 flex items-center">
-                    <MapPin size={14} className="mr-1.5 flex-shrink-0" /> {property.address}
-                  </CardDescription>
-                  <div className="text-sm text-muted-foreground mb-3 space-y-1">
-                    <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.type} - {property.tenure}</div>
-                    <div className="flex items-center"><BedDouble size={14} className="mr-1.5" /> {property.bedrooms} bed{property.bedrooms === 1 ? '' : 's'}</div>
-                    <div className="flex items-center"><Bath size={14} className="mr-1.5" /> {property.bathrooms} bath{property.bathrooms === 1 ? '' : 's'}</div>
-                    <div className="flex items-center"><Tv2 size={14} className="mr-1.5" /> {property.receptionRooms} reception{property.receptionRooms === 1 ? '' : 's'}</div>
-                    {property.area && <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.area} m²</div>}
-                  </div>
-                  <p className="text-foreground/90 text-sm mb-4 line-clamp-3">{property.description}</p>
-                </CardContent>
-                <CardFooter className="p-6 bg-muted/20 border-t">
-                  <div className="flex justify-between items-center w-full">
-                    <p className="text-2xl font-bold text-primary flex items-center">
-                      £{property.price.toLocaleString()}
-                    </p>
-                    <Button asChild>
-                      <Link href={`/contact/${property.id}`}>
-                        <Contact className="mr-2 h-4 w-4" /> Enquire
-                      </Link>
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <Search size={48} className="mx-auto text-muted-foreground mb-4" />
-            <p className="text-xl text-muted-foreground">No properties found matching your criteria.</p>
-            <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or broadening your search.</p>
-          </div>
-        )}
-      </div>
+      {fetchPropertiesError && (
+         <Card className="shadow-xl animate-fadeIn bg-destructive/10 border-destructive/30">
+            <CardHeader>
+                <CardTitle className="font-headline text-xl text-destructive">Error Loading Properties</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>Could not load property recommendations: {fetchPropertiesError.message}</p>
+            </CardContent>
+         </Card>
+      )}
+
+      {!isLoadingProperties && !fetchPropertiesError && (
+        <div className="animate-fadeIn" style={{animationDelay: '0.4s'}}>
+          <h2 className="text-2xl font-headline font-semibold mb-6 text-foreground">
+            {filteredProperties.length} propert{filteredProperties.length === 1 ? 'y' : 'ies'} found
+          </h2>
+          {filteredProperties.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProperties.map((property) => (
+                <Card key={property.id} className="overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col bg-card">
+                  <CardHeader className="p-0 relative">
+                    <Image 
+                      src={property.image} 
+                      alt={property.name} 
+                      width={600} 
+                      height={400} 
+                      className="w-full h-56 object-cover"
+                      data-ai-hint={property.dataAiHint || PLACEHOLDER_HINTS.defaultHouse}
+                    />
+                    <div className="absolute top-2 right-2 bg-primary/80 text-primary-foreground px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm">
+                      {property.region}
+                    </div>
+                    <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm flex items-center">
+                      <Zap size={12} className="mr-1 text-yellow-400" /> Energy Rating: {property.energyRating}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6 flex-grow">
+                    <CardTitle className="font-headline text-xl mb-2 text-primary hover:underline">
+                      <Link href={`/contact/${property.id}`}>{property.name}</Link>
+                    </CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground mb-2 flex items-center">
+                      <MapPin size={14} className="mr-1.5 flex-shrink-0" /> {property.address}
+                    </CardDescription>
+                    <div className="text-sm text-muted-foreground mb-3 space-y-1">
+                      <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.type} - {property.tenure}</div>
+                      <div className="flex items-center"><BedDouble size={14} className="mr-1.5" /> {property.bedrooms} bed{property.bedrooms === 1 ? '' : 's'}</div>
+                      <div className="flex items-center"><Bath size={14} className="mr-1.5" /> {property.bathrooms} bath{property.bathrooms === 1 ? '' : 's'}</div>
+                      <div className="flex items-center"><Tv2 size={14} className="mr-1.5" /> {property.receptionRooms} reception{property.receptionRooms === 1 ? '' : 's'}</div>
+                      {property.area && <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.area} m²</div>}
+                    </div>
+                    <p className="text-foreground/90 text-sm mb-4 line-clamp-3">{property.description}</p>
+                  </CardContent>
+                  <CardFooter className="p-6 bg-muted/20 border-t">
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-2xl font-bold text-primary flex items-center">
+                        £{property.price.toLocaleString()}
+                      </p>
+                      <Button asChild>
+                        <Link href={`/contact/${property.id}`}>
+                          <Contact className="mr-2 h-4 w-4" /> Enquire
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Search size={48} className="mx-auto text-muted-foreground mb-4" />
+              <p className="text-xl text-muted-foreground">No properties found matching your criteria.</p>
+              <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or broadening your search.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useState } from 'react';
+// Removed useState for predictionResult
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { fetchPricePrediction } from '@/services/api';
-import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction'; // Import flow types directly
+// import { useMutation } from '@tanstack/react-query'; // No longer directly used
+// import { fetchPricePrediction } from '@/services/api'; // Original API call
+import { usePredict } from '@/hooks/usePredict'; // Import the new hook
+import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, TrendingUp, Home, Coins, LineChart as LineChartIcon, MapPin, Building2, Bath, Sofa, Zap, FileText, CalendarDays, Tv2 } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-import { useToast } from '@/hooks/use-toast';
+// import { useToast } from '@/hooks/use-toast'; // Toast is handled by the hook now
 import { 
   PREDICTION_PAGE_HERO_TITLE, 
   PREDICTION_PAGE_HERO_DESCRIPTION,
@@ -29,7 +30,7 @@ import {
   PREDICTION_FORM_DEFAULT_RECEPTIONS,
   PREDICTION_MONTH_OF_SALE_FORMAT_DESC
 } from '@/lib/constants';
-import type { PropertyType, EnergyRating, Tenure } from '@/types'; // Import general types
+import type { PropertyType, EnergyRating, Tenure } from '@/types';
 
 const predictionFormSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address must be at least 5 characters.' }),
@@ -49,8 +50,9 @@ const predictionFormSchema = z.object({
 type PredictionFormValues = z.infer<typeof predictionFormSchema>;
 
 export default function PredictionPage() {
-  const [predictionResult, setPredictionResult] = useState<PredictionOutput | null>(null);
-  const { toast } = useToast();
+  // Use the new hook
+  const { predict, isPredicting, predictionData, predictionError, resetPrediction } = usePredict();
+  // const { toast } = useToast(); // No longer needed here
   const currentYear = new Date().getFullYear();
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
 
@@ -72,33 +74,19 @@ export default function PredictionPage() {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: fetchPricePrediction,
-    onSuccess: (data, variables) => {
-      setPredictionResult(data);
-      toast({
-        title: "Prediction Successful",
-        description: `Price predicted for property at ${variables.fullAddress.substring(0,30)}...`,
-      });
-    },
-    onError: (error) => {
-      console.error('Prediction failed:', error);
-      toast({
-        title: "Prediction Failed",
-        description: "Could not retrieve prediction. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit: SubmitHandler<PredictionFormValues> = (data) => {
-    setPredictionResult(null); // Clear previous results
+  const onSubmit: SubmitHandler<PredictionFormValues> = async (data) => {
+    resetPrediction(); // Clear previous results from the hook's state
     const inputData: PredictionInput = {
       ...data,
       ...(data.longitude && { longitude: data.longitude }),
       ...(data.latitude && { latitude: data.latitude }),
     };
-    mutation.mutate(inputData);
+    try {
+      await predict(inputData); // Call predict from the hook
+    } catch (e) {
+      // Error handling is done within the hook via toast
+      console.error("Submit error", e)
+    }
   };
 
   const chartConfig: ChartConfig = {
@@ -118,7 +106,7 @@ export default function PredictionPage() {
       <Card className="max-w-3xl mx-auto shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
         <CardHeader>
           <CardTitle className="font-headline text-2xl flex items-center"><Home className="mr-2 h-6 w-6 text-primary" />Enter Property Details</CardTitle>
-          <CardDescription>Provide the following details for our AI to predict the price.</CardDescription>
+          <CardDescription>Provide the following details for our AI to predict the price using hook-based fake data.</CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -318,48 +306,66 @@ export default function PredictionPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={mutation.isPending} className="w-full">
-                {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <TrendingUp className="mr-2 h-4 w-4" />}
-                {mutation.isPending ? 'Predicting...' : 'Predict Price'}
+              <Button type="submit" disabled={isPredicting} className="w-full">
+                {isPredicting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <TrendingUp className="mr-2 h-4 w-4" />}
+                {isPredicting ? 'Predicting (Hook)...' : 'Predict Price (Hook)'}
               </Button>
             </CardFooter>
           </form>
         </Form>
       </Card>
 
-      {predictionResult && (
+      {isPredicting && (
+        <div className="flex justify-center items-center mt-12">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="ml-3 text-lg">Fetching prediction using hook...</p>
+        </div>
+      )}
+
+      {predictionError && (
+         <Card className="mt-12 shadow-xl animate-fadeIn bg-destructive/10 border-destructive/30" style={{animationDelay: '0.4s'}}>
+            <CardHeader>
+                <CardTitle className="font-headline text-xl text-destructive">Prediction Error</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>Could not load prediction results: {predictionError.message}</p>
+            </CardContent>
+         </Card>
+      )}
+
+      {predictionData && !isPredicting && (
         <Card className="mt-12 shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl flex items-center"><Coins className="mr-2 h-6 w-6 text-primary" />Prediction Results</CardTitle>
+            <CardTitle className="font-headline text-2xl flex items-center"><Coins className="mr-2 h-6 w-6 text-primary" />Prediction Results (from Hook)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div className="bg-muted p-6 rounded-lg">
                 <p className="text-sm text-muted-foreground font-medium">Predicted Price</p>
                 <p className="text-3xl font-bold text-primary">
-                  £{predictionResult.predictedPrice.toLocaleString()}
+                  £{predictionData.predictedPrice.toLocaleString()}
                 </p>
               </div>
               <div className="bg-muted p-6 rounded-lg">
                 <p className="text-sm text-muted-foreground font-medium">Avg. Area Price</p>
                 <p className="text-3xl font-bold text-secondary-foreground">
-                  £{predictionResult.averageAreaPrice.toLocaleString()}
+                  £{predictionData.averageAreaPrice.toLocaleString()}
                 </p>
               </div>
               <div className="bg-muted p-6 rounded-lg">
                 <p className="text-sm text-muted-foreground font-medium">Trend (12 months)</p>
-                <p className="text-3xl font-bold capitalize" style={{ color: predictionResult.priceTrend === 'increasing' ? 'hsl(var(--chart-1))' : predictionResult.priceTrend === 'decreasing' ? 'hsl(var(--destructive))' : 'hsl(var(--chart-5))' }}>
-                  {predictionResult.priceTrend}
+                <p className="text-3xl font-bold capitalize" style={{ color: predictionData.priceTrend === 'increasing' ? 'hsl(var(--chart-1))' : predictionData.priceTrend === 'decreasing' ? 'hsl(var(--destructive))' : 'hsl(var(--chart-5))' }}>
+                  {predictionData.priceTrend}
                 </p>
               </div>
             </div>
             
             <div>
               <h3 className="text-xl font-headline mb-4 flex items-center"><LineChartIcon className="mr-2 h-5 w-5 text-primary" />12-Month Price Forecast</h3>
-              {predictionResult.priceHistoryChartData && predictionResult.priceHistoryChartData.length > 0 ? (
+              {predictionData.priceHistoryChartData && predictionData.priceHistoryChartData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={predictionResult.priceHistoryChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <LineChart data={predictionData.priceHistoryChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 12 }} />
                       <YAxis 
