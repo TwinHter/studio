@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -16,7 +17,7 @@ const Navbar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-card shadow-md sticky top-0 z-50">
+    <nav className="bg-primary text-primary-foreground shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Logo />
         <ul className="flex space-x-2 sm:space-x-4 items-center">
@@ -26,8 +27,8 @@ const Navbar = () => {
                 variant="ghost"
                 asChild
                 className={cn(
-                  "text-sm sm:text-base font-medium transition-colors hover:text-primary",
-                  pathname === item.href ? "text-primary font-semibold" : "text-foreground/80"
+                  "text-sm sm:text-base font-medium transition-opacity hover:opacity-100",
+                  pathname === item.href ? "font-semibold opacity-100" : "opacity-80"
                 )}
               >
                 <Link href={item.href}>{item.label}</Link>
