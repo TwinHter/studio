@@ -1,12 +1,13 @@
 
 "use client";
 
-import React, { useMemo } from 'react'; // Import useMemo
-import L, { type LatLngExpression, type GeoJSON as LeafletGeoJSON, type StyleFunction, type LeafletEvent } from 'leaflet'; // Explicitly import L
+import React, { useMemo, useEffect, useState } from 'react'; // Added useEffect, useState
+import L, { type LatLngExpression, type GeoJSON as LeafletGeoJSON, type StyleFunction, type LeafletEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import type { OutcodeData } from '@/types';
+import { Loader2 } from 'lucide-react'; // For loading state
 
 // Embedded simplified GeoJSON data for demonstration
 const sampleGeoJson: FeatureCollection = {
@@ -106,6 +107,12 @@ interface InteractiveMapProps {
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSelect, selectedRegionId }) => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const londonCenter: LatLngExpression = [51.5074, -0.1278];
   const mapStyle = useMemo(() => ({ height: '500px', width: '100%' }), []);
 
@@ -163,20 +170,29 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
           },
           mouseout: (e: LeafletEvent) => {
              const l = e.target;
-             const styleFunction = getRegionStyle; // getRegionStyle is stable due to useMemo
+             const styleFunction = getRegionStyle; 
              const baseStyle = styleFunction(feature);
              l.setStyle(baseStyle);
           }
         });
       };
-  }, [onRegionSelect, selectedRegionId, getRegionStyle]); // getRegionStyle is a dependency
+  }, [onRegionSelect, selectedRegionId, getRegionStyle]);
 
+
+  if (!isClient) {
+    return (
+      <div style={mapStyle} className="flex justify-center items-center bg-muted rounded-md shadow-md">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2 text-muted-foreground">Loading map...</p>
+      </div>
+    );
+  }
 
   return (
     <MapContainer
         center={londonCenter}
         zoom={10}
-        style={mapStyle} // Use memoized style
+        style={mapStyle}
         className="rounded-md shadow-md"
         scrollWheelZoom={true}
     >
