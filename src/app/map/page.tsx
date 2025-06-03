@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react'; // Import useCallback
 import dynamic from 'next/dynamic'; // Import dynamic
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
@@ -22,11 +22,11 @@ import {
   MAX_PRICE_FILTER_DEFAULT,
   PLACEHOLDER_HINTS
 } from '@/lib/constants';
-import Image from 'next/image'; // Keep for illustrative chart placeholder
+import Image from 'next/image'; 
 
 // Dynamically import the InteractiveMap component
 const InteractiveMap = dynamic(() => import('@/components/map/InteractiveMap'), {
-  ssr: false, // Disable server-side rendering for this component
+  ssr: false, 
   loading: () => <div className="flex justify-center items-center h-[500px] w-full bg-muted rounded-md shadow-md"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading map...</p></div>,
 });
 
@@ -67,7 +67,7 @@ export default function MapInteractionPage() {
     });
   }, [filters]);
 
-  const handleRegionSelect = async (regionId: string) => {
+  const handleRegionSelect = useCallback(async (regionId: string) => {
     const region = londonOutcodes.find(r => r.id === regionId);
     if (region) {
       setSelectedRegion(region);
@@ -77,7 +77,7 @@ export default function MapInteractionPage() {
         detailsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
-  };
+  }, [regionInsightsMutation, setSelectedRegion]); // Dependencies for useCallback
 
   const getRegionColorClass = (priceCategory: OutcodeData['priceCategory']) => {
     switch (priceCategory) {
