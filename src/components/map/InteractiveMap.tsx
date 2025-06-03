@@ -1,13 +1,13 @@
 
-"use client";
+"use client"; // Still needed for hooks like useMemo
 
-import React, { useMemo, useEffect, useState } from 'react'; // Added useEffect, useState
-import L, { type LatLngExpression, type GeoJSON as LeafletGeoJSON, type StyleFunction, type LeafletEvent } from 'leaflet';
+import React, { useMemo } from 'react'; // Removed useEffect, useState
+import L, { type LatLngExpression, type StyleFunction, type LeafletEvent, type Path } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import type { OutcodeData } from '@/types';
-import { Loader2 } from 'lucide-react'; // For loading state
+// Loader2 is no longer imported here; it's handled by the dynamic import's loading prop in the parent page.
 
 // Embedded simplified GeoJSON data for demonstration
 const sampleGeoJson: FeatureCollection = {
@@ -107,22 +107,16 @@ interface InteractiveMapProps {
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSelect, selectedRegionId }) => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const londonCenter: LatLngExpression = [51.5074, -0.1278];
   const mapStyle = useMemo(() => ({ height: '500px', width: '100%' }), []);
 
-  const getRegionStyle = useMemo((): StyleFunction => {
+  const getRegionStyle = useMemo((): StyleFunction<any> => { // Ensure 'any' for feature.properties for flexibility
     return (feature?: Feature<Geometry, any>) => {
-      if (!feature) return { color: '#cccccc', weight: 1, fillOpacity: 0.5 };
+      if (!feature || !feature.properties) return { color: '#cccccc', weight: 1, fillOpacity: 0.5, fillColor: '#cccccc' };
       const regionId = feature.properties.id;
       const region = regionsData.find(r => r.id === regionId);
       
-      let fillColor = '#cccccc'; // Default color
+      let fillColor = '#cccccc'; 
       let weight = 1;
       let opacity = 0.65;
 
@@ -138,14 +132,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
       if (selectedRegionId === regionId) {
           weight = 3;
           opacity = 0.85;
-          fillColor = region ? fillColor : '#3388ff'; 
+          fillColor = region ? fillColor : '#3388ff'; // Ensure selected region still gets a color
       }
 
       return {
         fillColor,
         weight,
-        opacity,
-        color: 'white', 
+        opacity, // This is fillOpacity for L.Path options
+        color: 'white', // Border color of polygons
         fillOpacity: opacity,
       };
     };
@@ -156,38 +150,31 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
     return (feature: Feature<Geometry, any>, layer: L.Layer) => {
         layer.on({
           click: () => {
-            onRegionSelect(feature.properties.id);
+            if (feature && feature.properties) {
+              onRegionSelect(feature.properties.id);
+            }
           },
           mouseover: (e: LeafletEvent) => {
-            const l = e.target;
-            l.setStyle({
+            const targetLayer = e.target as Path;
+            targetLayer.setStyle({
                 weight: 2.5,
-                fillOpacity: selectedRegionId === feature.properties.id ? 0.85 : 0.75,
+                fillOpacity: (feature.properties && selectedRegionId === feature.properties.id) ? 0.85 : 0.75,
             });
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                l.bringToFront();
+                targetLayer.bringToFront();
             }
           },
           mouseout: (e: LeafletEvent) => {
-             const l = e.target;
-             const styleFunction = getRegionStyle; 
-             const baseStyle = styleFunction(feature);
-             l.setStyle(baseStyle);
+             const targetLayer = e.target as Path;
+             // Re-apply the original style determined by getRegionStyle
+             targetLayer.setStyle(getRegionStyle(feature));
           }
         });
       };
-  }, [onRegionSelect, selectedRegionId, getRegionStyle]);
+  }, [onRegionSelect, selectedRegionId, getRegionStyle]); // getRegionStyle is a dependency
 
-
-  if (!isClient) {
-    return (
-      <div style={mapStyle} className="flex justify-center items-center bg-muted rounded-md shadow-md">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2 text-muted-foreground">Loading map...</p>
-      </div>
-    );
-  }
-
+  // The dynamic import with ssr: false from the parent page handles SSR prevention.
+  // The loading prop of that dynamic import handles the "Loading map..." state.
   return (
     <MapContainer
         center={londonCenter}
@@ -210,4 +197,3 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
 };
 
 export default InteractiveMap;
-    
