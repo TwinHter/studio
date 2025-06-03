@@ -1,3 +1,4 @@
+
 // src/ai/flows/region-insights.ts
 'use server';
 /**
@@ -11,14 +12,17 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const RegionPriceInsightsInputSchema = z.object({
+// Zod schemas remain here
+export const RegionPriceInsightsInputSchema = z.object({
   region: z.string().describe('The London region (outcode) to get price insights for, e.g., E1, SW1.'),
 });
+// Type inferred from Zod schema, exported for use in components/services
 export type RegionPriceInsightsInput = z.infer<typeof RegionPriceInsightsInputSchema>;
 
-const RegionPriceInsightsOutputSchema = z.object({
+export const RegionPriceInsightsOutputSchema = z.object({
   summary: z.string().describe('A summary of the price forecast for the region, including potential opportunities and risks.'),
 });
+// Type inferred from Zod schema, exported for use in components/services
 export type RegionPriceInsightsOutput = z.infer<typeof RegionPriceInsightsOutputSchema>;
 
 export async function getRegionPriceInsights(input: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> {
@@ -44,7 +48,6 @@ const regionPriceInsightsFlow = ai.defineFlow(
     outputSchema: RegionPriceInsightsOutputSchema,
   },
   async (input: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
-    // Fake data implementation
     const fakeSummaries: Record<string, string> = {
       'E1': `Region ${input.region} (Whitechapel, Stepney, Mile End) is experiencing a surge in new developments, particularly around transport hubs. This presents opportunities for capital growth, but also means increased construction and potential for oversupply in certain micro-locations. Rental demand remains strong.`,
       'SW1': `The prestigious ${input.region} (Westminster, Belgravia, Pimlico) continues to be a global prime market. Prices are relatively stable but high, appealing to UHNWIs. Potential risks include changes to international buyer regulations and global economic shifts. Opportunities lie in long-term secure investments.`,
@@ -58,10 +61,8 @@ const regionPriceInsightsFlow = ai.defineFlow(
       summary: summary,
     };
 
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 800));
 
     return fakeOutput;
   }
 );
-

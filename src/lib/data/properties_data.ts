@@ -1,24 +1,9 @@
-export type PropertyType = 'Flat' | 'Detached' | 'Terraced' | 'Semi-detached' | 'Bungalow' | 'Maisonette';
-export type EnergyRating = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
-export type Tenure = 'Freehold' | 'Leasehold';
 
-export type Property = {
-  id: string;
-  name: string;
-  address: string;
-  price: number;
-  type: PropertyType;
-  bedrooms: number;
-  bathrooms: number;
-  receptionRooms: number;
-  area?: number; // Square meters
-  energyRating: EnergyRating;
-  tenure: Tenure;
-  region: string; // outcode like E1
-  image: string;
-  description: string;
-  dataAiHint?: string;
-};
+import type { Property } from '@/types';
+import { PLACEHOLDER_HINTS } from '@/lib/constants';
+
+// Note: Type definitions (PropertyType, EnergyRating, Tenure, Property) are now in src/types/index.ts
+// Note: Option arrays (propertyTypeOptions, energyRatingOptions, etc.) are now in src/lib/constants.ts
 
 export const sampleProperties: Property[] = [
   { id: '1', name: 'Charming Victorian Terrace in E1', address: '12 Willow Lane, Whitechapel, E1', price: 720000, type: 'Terraced', bedrooms: 3, bathrooms: 1, receptionRooms: 2, area: 120, energyRating: 'D', tenure: 'Freehold', region: 'E1', image: 'https://placehold.co/600x400.png', description: 'A beautiful terraced house in the heart of E1, retaining many original features, close to amenities and transport links.', dataAiHint: 'victorian house' },
@@ -30,13 +15,3 @@ export const sampleProperties: Property[] = [
   { id: '7', name: 'Stylish Apartment in Mayfair', address: 'Park Lane Chambers, Mayfair, W1', price: 3500000, type: 'Flat', bedrooms: 3, bathrooms: 3, receptionRooms: 2, area: 150, energyRating: 'B', tenure: 'Leasehold', region: 'W1', image: 'https://placehold.co/600x400.png', description: 'An exquisitely designed apartment in W1, offering the pinnacle of luxury living, high-end finishes, and porterage in central London.', dataAiHint: 'luxury apartment interior' },
   { id: '8', name: 'Riverside Flat with Balcony', address: 'Tower Bridge Wharf, SE1', price: 850000, type: 'Flat', bedrooms: 2, bathrooms: 2, receptionRooms: 1, area: 90, energyRating: 'B', tenure: 'Leasehold', region: 'SE1', image: 'https://placehold.co/600x400.png', description: 'A stunning riverside apartment in SE1 with a private balcony overlooking the Thames, secure parking, and residents\' gym.', dataAiHint: 'riverside apartment balcony' },
 ];
-
-export const propertyTypeOptions: PropertyType[] = ['Flat', 'Detached', 'Terraced', 'Semi-detached', 'Bungalow', 'Maisonette'];
-export const energyRatingOptions: EnergyRating[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-export const tenureOptions: Tenure[] = ['Freehold', 'Leasehold'];
-
-export const bedroomOptions = [1, 2, 3, 4, 5, 6]; // Added 6 for more range
-export const bathroomOptions = [1, 2, 3, 4, 5];
-export const receptionOptions = [1, 2, 3, 4];
-
-export const regionOptions = Array.from(new Set(sampleProperties.map(p => p.region))).sort();

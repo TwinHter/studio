@@ -5,13 +5,7 @@ import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button'; 
-
-const navItems = [
-  { href: '/', label: 'Introduction' },
-  { href: '/prediction', label: 'Prediction' },
-  { href: '/map', label: 'Map' },
-  { href: '/recommendations', label: 'Recommendations' },
-];
+import { NAV_ITEMS } from '@/lib/constants';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -21,7 +15,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Logo />
         <ul className="flex space-x-1 sm:space-x-2 items-center">
-          {navItems.map((item) => (
+          {NAV_ITEMS.map((item) => (
             <li key={item.href}>
               <Button
                 variant="ghost"

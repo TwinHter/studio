@@ -6,8 +6,8 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
-import { fetchPricePrediction } from '@/services/api'; // Use the API service
-import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
+import { fetchPricePrediction } from '@/services/api';
+import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction'; // Import flow types directly
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,8 +18,18 @@ import { Loader2, TrendingUp, Home, Coins, LineChart as LineChartIcon, MapPin, B
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useToast } from '@/hooks/use-toast';
-import { propertyTypeOptions, energyRatingOptions, tenureOptions } from '@/lib/data/properties_data';
-import type { PropertyType, EnergyRating, Tenure } from '@/lib/data/properties_data';
+import { 
+  PREDICTION_PAGE_HERO_TITLE, 
+  PREDICTION_PAGE_HERO_DESCRIPTION,
+  PROPERTY_TYPE_OPTIONS,
+  ENERGY_RATING_OPTIONS,
+  TENURE_OPTIONS,
+  PREDICTION_FORM_DEFAULT_BEDROOMS,
+  PREDICTION_FORM_DEFAULT_BATHROOMS,
+  PREDICTION_FORM_DEFAULT_RECEPTIONS,
+  PREDICTION_MONTH_OF_SALE_FORMAT_DESC
+} from '@/lib/constants';
+import type { PropertyType, EnergyRating, Tenure } from '@/types'; // Import general types
 
 const predictionFormSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address must be at least 5 characters.' }),
@@ -30,10 +40,10 @@ const predictionFormSchema = z.object({
   bathrooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more bathrooms.' }).max(10, { message: 'Cannot exceed 10 bathrooms.' }),
   receptionRooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more reception rooms.' }).max(10, { message: 'Cannot exceed 10 reception rooms.' }),
   area: z.coerce.number().positive({ message: 'Area must be a positive number.' }),
-  tenure: z.enum(tenureOptions as [Tenure, ...Tenure[]], { required_error: 'Tenure is required.' }),
-  propertyType: z.enum(propertyTypeOptions as [PropertyType, ...PropertyType[]], { required_error: 'Property type is required.' }),
-  currentEnergyRating: z.enum(energyRatingOptions as [EnergyRating, ...EnergyRating[]], { required_error: 'Energy rating is required.' }),
-  monthOfSale: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: 'Month of sale must be in YYYY-MM format (e.g., 2024-07).' }),
+  tenure: z.enum(TENURE_OPTIONS as [Tenure, ...Tenure[]], { required_error: 'Tenure is required.' }),
+  propertyType: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]], { required_error: 'Property type is required.' }),
+  currentEnergyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]], { required_error: 'Energy rating is required.' }),
+  monthOfSale: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: PREDICTION_MONTH_OF_SALE_FORMAT_DESC }),
 });
 
 type PredictionFormValues = z.infer<typeof predictionFormSchema>;
@@ -51,9 +61,9 @@ export default function PredictionPage() {
       outcode: '',
       longitude: undefined,
       latitude: undefined,
-      bedrooms: 1,
-      bathrooms: 1,
-      receptionRooms: 1,
+      bedrooms: PREDICTION_FORM_DEFAULT_BEDROOMS,
+      bathrooms: PREDICTION_FORM_DEFAULT_BATHROOMS,
+      receptionRooms: PREDICTION_FORM_DEFAULT_RECEPTIONS,
       area: undefined,
       tenure: undefined,
       propertyType: undefined,
@@ -101,8 +111,8 @@ export default function PredictionPage() {
   return (
     <div className="space-y-12">
       <PageHero
-        title="Property Price Prediction"
-        description="Enter the property details below to receive an AI-powered price prediction and market insights. Note: Longitude and Latitude are optional; in a full app, they would be derived from the address."
+        title={PREDICTION_PAGE_HERO_TITLE}
+        description={PREDICTION_PAGE_HERO_DESCRIPTION}
       />
 
       <Card className="max-w-3xl mx-auto shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
@@ -236,7 +246,7 @@ export default function PredictionPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {propertyTypeOptions.map((type) => (
+                          {PROPERTY_TYPE_OPTIONS.map((type) => (
                             <SelectItem key={type} value={type}>{type}</SelectItem>
                           ))}
                         </SelectContent>
@@ -260,7 +270,7 @@ export default function PredictionPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {tenureOptions.map((type) => (
+                          {TENURE_OPTIONS.map((type) => (
                             <SelectItem key={type} value={type}>{type}</SelectItem>
                           ))}
                         </SelectContent>
@@ -282,7 +292,7 @@ export default function PredictionPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {energyRatingOptions.map((rating) => (
+                          {ENERGY_RATING_OPTIONS.map((rating) => (
                             <SelectItem key={rating} value={rating}>Rating {rating}</SelectItem>
                           ))}
                         </SelectContent>
@@ -300,7 +310,7 @@ export default function PredictionPage() {
                       <FormControl>
                         <Input placeholder="e.g., 2024-07" {...field} />
                       </FormControl>
-                      <FormDescription>The month you anticipate the sale.</FormDescription>
+                      <FormDescription>{PREDICTION_MONTH_OF_SALE_FORMAT_DESC}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

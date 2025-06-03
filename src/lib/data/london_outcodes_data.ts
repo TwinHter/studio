@@ -1,10 +1,7 @@
-export type OutcodeData = {
-  id: string;
-  name: string;
-  avgPrice: number;
-  priceCategory: 'low' | 'medium' | 'high';
-  description: string;
-};
+
+import type { OutcodeData } from '@/types';
+
+// Note: Type definition (OutcodeData) is now in src/types/index.ts
 
 export const londonOutcodes: OutcodeData[] = [
   { id: 'E1', name: 'Whitechapel, Stepney, Mile End', avgPrice: 650000, priceCategory: 'medium', description: 'A vibrant and diverse area with a mix of historic and modern housing.' },

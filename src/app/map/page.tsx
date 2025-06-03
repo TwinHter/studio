@@ -9,11 +9,19 @@ import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { londonOutcodes, type OutcodeData } from '@/lib/data/london_outcodes_data';
-import { fetchRegionInsights } from '@/services/api'; // Use the API service
-import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
-import { MapPin, Search, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign } from 'lucide-react';
+import { londonOutcodes } from '@/lib/data/london_outcodes_data';
+import type { OutcodeData } from '@/types';
+import { fetchRegionInsights } from '@/services/api';
+import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights'; // Import flow types directly
+import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  MAP_PAGE_HERO_TITLE, 
+  MAP_PAGE_HERO_DESCRIPTION, 
+  MIN_PRICE_FILTER_DEFAULT, 
+  MAX_PRICE_FILTER_DEFAULT,
+  PLACEHOLDER_HINTS
+} from '@/lib/constants';
 
 type RegionFilters = {
   priceRange?: [number, number];
@@ -24,11 +32,8 @@ export default function MapInteractionPage() {
   const [filters, setFilters] = useState<RegionFilters>({});
   const { toast } = useToast();
 
-  const MIN_PRICE = 100000;
-  const MAX_PRICE = 5000000;
-
   useEffect(() => {
-    setFilters(prev => ({ ...prev, priceRange: [MIN_PRICE, MAX_PRICE] }));
+    setFilters(prev => ({ ...prev, priceRange: [MIN_PRICE_FILTER_DEFAULT, MAX_PRICE_FILTER_DEFAULT] }));
   }, []);
 
   const regionInsightsMutation = useMutation({
@@ -46,7 +51,6 @@ export default function MapInteractionPage() {
     }
   });
 
-
   const filteredRegions = useMemo(() => {
     return londonOutcodes.filter(region => {
       if (filters.priceRange && (region.avgPrice < filters.priceRange[0] || region.avgPrice > filters.priceRange[1])) {
@@ -61,7 +65,6 @@ export default function MapInteractionPage() {
     if (region) {
       setSelectedRegion(region);
       regionInsightsMutation.mutate({ region: region.id });
-      // Scroll to details section
       const detailsElement = document.getElementById('region-details');
       if (detailsElement) {
         detailsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -81,8 +84,8 @@ export default function MapInteractionPage() {
   return (
     <div className="space-y-12">
       <PageHero
-        title="Interactive London Map"
-        description="Explore London's regions by average price, view details, and get AI-driven insights."
+        title={MAP_PAGE_HERO_TITLE}
+        description={MAP_PAGE_HERO_DESCRIPTION}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -96,15 +99,15 @@ export default function MapInteractionPage() {
               <label className="block text-sm font-medium text-card-foreground mb-2">Average Price Range (£)</label>
               <Slider
                 value={filters.priceRange}
-                min={MIN_PRICE}
-                max={MAX_PRICE}
+                min={MIN_PRICE_FILTER_DEFAULT}
+                max={MAX_PRICE_FILTER_DEFAULT}
                 step={50000}
                 onValueChange={(value) => setFilters(prev => ({...prev, priceRange: value as [number, number]}))}
                 className="my-4"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>£{filters.priceRange ? filters.priceRange[0].toLocaleString() : MIN_PRICE.toLocaleString()}</span>
-                <span>£{filters.priceRange ? filters.priceRange[1].toLocaleString() : MAX_PRICE.toLocaleString()}</span>
+                <span>£{filters.priceRange ? filters.priceRange[0].toLocaleString() : MIN_PRICE_FILTER_DEFAULT.toLocaleString()}</span>
+                <span>£{filters.priceRange ? filters.priceRange[1].toLocaleString() : MAX_PRICE_FILTER_DEFAULT.toLocaleString()}</span>
               </div>
             </div>
           </CardContent>
@@ -122,7 +125,7 @@ export default function MapInteractionPage() {
                 width={800}
                 height={500}
                 className="rounded-md shadow-md w-full h-auto"
-                data-ai-hint="london boroughs map outline"
+                data-ai-hint={PLACEHOLDER_HINTS.londonMap}
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 This image is a placeholder. In a real application, this would be a fully interactive map.
@@ -194,7 +197,7 @@ export default function MapInteractionPage() {
                         width={600}
                         height={300}
                         className="rounded-md mx-auto shadow-md"
-                        data-ai-hint="graph price trend"
+                        data-ai-hint={PLACEHOLDER_HINTS.priceChart}
                       />
                     <p className="text-sm text-muted-foreground mt-2">Illustrative price trend chart for {selectedRegion.id}.</p>
                   </div>
