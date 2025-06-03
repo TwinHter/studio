@@ -1,13 +1,12 @@
 
-"use client"; // Still needed for hooks like useMemo
+"use client"; 
 
-import React, { useMemo } from 'react'; // Removed useEffect, useState
+import React, { useMemo } from 'react'; 
 import L, { type LatLngExpression, type StyleFunction, type LeafletEvent, type Path } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import type { OutcodeData } from '@/types';
-// Loader2 is no longer imported here; it's handled by the dynamic import's loading prop in the parent page.
 
 // Embedded simplified GeoJSON data for demonstration
 const sampleGeoJson: FeatureCollection = {
@@ -110,7 +109,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
   const londonCenter: LatLngExpression = [51.5074, -0.1278];
   const mapStyle = useMemo(() => ({ height: '500px', width: '100%' }), []);
 
-  const getRegionStyle = useMemo((): StyleFunction<any> => { // Ensure 'any' for feature.properties for flexibility
+  // Development-only key to help with HMR issues for Leaflet.
+  // This will cause the map to reset on save in dev, but can avoid initialization errors.
+  const mapDevKey = process.env.NODE_ENV === 'development' ? Math.random().toString() : 'map';
+
+
+  const getRegionStyle = useMemo((): StyleFunction<any> => { 
     return (feature?: Feature<Geometry, any>) => {
       if (!feature || !feature.properties) return { color: '#cccccc', weight: 1, fillOpacity: 0.5, fillColor: '#cccccc' };
       const regionId = feature.properties.id;
@@ -132,14 +136,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
       if (selectedRegionId === regionId) {
           weight = 3;
           opacity = 0.85;
-          fillColor = region ? fillColor : '#3388ff'; // Ensure selected region still gets a color
+          fillColor = region ? fillColor : '#3388ff'; 
       }
 
       return {
         fillColor,
         weight,
-        opacity, // This is fillOpacity for L.Path options
-        color: 'white', // Border color of polygons
+        opacity, 
+        color: 'white', 
         fillOpacity: opacity,
       };
     };
@@ -166,17 +170,15 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
           },
           mouseout: (e: LeafletEvent) => {
              const targetLayer = e.target as Path;
-             // Re-apply the original style determined by getRegionStyle
              targetLayer.setStyle(getRegionStyle(feature));
           }
         });
       };
-  }, [onRegionSelect, selectedRegionId, getRegionStyle]); // getRegionStyle is a dependency
+  }, [onRegionSelect, selectedRegionId, getRegionStyle]); 
 
-  // The dynamic import with ssr: false from the parent page handles SSR prevention.
-  // The loading prop of that dynamic import handles the "Loading map..." state.
   return (
     <MapContainer
+        key={mapDevKey} // Development-only key for HMR
         center={londonCenter}
         zoom={10}
         style={mapStyle}
