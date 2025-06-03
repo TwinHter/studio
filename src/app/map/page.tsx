@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react'; // Import useCallback
-import dynamic from 'next/dynamic'; // Import dynamic
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
 import PageHero from '@/components/shared/PageHero';
@@ -27,7 +27,7 @@ import Image from 'next/image';
 // Dynamically import the InteractiveMap component
 const InteractiveMap = dynamic(() => import('@/components/map/InteractiveMap'), {
   ssr: false, 
-  loading: () => <div className="flex justify-center items-center h-[500px] w-full bg-muted rounded-md shadow-md"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading map...</p></div>,
+  loading: () => <div className="flex justify-center items-center h-[500px] w-full bg-muted rounded-md shadow-md"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading map area...</p></div>,
 });
 
 type RegionFilters = {
@@ -77,7 +77,7 @@ export default function MapInteractionPage() {
         detailsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
-  }, [regionInsightsMutation, setSelectedRegion]); // Dependencies for useCallback
+  }, [regionInsightsMutation]); 
 
   const getRegionColorClass = (priceCategory: OutcodeData['priceCategory']) => {
     switch (priceCategory) {
@@ -123,16 +123,17 @@ export default function MapInteractionPage() {
         <div className="lg:col-span-2 space-y-8">
           <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.4s'}}>
             <CardHeader>
-              <CardTitle className="font-headline text-xl flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary"/>London Map (Outcodes)</CardTitle>
+              <CardTitle className="font-headline text-xl flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary"/>London Map Area</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* InteractiveMap now renders a static image */}
               <InteractiveMap 
                 regionsData={londonOutcodes} 
-                onRegionSelect={handleRegionSelect}
-                selectedRegionId={selectedRegion?.id}
+                onRegionSelect={handleRegionSelect} // Still passed, though not used by static image
+                selectedRegionId={selectedRegion?.id} // Still passed
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                Click on a region on the map or select from the list below to view details.
+                Select a region from the list below to view details. The map above is a static representation.
               </p>
             </CardContent>
           </Card>
