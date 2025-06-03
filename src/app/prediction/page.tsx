@@ -5,7 +5,9 @@ import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { predictPrice, type PredictionInput, type PredictionOutput } from '@/ai/flows/price-prediction';
+import { useMutation } from '@tanstack/react-query';
+import { fetchPricePrediction } from '@/services/api'; // Use the API service
+import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,9 +18,8 @@ import { Loader2, TrendingUp, Home, Coins, LineChart as LineChartIcon, MapPin, B
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useToast } from '@/hooks/use-toast';
-import { propertyTypeOptions, energyRatingOptions, tenureOptions, bedroomOptions, bathroomOptions, receptionOptions } from '@/lib/data/properties_data';
+import { propertyTypeOptions, energyRatingOptions, tenureOptions } from '@/lib/data/properties_data';
 import type { PropertyType, EnergyRating, Tenure } from '@/lib/data/properties_data';
-
 
 const predictionFormSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address must be at least 5 characters.' }),
@@ -39,11 +40,9 @@ type PredictionFormValues = z.infer<typeof predictionFormSchema>;
 
 export default function PredictionPage() {
   const [predictionResult, setPredictionResult] = useState<PredictionOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const currentYear = new Date().getFullYear();
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
-
 
   const form = useForm<PredictionFormValues>({
     resolver: zodResolver(predictionFormSchema),
@@ -63,31 +62,33 @@ export default function PredictionPage() {
     },
   });
 
-  const onSubmit: SubmitHandler<PredictionFormValues> = async (data) => {
-    setIsLoading(true);
-    setPredictionResult(null);
-    try {
-      const inputData: PredictionInput = {
-        ...data,
-        ...(data.longitude && { longitude: data.longitude }),
-        ...(data.latitude && { latitude: data.latitude }),
-      };
-      const result = await predictPrice(inputData);
-      setPredictionResult(result);
+  const mutation = useMutation({
+    mutationFn: fetchPricePrediction,
+    onSuccess: (data, variables) => {
+      setPredictionResult(data);
       toast({
         title: "Prediction Successful",
-        description: `Price predicted for property at ${data.fullAddress.substring(0,30)}...`,
+        description: `Price predicted for property at ${variables.fullAddress.substring(0,30)}...`,
       });
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Prediction failed:', error);
       toast({
         title: "Prediction Failed",
         description: "Could not retrieve prediction. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  const onSubmit: SubmitHandler<PredictionFormValues> = (data) => {
+    setPredictionResult(null); // Clear previous results
+    const inputData: PredictionInput = {
+      ...data,
+      ...(data.longitude && { longitude: data.longitude }),
+      ...(data.latitude && { latitude: data.latitude }),
+    };
+    mutation.mutate(inputData);
   };
 
   const chartConfig: ChartConfig = {
@@ -97,12 +98,11 @@ export default function PredictionPage() {
     },
   } satisfies ChartConfig;
 
-
   return (
     <div className="space-y-12">
       <PageHero
         title="Property Price Prediction"
-        description="Enter the property details below to receive an AI-powered price prediction and market insights."
+        description="Enter the property details below to receive an AI-powered price prediction and market insights. Note: Longitude and Latitude are optional; in a full app, they would be derived from the address."
       />
 
       <Card className="max-w-3xl mx-auto shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
@@ -147,7 +147,7 @@ export default function PredictionPage() {
                     <FormItem>
                       <FormLabel>Longitude (Optional)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., -0.1278" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
+                        <Input type="number" step="any" placeholder="e.g., -0.1278" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -160,7 +160,7 @@ export default function PredictionPage() {
                     <FormItem>
                       <FormLabel>Latitude (Optional)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 51.5074" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
+                        <Input type="number" step="any" placeholder="e.g., 51.5074" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -200,7 +200,7 @@ export default function PredictionPage() {
                   name="receptionRooms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4" />Reception Rooms</FormLabel> {/* Changed icon to Tv2 */}
+                      <FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4" />Reception Rooms</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="e.g., 1" {...field} />
                       </FormControl>
@@ -217,7 +217,7 @@ export default function PredictionPage() {
                         <FormItem>
                         <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4" />Area (sqm)</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="e.g., 70" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} value={field.value ?? ""} />
+                            <Input type="number" placeholder="e.g., 70" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -308,9 +308,9 @@ export default function PredictionPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <TrendingUp className="mr-2 h-4 w-4" />}
-                {isLoading ? 'Predicting...' : 'Predict Price'}
+              <Button type="submit" disabled={mutation.isPending} className="w-full">
+                {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <TrendingUp className="mr-2 h-4 w-4" />}
+                {mutation.isPending ? 'Predicting...' : 'Predict Price'}
               </Button>
             </CardFooter>
           </form>
@@ -376,4 +376,3 @@ export default function PredictionPage() {
     </div>
   );
 }
-

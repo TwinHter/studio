@@ -1,7 +1,9 @@
+
 "use client";
 
 import { useState, useMemo, useEffect, type ChangeEvent } from 'react';
 import Image from 'next/image';
+import Link from 'next/link'; // Import Link
 import { useSearchParams } from 'next/navigation';
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
@@ -20,7 +22,7 @@ import {
   bathroomOptions,
   receptionOptions
 } from '@/lib/data/properties_data';
-import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2 } from 'lucide-react'; // Added Bath, Sofa, Zap, FileText, Tv2
+import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact } from 'lucide-react';
 
 type RecommendationFilters = {
   maxPrice?: number;
@@ -238,9 +240,9 @@ export default function RecommendationsPage() {
                   </CardDescription>
                   <div className="text-sm text-muted-foreground mb-3 space-y-1">
                     <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.type} - {property.tenure}</div>
-                    <div className="flex items-center"><BedDouble size={14} className="mr-1.5" /> {property.bedrooms} bed{property.bedrooms > 1 ? 's':'_short'}</div>
-                    <div className="flex items-center"><Bath size={14} className="mr-1.5" /> {property.bathrooms} bath{property.bathrooms > 1 ? 's':'_short'}</div>
-                    <div className="flex items-center"><Tv2 size={14} className="mr-1.5" /> {property.receptionRooms} reception{property.receptionRooms > 1 ? 's':'_short'}</div>
+                    <div className="flex items-center"><BedDouble size={14} className="mr-1.5" /> {property.bedrooms} bed{property.bedrooms > 1 ? 's': property.bedrooms === 1 ? '' : 's'}</div>
+                    <div className="flex items-center"><Bath size={14} className="mr-1.5" /> {property.bathrooms} bath{property.bathrooms > 1 ? 's': property.bathrooms === 1 ? '' : 's'}</div>
+                    <div className="flex items-center"><Tv2 size={14} className="mr-1.5" /> {property.receptionRooms} reception{property.receptionRooms > 1 ? 's': property.receptionRooms === 1 ? '' : 's'}</div>
                     {property.area && <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.area} m²</div>}
                   </div>
                   <p className="text-foreground/90 text-sm mb-4 line-clamp-3">{property.description}</p>
@@ -250,7 +252,11 @@ export default function RecommendationsPage() {
                     <p className="text-2xl font-bold text-primary flex items-center">
                       £{property.price.toLocaleString()}
                     </p>
-                    <Button variant="default">View Details</Button>
+                    <Button asChild>
+                      <Link href={`/contact/${property.id}`}>
+                        <Contact className="mr-2 h-4 w-4" /> Enquire
+                      </Link>
+                    </Button>
                   </div>
                 </CardFooter>
               </Card>

@@ -1,29 +1,26 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useMutation } from '@tanstack/react-query';
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { londonOutcodes, type OutcodeData } from '@/lib/data/london_outcodes_data';
-import { getRegionPriceInsights, type RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
-import { MapPin, Search, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon } from 'lucide-react';
-import { propertyTypeOptions, bedroomOptions } from '@/lib/data/properties_data'; // Using the updated options
+import { fetchRegionInsights } from '@/services/api'; // Use the API service
+import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
+import { MapPin, Search, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type RegionFilters = {
-  propertyType?: string;
   priceRange?: [number, number];
-  bedrooms?: number;
 };
 
 export default function MapInteractionPage() {
   const [selectedRegion, setSelectedRegion] = useState<OutcodeData | null>(null);
-  const [regionInsights, setRegionInsights] = useState<RegionPriceInsightsOutput | null>(null);
-  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   const [filters, setFilters] = useState<RegionFilters>({});
   const { toast } = useToast();
 
@@ -34,14 +31,27 @@ export default function MapInteractionPage() {
     setFilters(prev => ({ ...prev, priceRange: [MIN_PRICE, MAX_PRICE] }));
   }, []);
 
+  const regionInsightsMutation = useMutation({
+    mutationFn: fetchRegionInsights,
+    onSuccess: (data) => {
+      // Handled by isSuccess, data directly
+    },
+    onError: (error) => {
+      console.error("Error fetching region insights:", error);
+      toast({
+        title: "Error",
+        description: "Could not fetch insights for this region.",
+        variant: "destructive",
+      });
+    }
+  });
+
 
   const filteredRegions = useMemo(() => {
     return londonOutcodes.filter(region => {
       if (filters.priceRange && (region.avgPrice < filters.priceRange[0] || region.avgPrice > filters.priceRange[1])) {
         return false;
       }
-      // Add other filters here if needed (e.g., propertyType, bedrooms for regions)
-      // Currently, the sample OutcodeData doesn't have these, so filters are illustrative
       return true;
     });
   }, [filters]);
@@ -50,21 +60,7 @@ export default function MapInteractionPage() {
     const region = londonOutcodes.find(r => r.id === regionId);
     if (region) {
       setSelectedRegion(region);
-      setIsLoadingInsights(true);
-      setRegionInsights(null);
-      try {
-        const insights = await getRegionPriceInsights({ region: region.id });
-        setRegionInsights(insights);
-      } catch (error) {
-        console.error("Error fetching region insights:", error);
-        toast({
-          title: "Error",
-          description: "Could not fetch insights for this region.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoadingInsights(false);
-      }
+      regionInsightsMutation.mutate({ region: region.id });
     }
   };
 
@@ -81,40 +77,16 @@ export default function MapInteractionPage() {
     <div className="space-y-12">
       <PageHero
         title="Interactive London Map"
-        description="Explore London's regions, view price details, and get AI-driven insights. Filter by your criteria to find suitable areas."
+        description="Explore London's regions by average price, view details, and get AI-driven insights."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-1 shadow-xl animate-fadeIn h-fit sticky top-24" style={{animationDelay: '0.2s'}}>
           <CardHeader>
-            <CardTitle className="font-headline text-xl flex items-center"><Search className="mr-2 h-5 w-5 text-primary"/>Region Filters</CardTitle>
-            <CardDescription>Refine your search.</CardDescription>
+            <CardTitle className="font-headline text-xl flex items-center"><DollarSign className="mr-2 h-5 w-5 text-primary"/>Filter by Average Price</CardTitle>
+            <CardDescription>Adjust the price range to find suitable areas.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div>
-              <label htmlFor="propertyTypeFilterMap" className="block text-sm font-medium text-foreground mb-1">Property Type (Illustrative)</label>
-              <Select onValueChange={(value) => setFilters(prev => ({ ...prev, propertyType: value === 'all' ? undefined : value }))}>
-                <SelectTrigger id="propertyTypeFilterMap">
-                  <SelectValue placeholder="All property types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All property types</SelectItem>
-                  {propertyTypeOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label htmlFor="bedroomsFilterMap" className="block text-sm font-medium text-foreground mb-1">Bedrooms (Illustrative)</label>
-               <Select onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value === 'any' ? undefined : parseInt(value) }))}>
-                <SelectTrigger id="bedroomsFilterMap">
-                  <SelectValue placeholder="Any bedrooms" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any bedrooms</SelectItem>
-                  {bedroomOptions.map(num => <SelectItem key={num} value={String(num)}>{num} beds</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Average Price Range (£)</label>
               <Slider
@@ -130,7 +102,6 @@ export default function MapInteractionPage() {
                 <span>£{filters.priceRange ? filters.priceRange[1].toLocaleString() : MAX_PRICE.toLocaleString()}</span>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">Note: Property type and bedroom filters are illustrative for this interface.</p>
           </CardContent>
         </Card>
 
@@ -166,6 +137,7 @@ export default function MapInteractionPage() {
                   variant="outline"
                   className={`p-4 h-auto text-left flex flex-col items-start justify-start border-2 transition-all duration-200 ${getRegionColorClass(region.priceCategory)} ${selectedRegion?.id === region.id ? 'ring-2 ring-offset-2 ring-primary scale-105' : 'hover:scale-105'}`}
                   onClick={() => handleRegionSelect(region.id)}
+                  disabled={regionInsightsMutation.isPending && selectedRegion?.id === region.id}
                 >
                   <span className="font-bold text-sm text-foreground">{region.id}</span>
                   <span className="text-xs text-muted-foreground block truncate w-full">{region.name.split(',')[0]}</span>
@@ -186,21 +158,21 @@ export default function MapInteractionPage() {
                 <CardDescription>Current Average Price: £{selectedRegion.avgPrice.toLocaleString()}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isLoadingInsights && (
+                {regionInsightsMutation.isPending && (
                   <div className="flex items-center justify-center p-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="ml-2 text-muted-foreground">Loading AI insights...</p>
                   </div>
                 )}
-                {regionInsights && !isLoadingInsights && (
+                {regionInsightsMutation.isSuccess && regionInsightsMutation.data && (
                   <div>
                     <h4 className="font-semibold text-lg mb-2 font-headline flex items-center">
                       <TrendingUp className="mr-2 h-5 w-5 text-accent" /> AI Insights
                     </h4>
-                    <p className="text-foreground/90 bg-accent/10 p-4 rounded-md border border-accent/30">{regionInsights.summary}</p>
+                    <p className="text-foreground/90 bg-accent/10 p-4 rounded-md border border-accent/30">{regionInsightsMutation.data.summary}</p>
                   </div>
                 )}
-                 {!isLoadingInsights && !regionInsights && (
+                 {regionInsightsMutation.isError && (
                   <div className="flex items-center text-muted-foreground p-4 border border-dashed rounded-md bg-destructive/10 border-destructive/30">
                      <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />
                      <span>Could not load AI insights for this region.</span>
