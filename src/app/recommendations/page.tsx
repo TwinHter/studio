@@ -3,14 +3,19 @@
 
 import { useState, useMemo, useEffect, type ChangeEvent } from 'react';
 import Image from 'next/image';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { 
   sampleProperties, 
   type Property, 
@@ -22,7 +27,9 @@ import {
   bathroomOptions,
   receptionOptions
 } from '@/lib/data/properties_data';
-import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact } from 'lucide-react';
+import type { PropertyType, EnergyRating, Tenure } from '@/lib/data/properties_data';
+import { DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact, UploadCloud, User, MailIcon, Building2, Coins, CalendarDays } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 type RecommendationFilters = {
   maxPrice?: number;
@@ -38,15 +45,73 @@ type RecommendationFilters = {
 const MAX_POSSIBLE_PRICE = Math.max(...sampleProperties.map(p => p.price), 5000000);
 const MIN_POSSIBLE_PRICE = Math.min(...sampleProperties.map(p => p.price), 100000);
 
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+const uploadPropertyFormSchema = z.object({
+  // Property Details
+  name: z.string().min(5, "Property name must be at least 5 characters."),
+  address: z.string().min(10, "Address must be at least 10 characters."),
+  price: z.coerce.number().positive("Price must be a positive number."),
+  type: z.enum(propertyTypeOptions as [PropertyType, ...PropertyType[]], { required_error: "Property type is required." }),
+  bedrooms: z.coerce.number().int().min(0, "Bedrooms must be 0 or more."),
+  bathrooms: z.coerce.number().int().min(0, "Bathrooms must be 0 or more."),
+  receptionRooms: z.coerce.number().int().min(0, "Reception rooms must be 0 or more."),
+  area: z.coerce.number().positive("Area must be a positive number.").optional(),
+  energyRating: z.enum(energyRatingOptions as [EnergyRating, ...EnergyRating[]], { required_error: "Energy rating is required." }),
+  tenure: z.enum(tenureOptions as [Tenure, ...Tenure[]], { required_error: "Tenure is required." }),
+  region: z.enum(allRegionOptions as [string, ...string[]], { required_error: "Region is required." }),
+  description: z.string().min(20, "Description must be at least 20 characters.").max(500, "Description cannot exceed 500 characters."),
+  imageFile: z
+    .custom<FileList>()
+    .refine((files) => files && files.length === 1, "Property image is required.")
+    .refine((files) => files && files?.[0]?.size <= MAX_FILE_SIZE_BYTES, `Max image size is ${MAX_FILE_SIZE_MB}MB.`)
+    .refine(
+      (files) => files && ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    ),
+  // User Details
+  uploaderName: z.string().min(2, "Your name must be at least 2 characters."),
+  uploaderEmail: z.string().email("Please enter a valid email address."),
+});
+
+type UploadPropertyFormValues = z.infer<typeof uploadPropertyFormSchema>;
+
+
 export default function RecommendationsPage() {
   const searchParams = useSearchParams();
   const initialRegion = searchParams.get('region');
+  const { toast } = useToast();
+
+  const [displayedProperties, setDisplayedProperties] = useState<Property[]>(sampleProperties);
 
   const [filters, setFilters] = useState<RecommendationFilters>({
     maxPrice: MAX_POSSIBLE_PRICE,
     region: initialRegion || undefined,
   });
   const [searchTerm, setSearchTerm] = useState('');
+
+  const uploadForm = useForm<UploadPropertyFormValues>({
+    resolver: zodResolver(uploadPropertyFormSchema),
+    defaultValues: {
+      name: "",
+      address: "",
+      price: undefined,
+      type: undefined,
+      bedrooms: 1,
+      bathrooms: 1,
+      receptionRooms: 1,
+      area: undefined,
+      energyRating: undefined,
+      tenure: undefined,
+      region: undefined,
+      description: "",
+      imageFile: undefined,
+      uploaderName: "",
+      uploaderEmail: "",
+    },
+  });
 
   useEffect(() => {
     if (initialRegion) {
@@ -55,7 +120,7 @@ export default function RecommendationsPage() {
   }, [initialRegion]);
 
   const filteredProperties = useMemo(() => {
-    return sampleProperties.filter(property => {
+    return displayedProperties.filter(property => {
       if (filters.maxPrice && property.price > filters.maxPrice) return false;
       if (filters.propertyType && property.type !== filters.propertyType) return false;
       if (filters.region && property.region !== filters.region) return false;
@@ -67,7 +132,7 @@ export default function RecommendationsPage() {
       if (searchTerm && !`${property.name} ${property.address} ${property.description}`.toLowerCase().includes(searchTerm.toLowerCase())) return false;
       return true;
     });
-  }, [filters, searchTerm]);
+  }, [filters, searchTerm, displayedProperties]);
 
   const handleFilterChange = (key: keyof RecommendationFilters, value: any) => {
     let processedValue = value;
@@ -83,11 +148,55 @@ export default function RecommendationsPage() {
     setSearchTerm(event.target.value);
   };
 
+  const handleFileUploadSubmit: SubmitHandler<UploadPropertyFormValues> = async (data) => {
+    const imageFile = data.imageFile[0];
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      const imageAsDataUrl = reader.result as string;
+      const newProperty: Property = {
+        id: Date.now().toString(), // Simple unique ID
+        name: data.name,
+        address: data.address,
+        price: data.price,
+        type: data.type,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        receptionRooms: data.receptionRooms,
+        area: data.area,
+        energyRating: data.energyRating,
+        tenure: data.tenure,
+        region: data.region,
+        description: data.description,
+        image: imageAsDataUrl,
+        dataAiHint: "uploaded property", // Generic hint for uploaded images
+      };
+
+      setDisplayedProperties(prev => [newProperty, ...prev]);
+      toast({
+        title: "Property Uploaded",
+        description: `${data.name} has been added to the listings. (Uploaded by ${data.uploaderName})`,
+      });
+      uploadForm.reset();
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: "Image Upload Failed",
+        description: "Could not process the image file. Please try again.",
+        variant: "destructive",
+      });
+    };
+    
+    reader.readAsDataURL(imageFile);
+  };
+
+
   return (
     <div className="space-y-12">
       <PageHero
         title="Suitable Property Recommendations"
-        description="Find your ideal London property based on your budget and requirements. Explore our curated list."
+        description="Find your ideal London property based on your budget and requirements. Explore our curated list or upload your own."
       />
 
       <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
@@ -209,6 +318,235 @@ export default function RecommendationsPage() {
         </CardContent>
       </Card>
 
+      <Card className="shadow-xl animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+        <CardHeader>
+          <CardTitle className="font-headline text-xl flex items-center"><UploadCloud className="mr-2 h-5 w-5 text-primary" />Upload New Property Listing</CardTitle>
+          <CardDescription>Contribute to our listings by adding property information.</CardDescription>
+        </CardHeader>
+        <Form {...uploadForm}>
+          <form onSubmit={uploadForm.handleSubmit(handleFileUploadSubmit)}>
+            <CardContent className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b pb-2">Property Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={uploadForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground" />Property Name</FormLabel>
+                      <FormControl><Input placeholder="e.g., Modern City Apartment" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={uploadForm.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Full Address</FormLabel>
+                      <FormControl><Input placeholder="e.g., 123 Main St, London, E1 1AB" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={uploadForm.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><Coins className="mr-2 h-4 w-4 text-muted-foreground" />Price (£)</FormLabel>
+                      <FormControl><Input type="number" placeholder="e.g., 500000" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={uploadForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />Property Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {propertyTypeOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={uploadForm.control}
+                  name="region"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Region (Outcode)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {allRegionOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                 <FormField
+                  control={uploadForm.control}
+                  name="bedrooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><BedDouble className="mr-2 h-4 w-4 text-muted-foreground" />Bedrooms</FormLabel>
+                      <FormControl><Input type="number" placeholder="e.g., 2" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={uploadForm.control}
+                  name="bathrooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><Bath className="mr-2 h-4 w-4 text-muted-foreground" />Bathrooms</FormLabel>
+                      <FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={uploadForm.control}
+                  name="receptionRooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4 text-muted-foreground" />Receptions</FormLabel>
+                      <FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                    control={uploadForm.control}
+                    name="area"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground"/>Area (sqm)</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g., 70 (optional)" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <FormField
+                  control={uploadForm.control}
+                  name="tenure"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Tenure</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select tenure" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {tenureOptions.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={uploadForm.control}
+                  name="energyRating"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><Zap className="mr-2 h-4 w-4 text-muted-foreground" />Energy Rating</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select rating" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {energyRatingOptions.map(rating => <SelectItem key={rating} value={rating}>Rating {rating}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={uploadForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl><Textarea placeholder="Detailed description of the property..." {...field} rows={4} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={uploadForm.control}
+                name="imageFile"
+                render={({ field: { onChange, value, ...rest } }) => (
+                  <FormItem>
+                    <FormLabel>Property Image</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => onChange(e.target.files)} 
+                        {...rest} 
+                        className="file:text-primary file:font-medium"
+                      />
+                    </FormControl>
+                    <FormDescription>Max file size: {MAX_FILE_SIZE_MB}MB. Accepted formats: JPG, PNG, WEBP.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <h3 className="text-lg font-semibold text-foreground border-b pt-4 pb-2">Your Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={uploadForm.control}
+                  name="uploaderName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><User className="mr-2 h-4 w-4 text-muted-foreground" />Your Name</FormLabel>
+                      <FormControl><Input placeholder="e.g., John Doe" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={uploadForm.control}
+                  name="uploaderEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center"><MailIcon className="mr-2 h-4 w-4 text-muted-foreground" />Your Email</FormLabel>
+                      <FormControl><Input type="email" placeholder="e.g., john.doe@example.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" disabled={uploadForm.formState.isSubmitting} className="w-full">
+                {uploadForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                Upload Property
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
+      </Card>
+
+
       <div className="animate-fadeIn" style={{animationDelay: '0.4s'}}>
         <h2 className="text-2xl font-headline font-semibold mb-6 text-foreground">
           {filteredProperties.length} propert{filteredProperties.length === 1 ? 'y' : 'ies'} found
@@ -273,3 +611,4 @@ export default function RecommendationsPage() {
     </div>
   );
 }
+
