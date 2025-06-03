@@ -4,18 +4,15 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-// import { useMutation } from '@tanstack/react-query'; // No longer directly used
 import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data';
 import type { OutcodeData } from '@/types';
-// import { fetchRegionInsights } from '@/services/api'; // Original API call
-import { useMap } from '@/hooks/useMap'; // Import the new hook
+import { useMap } from '@/hooks/useMap';
 import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
 import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign } from 'lucide-react';
-// import { useToast } from '@/hooks/use-toast'; // Toast handled by the hook
 import { 
   MAP_PAGE_HERO_TITLE, 
   MAP_PAGE_HERO_DESCRIPTION, 
@@ -37,9 +34,7 @@ type RegionFilters = {
 export default function MapInteractionPage() {
   const [selectedRegion, setSelectedRegion] = useState<OutcodeData | null>(null);
   const [filters, setFilters] = useState<RegionFilters>({});
-  // const { toast } = useToast(); // No longer needed here
 
-  // Use the new hook for fetching region insights
   const { getInsights, isFetchingInsights, insightsData, insightsError, resetInsights } = useMap();
 
   useEffect(() => {
@@ -59,11 +54,10 @@ export default function MapInteractionPage() {
     const region = londonOutcodes.find(r => r.id === regionId);
     if (region) {
       setSelectedRegion(region);
-      resetInsights(); // Clear previous insights from hook state
+      resetInsights(); 
       try {
         await getInsights({ region: region.id });
       } catch (e) {
-        // Error is handled by the hook's toast
         console.error("Region select error", e);
       }
       const detailsElement = document.getElementById('region-details');
@@ -73,7 +67,7 @@ export default function MapInteractionPage() {
     }
   }, [getInsights, resetInsights]); 
 
-  const getRegionColorClass = (priceCategory: OutcodeData['priceCategory']) => {
+  const getRegionColorClassForButton = (priceCategory: OutcodeData['priceCategory']) => {
     switch (priceCategory) {
       case 'low': return 'bg-green-500/20 border-green-500 hover:bg-green-500/30';
       case 'medium': return 'bg-yellow-500/20 border-yellow-500 hover:bg-yellow-500/30';
@@ -117,7 +111,7 @@ export default function MapInteractionPage() {
         <div className="lg:col-span-2 space-y-8">
           <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.4s'}}>
             <CardHeader>
-              <CardTitle className="font-headline text-xl flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary"/>London Map Area</CardTitle>
+              <CardTitle className="font-headline text-xl flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary"/>Interactive London Outcodes Map</CardTitle>
             </CardHeader>
             <CardContent>
               <InteractiveMap 
@@ -126,7 +120,7 @@ export default function MapInteractionPage() {
                 selectedRegionId={selectedRegion?.id} 
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                Select a region from the list below to view details. The map above is a static representation.
+                Click an outcode area on the map or select from the list below to view details.
               </p>
             </CardContent>
           </Card>
@@ -140,7 +134,7 @@ export default function MapInteractionPage() {
                 <Button
                   key={region.id}
                   variant="outline"
-                  className={`p-4 h-auto text-left flex flex-col items-start justify-start border-2 transition-all duration-200 ${getRegionColorClass(region.priceCategory)} ${selectedRegion?.id === region.id ? 'ring-2 ring-offset-2 ring-primary scale-105' : 'hover:scale-105'}`}
+                  className={`p-4 h-auto text-left flex flex-col items-start justify-start border-2 transition-all duration-200 ${getRegionColorClassForButton(region.priceCategory)} ${selectedRegion?.id === region.id ? 'ring-2 ring-offset-2 ring-primary scale-105' : 'hover:scale-105'}`}
                   onClick={() => handleRegionSelect(region.id)}
                   disabled={isFetchingInsights && selectedRegion?.id === region.id}
                 >
@@ -166,7 +160,7 @@ export default function MapInteractionPage() {
                 {isFetchingInsights && (
                   <div className="flex items-center justify-center p-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="ml-2 text-muted-foreground">Loading AI insights (from Hook)...</p>
+                    <p className="ml-2 text-muted-foreground">Loading AI insights...</p>
                   </div>
                 )}
                 {insightsError && (
@@ -178,7 +172,7 @@ export default function MapInteractionPage() {
                 {insightsData && !isFetchingInsights && (
                   <div>
                     <h4 className="font-semibold text-lg mb-2 font-headline flex items-center text-primary">
-                      <TrendingUp className="mr-2 h-5 w-5 text-accent" /> AI Insights (from Hook)
+                      <TrendingUp className="mr-2 h-5 w-5 text-accent" /> AI Insights
                     </h4>
                     <p className="text-foreground/90 bg-accent/10 p-4 rounded-md border border-accent/30">{insightsData.summary}</p>
                   </div>
@@ -214,3 +208,4 @@ export default function MapInteractionPage() {
     </div>
   );
 }
+

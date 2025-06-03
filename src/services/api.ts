@@ -15,32 +15,26 @@ import { getRegionPriceInsights as getRegionPriceInsightsFlow } from '@/ai/flows
 import fakePredictionData from '@/lib/data/fake_prediction_output.json';
 import fakeRegionInsightsData from '@/lib/data/fake_region_insights.json';
 
-const apiDelay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
-
 // --- Original Service Functions (Potentially for real backend/Genkit calls) ---
 
 export const fetchPricePrediction = async (data: PredictionInput): Promise<PredictionOutput> => {
-  await apiDelay(1200);
   // This function still calls the Genkit flow as per original setup
   const result = await predictPriceFlow(data);
   return result;
 };
 
 export const fetchRegionInsights = async (data: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
-  await apiDelay(700);
   // This function still calls the Genkit flow
   const result = await getRegionPriceInsightsFlow(data);
   return result;
 };
 
 export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
-  await apiDelay(300);
   const property = initialProperties.find(p => p.id === propertyId);
   return property;
 };
 
 export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInfo> => {
-  await apiDelay(400);
   return {
     ...DEFAULT_SALESMAN_INFO,
     name: "Emily Carter",
@@ -55,7 +49,6 @@ export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInf
 // --- New Service Functions for Hooks (Using Fake JSON Data) ---
 
 export const fetchFakePredictionForHook = async (input: PredictionInput): Promise<PredictionOutput> => {
-  await apiDelay(500);
   // Simulate some variation based on input, e.g. area
   const basePrice = fakePredictionData.predictedPrice;
   const areaModifier = input.area ? (input.area / 100) * 50000 : 0;
@@ -70,12 +63,10 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
 };
 
 export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
-  await apiDelay(600);
   return [...initialProperties]; // Return a copy
 };
 
 export const addFakePropertyForHook = async (propertyData: Omit<Property, 'id' | 'image'> & { image: string }): Promise<Property> => {
-  await apiDelay(700);
   const newProperty: Property = {
     ...propertyData,
     id: Date.now().toString(), // Generate a unique ID
@@ -87,8 +78,8 @@ export const addFakePropertyForHook = async (propertyData: Omit<Property, 'id' |
 };
 
 export const fetchFakeRegionInsightsForHook = async (input: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
-  await apiDelay(400);
   const regionKey = input.region as keyof typeof fakeRegionInsightsData;
   const insight = fakeRegionInsightsData[regionKey] || fakeRegionInsightsData['DEFAULT'];
   return insight;
 };
+
