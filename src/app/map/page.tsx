@@ -8,23 +8,23 @@ import PageHero from '@/components/shared/PageHero';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { londonOutcodes } from '@/lib/data/london_outcodes_data';
+import { londonOutcodes } from '@/lib/data/london_outcodes_data'; // Now uses extended data
 import type { OutcodeData } from '@/types';
 import { useMap } from '@/hooks/useMap';
-import type { RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
-import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign, Map as MapLucideIcon } from 'lucide-react';
 import { 
   MAP_PAGE_HERO_TITLE, 
   MAP_PAGE_HERO_DESCRIPTION, 
-  MIN_PRICE_FILTER_DEFAULT, 
+  MIN_PRICE_FILTER_DEFAULT, // These will be updated by constants.ts
   MAX_PRICE_FILTER_DEFAULT,
   PLACEHOLDER_HINTS
 } from '@/lib/constants';
 import Image from 'next/image'; 
 
-const StaticMapDisplay = dynamic(() => import('@/components/map/InteractiveMap'), {
+// Dynamically import the InteractiveMap component for client-side rendering
+const InteractiveMapDisplay = dynamic(() => import('@/components/map/InteractiveMap'), {
   ssr: false, 
-  loading: () => <div className="flex justify-center items-center h-[500px] w-full bg-muted rounded-md shadow-md"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading map area...</p></div>,
+  loading: () => <div className="flex justify-center items-center h-[400px] w-full bg-muted rounded-md shadow-md aspect-[4/3] max-h-[600px]"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading interactive map area...</p></div>,
 });
 
 type RegionFilters = {
@@ -34,12 +34,17 @@ type RegionFilters = {
 export default function MapInteractionPage() {
   const [selectedRegion, setSelectedRegion] = useState<OutcodeData | null>(null);
   const [filters, setFilters] = useState<RegionFilters>({});
-
   const { getInsights, isFetchingInsights, insightsData, insightsError, resetInsights } = useMap();
 
+  // Calculate min/max price from the actual data for the slider
+  const actualMinPrice = useMemo(() => Math.min(...londonOutcodes.map(r => r.avgPrice), MIN_PRICE_FILTER_DEFAULT), [londonOutcodes]);
+  const actualMaxPrice = useMemo(() => Math.max(...londonOutcodes.map(r => r.avgPrice), MAX_PRICE_FILTER_DEFAULT), [londonOutcodes]);
+  
   useEffect(() => {
-    setFilters(prev => ({ ...prev, priceRange: [MIN_PRICE_FILTER_DEFAULT, MAX_PRICE_FILTER_DEFAULT] }));
-  }, []);
+    // Initialize filters with actual min/max from the data
+    setFilters(prev => ({ ...prev, priceRange: [actualMinPrice, actualMaxPrice] }));
+  }, [actualMinPrice, actualMaxPrice]);
+
 
   const filteredRegions = useMemo(() => {
     return londonOutcodes.filter(region => {
@@ -48,7 +53,7 @@ export default function MapInteractionPage() {
       }
       return true;
     });
-  }, [filters]);
+  }, [filters, londonOutcodes]);
 
   const handleRegionSelect = useCallback(async (regionId: string) => {
     const region = londonOutcodes.find(r => r.id === regionId);
@@ -65,13 +70,13 @@ export default function MapInteractionPage() {
         detailsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
-  }, [getInsights, resetInsights]); 
+  }, [getInsights, resetInsights, londonOutcodes]); 
 
   const getRegionColorClassForButton = (priceCategory: OutcodeData['priceCategory']) => {
     switch (priceCategory) {
-      case 'low': return 'bg-green-500/20 border-green-500 hover:bg-green-500/30';
-      case 'medium': return 'bg-yellow-500/20 border-yellow-500 hover:bg-yellow-500/30';
-      case 'high': return 'bg-red-500/20 border-red-500 hover:bg-red-500/30';
+      case 'low': return 'bg-green-500/20 border-green-500 hover:bg-green-500/30 text-green-700';
+      case 'medium': return 'bg-yellow-500/20 border-yellow-500 hover:bg-yellow-500/30 text-yellow-700';
+      case 'high': return 'bg-red-500/20 border-red-500 hover:bg-red-500/30 text-red-700';
       default: return 'bg-card hover:bg-muted/80';
     }
   };
@@ -94,15 +99,16 @@ export default function MapInteractionPage() {
               <label className="block text-sm font-medium text-card-foreground mb-2">Average Price Range (£)</label>
               <Slider
                 value={filters.priceRange}
-                min={MIN_PRICE_FILTER_DEFAULT}
-                max={MAX_PRICE_FILTER_DEFAULT}
+                min={actualMinPrice} // Use actual min
+                max={actualMaxPrice} // Use actual max
                 step={50000}
                 onValueChange={(value) => setFilters(prev => ({...prev, priceRange: value as [number, number]}))}
                 className="my-4"
+                disabled={londonOutcodes.length === 0}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>£{filters.priceRange ? filters.priceRange[0].toLocaleString() : MIN_PRICE_FILTER_DEFAULT.toLocaleString()}</span>
-                <span>£{filters.priceRange ? filters.priceRange[1].toLocaleString() : MAX_PRICE_FILTER_DEFAULT.toLocaleString()}</span>
+                <span>£{filters.priceRange ? filters.priceRange[0].toLocaleString() : actualMinPrice.toLocaleString()}</span>
+                <span>£{filters.priceRange ? filters.priceRange[1].toLocaleString() : actualMaxPrice.toLocaleString()}</span>
               </div>
             </div>
           </CardContent>
@@ -111,25 +117,22 @@ export default function MapInteractionPage() {
         <div className="lg:col-span-2 space-y-8">
           <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.4s'}}>
             <CardHeader>
-              <CardTitle className="font-headline text-xl flex items-center"><ImageIcon className="mr-2 h-5 w-5 text-primary"/>Illustrative London Outcodes Map</CardTitle>
+              <CardTitle className="font-headline text-xl flex items-center"><MapLucideIcon className="mr-2 h-5 w-5 text-primary"/>Interactive London Outcodes SVG Map</CardTitle>
             </CardHeader>
             <CardContent>
-              <StaticMapDisplay 
+              <InteractiveMapDisplay 
                 regionsData={londonOutcodes} 
-                onRegionSelect={handleRegionSelect} // Prop still passed but not used by static map for interaction
-                selectedRegionId={selectedRegion?.id} // Prop still passed for consistency
+                onRegionSelect={handleRegionSelect}
+                selectedRegionId={selectedRegion?.id}
               />
-              <p className="text-sm text-muted-foreground mt-2 text-center">
-                The map above is illustrative. Please select an outcode area from the list below to view details.
-              </p>
             </CardContent>
           </Card>
 
            <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.5s'}}>
             <CardHeader>
-              <CardTitle className="font-headline text-xl">Select Region ({filteredRegions.length} results)</CardTitle>
+              <CardTitle className="font-headline text-xl">Select Region from List ({filteredRegions.length} results)</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
               {filteredRegions.map((region) => (
                 <Button
                   key={region.id}
@@ -138,9 +141,9 @@ export default function MapInteractionPage() {
                   onClick={() => handleRegionSelect(region.id)}
                   disabled={isFetchingInsights && selectedRegion?.id === region.id}
                 >
-                  <span className="font-bold text-sm text-foreground">{region.id}</span>
-                  <span className="text-xs text-muted-foreground block truncate w-full">{region.name.split(',')[0]}</span>
-                  <span className="text-xs mt-1 text-foreground/80">£{region.avgPrice.toLocaleString()}</span>
+                  <span className="font-bold text-sm">{region.id}</span>
+                  <span className="text-xs block truncate w-full">{region.name.split(',')[0]}</span>
+                  <span className="text-xs mt-1">£{region.avgPrice.toLocaleString()}</span>
                 </Button>
               ))}
                {filteredRegions.length === 0 && <p className="col-span-full text-center text-muted-foreground">No regions match your filters.</p>}
@@ -183,8 +186,8 @@ export default function MapInteractionPage() {
                   </h4>
                   <div className="bg-muted/50 p-4 rounded-md text-center">
                      <Image
-                        src={`https://placehold.co/600x300.png`}
-                        alt={`Price chart for ${selectedRegion.id}`}
+                        src={`https://placehold.co/600x300.png`} // Placeholder, as real chart data is not part of this simplified map info
+                        alt={`Illustrative price chart for ${selectedRegion.id}`}
                         width={600}
                         height={300}
                         className="rounded-md mx-auto shadow-md"
