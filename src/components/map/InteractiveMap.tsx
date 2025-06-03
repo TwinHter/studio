@@ -185,7 +185,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <GeoJSON
-        key={selectedRegionId || 'geojson-layer'} // This key is important for GeoJSON updates
         data={sampleGeoJson}
         style={getRegionStyle}
         onEachFeature={onEachFeature}
