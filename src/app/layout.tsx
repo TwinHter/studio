@@ -10,7 +10,7 @@ import queryClient from '@/lib/query-client'; // Import the shared client
 
 // Static metadata can still be exported if QueryClientProvider is handled correctly
 // export const metadata: Metadata = { // This might need to be moved or handled differently if it causes issues with "use client"
-//   title: 'London Dwellings AI - Price Prediction & Insights',
+//   title: 'London Housing - AI Price Prediction & Insights',
 //   description: 'AI-powered London house price prediction and property insights.',
 // };
 
@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Static metadata can be defined directly in head if needed, or use the new Metadata API for client components */}
-        <title>London Dwellings AI - Price Prediction & Insights</title>
+        <title>London Housing - AI Price Prediction & Insights</title>
         <meta name="description" content="AI-powered London house price prediction and property insights." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

@@ -3,76 +3,57 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import PageHero from '@/components/shared/PageHero';
 import { BarChart, TrendingUp, Database, Users, Building, Sparkles, CheckCircle, MapIcon, SearchIcon, ListChecksIcon, ShieldCheck } from 'lucide-react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
 
 export default function IntroductionPage() {
   return (
-    <div className="space-y-16">
-      <PageHero
-        title="AI-Powered London House Price Prediction"
-        description="Explore the future of London's property market with our intelligent house price prediction tool, utilizing advanced AI and detailed historical data."
-      />
-
-      <section className="text-center animate-fadeIn" style={{animationDelay: '0.2s'}}>
-        <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+    <div className="space-y-12">
+      <section className="bg-muted p-8 md:p-12 rounded-xl shadow-lg text-center animate-fadeIn">
+        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4">London Housing</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          Explore the future of London's property market with our intelligent house price prediction tool, utilizing advanced AI and detailed historical data.
+        </p>
+        <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Link href="/prediction">Get Started with Prediction</Link>
         </Button>
       </section>
 
-       <section className="animate-fadeIn" style={{animationDelay: '0.3s'}}>
-        <Card className="max-w-3xl mx-auto shadow-lg">
-          <CardHeader>
-            <div className="flex items-center justify-center mb-2">
-              <ListChecksIcon className="w-8 h-8 text-primary mr-3" />
-              <CardTitle className="font-headline text-2xl">Application Features</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="font-semibold hover:text-primary">Project Introduction</AccordionTrigger>
-                <AccordionContent className="text-foreground/80">
-                  Provides an overview of the London Dwellings AI project, its goals, the data sources utilized, and insights into the AI models powering our predictions.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="font-semibold hover:text-primary">AI Price Prediction & Forecast</AccordionTrigger>
-                <AccordionContent className="text-foreground/80">
-                  Allows users to input detailed property characteristics (address, type, size, bedrooms, bathrooms, tenure, energy rating, etc.) to receive an AI-driven price estimate for a specified month of sale. It also forecasts price trends for the next 12 months.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="font-semibold hover:text-primary">Interactive Map Exploration</AccordionTrigger>
-                <AccordionContent className="text-foreground/80">
-                  Features a map of London where regions (outcodes) are color-coded based on average property prices. Users can click on regions to get more details and AI-powered insights about the local market conditions.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="font-semibold hover:text-primary">Property Recommendations</AccordionTrigger>
-                <AccordionContent className="text-foreground/80">
-                  Lists properties that match user-defined criteria, such as price range, property type, specific London outcode, number of rooms, and other features. Helps users discover suitable dwellings.
-                </AccordionContent>
-              </AccordionItem>
-               <AccordionItem value="item-5">
-                <AccordionTrigger className="font-semibold hover:text-primary">Dynamic Charts & Visualizations</AccordionTrigger>
-                <AccordionContent className="text-foreground/80">
-                  Generates interactive charts on the prediction and map pages to visually represent predicted prices over the next 12 months and display price distributions for selected areas, aiding in better data comprehension.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+       <section className="bg-muted py-12 px-6 md:px-8 rounded-xl shadow-lg animate-fadeIn" style={{animationDelay: '0.2s'}}>
+        <h2 className="text-3xl font-headline font-bold text-center text-primary mb-10">Application Features</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: '0.3s'}}>
+            <CardHeader className="items-center text-center">
+              <TrendingUp className="w-12 h-12 text-accent mb-3" />
+              <CardTitle className="font-headline text-xl">AI Price Prediction & Forecast</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-center text-card-foreground/80">
+              Input property details (address, type, size, rooms, etc.) to get an AI-driven price estimate for a specific sale month and a 12-month price trend forecast.
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: '0.4s'}}>
+            <CardHeader className="items-center text-center">
+              <MapIcon className="w-12 h-12 text-accent mb-3" />
+              <CardTitle className="font-headline text-xl">Interactive Map Exploration</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-center text-card-foreground/80">
+              Discover London regions with a map color-coded by average prices. Click areas for detailed local market insights powered by AI.
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: '0.5s'}}>
+            <CardHeader className="items-center text-center">
+              <ListChecksIcon className="w-12 h-12 text-accent mb-3" />
+              <CardTitle className="font-headline text-xl">Property Recommendations</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-center text-card-foreground/80">
+              Find properties matching your criteria: price range, type, area, rooms, and more. Upload your own listings to share.
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
-      <section className="animate-fadeIn" style={{animationDelay: '0.4s'}}>
+      <section className="animate-fadeIn" style={{animationDelay: '0.6s'}}>
         <div className="grid md:grid-cols-2 gap-8 items-stretch">
           <Card className="shadow-lg flex flex-col">
             <CardHeader>
@@ -84,18 +65,17 @@ export default function IntroductionPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-foreground/90 flex-grow">
               <p>
-                Our project utilizes comprehensive and detailed London housing data, including historical transaction records from the <strong>UK Land Registry Price Paid Data</strong> spanning from 1991 to 2023.
-                This information is enriched with crucial property features such as:
+                Our project utilizes comprehensive London housing data, including historical transactions from the <strong>UK Land Registry Price Paid Data</strong> (1991-2023), enriched with:
               </p>
               <ul className="list-disc list-inside space-y-1 pl-4">
-                <li><strong>Full Address & Geolocation:</strong> Precise location (latitude, longitude) and outcode.</li>
-                <li><strong>Property Characteristics:</strong> Type (Flat, Detached, Terraced, etc.), tenure (Freehold, Leasehold), number of bedrooms, bathrooms, and reception rooms.</li>
-                <li><strong>Physical Attributes:</strong> Internal area (square meters), and current energy efficiency rating (A-G).</li>
-                <li><strong>Transactional Context:</strong> Month of sale for price prediction.</li>
+                <li><strong>Location:</strong> Full Address, Geolocation (Latitude, Longitude), Outcode.</li>
+                <li><strong>Characteristics:</strong> Property Type (Flat, Detached, etc.), Tenure (Freehold, Leasehold).</li>
+                <li><strong>Size & Layout:</strong> Bedrooms, Bathrooms, Reception Rooms, Internal Area (sqm).</li>
+                <li><strong>Condition:</strong> Current Energy Efficiency Rating (A-G).</li>
+                <li><strong>Timing:</strong> Month of Sale for accurate predictions.</li>
               </ul>
               <p>
-                We employ a suite of advanced machine learning models, including <strong>Ridge Regression</strong> for handling multicollinearity, <strong>XGBoost</strong> and <strong>LightGBM</strong> for high predictive performance and scalability, along with <strong>Ensemble Learning</strong> techniques to combine the strengths of multiple models.
-                These models are trained on meticulously processed data, involving cleaning, normalization, and feature engineering to optimize the identification of complex trends and multifaceted factors influencing house prices.
+                We employ machine learning models like <strong>Ridge Regression</strong>, <strong>XGBoost</strong>, <strong>LightGBM</strong>, and <strong>Ensemble Learning</strong>, trained on meticulously processed data to identify complex price-influencing factors.
               </p>
             </CardContent>
           </Card>
@@ -109,25 +89,25 @@ export default function IntroductionPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-foreground/90 flex-grow">
               <p>
-                The accuracy of our AI model is a top priority. We continuously evaluate its performance using metrics like MAE (Mean Absolute Error) and R² (R-squared) score. Our aim is to provide predictions that are as reliable as possible.
+                Model accuracy is paramount. We use metrics like MAE (Mean Absolute Error) and R² (R-squared) to continuously evaluate and refine our predictions, aiming for maximum reliability.
               </p>
-              <div className="bg-muted p-4 rounded-md text-center">
-                <Image 
-                  src="https://placehold.co/600x300.png" 
-                  alt="Sample accuracy chart" 
-                  width={600} 
-                  height={300} 
+              <div className="bg-card p-4 rounded-md text-center border">
+                <Image
+                  src="https://placehold.co/600x300.png"
+                  alt="Sample accuracy chart"
+                  width={600}
+                  height={300}
                   className="rounded-md mx-auto shadow-md"
-                  data-ai-hint="graph accuracy" 
+                  data-ai-hint="graph accuracy"
                 />
-                <p className="text-sm text-muted-foreground mt-2">Example chart showing model performance metrics (e.g., MAE, R²).</p>
+                <p className="text-sm text-muted-foreground mt-2">Example chart showing model performance (e.g., MAE, R²).</p>
               </div>
             </CardContent>
           </Card>
         </div>
       </section>
-      
-      <section className="animate-fadeIn text-center" style={{animationDelay: '0.6s'}}>
+
+      <section className="animate-fadeIn text-center" style={{animationDelay: '0.7s'}}>
         <Card className="max-w-2xl mx-auto shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-center mb-2">
@@ -137,7 +117,7 @@ export default function IntroductionPage() {
           </CardHeader>
           <CardContent className="text-foreground/90">
             <p>
-              The goal of London Dwellings AI is to provide a transparent and user-friendly tool that empowers buyers, sellers, and investors to make more informed decisions in the London property market. We aim to democratize access to in-depth information and analysis.
+              London Housing aims to provide a transparent, user-friendly tool empowering users to make informed decisions in the property market by democratizing access to in-depth analysis.
             </p>
           </CardContent>
         </Card>

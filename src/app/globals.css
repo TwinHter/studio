@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 220 70% 94%; /* Vivid Pale Blue */
+    --background: 200 100% 98%; /* Very light sky blue */
     --foreground: 220 25% 25%; /* Dark Cool Gray */
 
     --card: 0 0% 100%; /* White */
@@ -14,78 +14,78 @@
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 220 25% 25%; /* Dark Cool Gray */
 
-    --primary: 250 65% 55%; /* Vibrant Indigo */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 200 80% 70%; /* Lighter Blue for Navbar */
+    --primary-foreground: 220 30% 20%; /* Darker blue for text on new primary */
 
-    --secondary: 250 60% 75%; /* Light Indigo */
-    --secondary-foreground: 250 65% 25%; /* Dark Indigo for text on light indigo */
+    --secondary: 200 70% 85%; /* Even lighter blue */
+    --secondary-foreground: 220 25% 25%; /* Dark Cool Gray */
 
-    --muted: 220 30% 90%; /* Pale Cool Gray */
-    --muted-foreground: 220 20% 50%; /* Medium Cool Gray */
+    --muted: 200 60% 93%; /* Distinct light blue for hero/features sections */
+    --muted-foreground: 220 20% 45%; /* Adjusted for new muted */
 
     --accent: 30 100% 60%; /* Bright Orange */
-    --accent-foreground: 30 100% 15%; /* Darkest Orange/Brown */
+    --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 20% 85%; /* Light Cool Gray Border */
-    --input: 220 30% 96%; /* Very Pale Cool Gray Input BG */
-    --ring: 250 65% 60%; /* Indigo Ring */
+    --border: 200 50% 88%; /* Aligned with new blues */
+    --input: 200 50% 96%; /* Very pale blue input BG */
+    --ring: 200 80% 75%; /* Ring color based on new primary */
 
     --radius: 0.5rem;
 
-    --chart-1: 250 65% 55%; /* Primary - Vibrant Indigo */
+    --chart-1: 200 80% 70%; /* New Primary */
     --chart-2: 30 100% 60%;  /* Accent - Bright Orange */
-    --chart-3: 200 80% 50%; /* Vibrant Cyan */
-    --chart-4: 130 60% 50%; /* Bright Green */
-    --chart-5: 300 70% 60%; /* Vivid Pink/Magenta */
+    --chart-3: 170 70% 45%; /* Teal */
+    --chart-4: 80 70% 50%; /* Lime Green */
+    --chart-5: 270 70% 65%; /* Purple */
 
-    --sidebar-background: 220 50% 94%; /* Slightly darker/more saturated than main background */
-    --sidebar-foreground: 220 25% 25%; /* Same as main foreground */
-    --sidebar-primary: 250 65% 55%; /* Same as main primary */
-    --sidebar-primary-foreground: 0 0% 100%; /* Same as main primary-foreground */
-    --sidebar-accent: 30 100% 60%; /* Same as main accent */
+    --sidebar-background: 200 80% 95%; /* Lighter blue for sidebar */
+    --sidebar-foreground: 220 25% 25%;
+    --sidebar-primary: 200 75% 60%; /* Sidebar primary based on new theme */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 100% 60%;
     --sidebar-accent-foreground: 30 100% 15%;
-    --sidebar-border: 220 20% 80%;
-    --sidebar-ring: 250 65% 60%;
+    --sidebar-border: 200 50% 85%;
+    --sidebar-ring: 200 75% 65%;
   }
 
   .dark {
-    /* Dark mode remains unchanged as per current request focus */
+    /* Dark mode remains largely unchanged for now, focusing on light theme update */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 250 70% 65%; /* Dark mode Vibrant Indigo (adjust lightness) */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 250 60% 35%; /* Dark mode Light Indigo */
-    --secondary-foreground: 0 0% 98%;
+    --primary: 200 70% 55%; /* Dark mode adjusted primary */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 200 60% 30%; /* Dark mode adjusted secondary */
+    --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 30 100% 65%; /* Dark mode Bright Orange (adjust lightness) */
-    --accent-foreground: 0 0% 98%;
+    --accent: 30 90% 60%; /* Dark mode adjusted accent */
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 250 70% 70%;
-    --chart-1: 250 70% 65%;
-    --chart-2: 30 100% 65%;
-    --chart-3: 200 75% 60%;
-    --chart-4: 130 65% 60%;
-    --chart-5: 300 70% 65%;
+    --ring: 200 70% 60%;
+    --chart-1: 200 70% 55%;
+    --chart-2: 30 90% 60%;
+    --chart-3: 170 65% 40%;
+    --chart-4: 80 65% 45%;
+    --chart-5: 270 65% 60%;
 
     --sidebar-background: 222.2 84% 6.9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 250 70% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 100% 65%;
-    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-primary: 200 70% 55%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 30 90% 60%;
+    --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 250 70% 70%;
+    --sidebar-ring: 200 70% 60%;
   }
 }
 
@@ -106,4 +106,3 @@
 .animate-fadeIn {
   animation: fadeIn 0.6s ease-out forwards;
 }
-

@@ -61,6 +61,11 @@ export default function MapInteractionPage() {
     if (region) {
       setSelectedRegion(region);
       regionInsightsMutation.mutate({ region: region.id });
+      // Scroll to details section
+      const detailsElement = document.getElementById('region-details');
+      if (detailsElement) {
+        detailsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 
@@ -69,10 +74,10 @@ export default function MapInteractionPage() {
       case 'low': return 'bg-green-500/20 border-green-500 hover:bg-green-500/30';
       case 'medium': return 'bg-yellow-500/20 border-yellow-500 hover:bg-yellow-500/30';
       case 'high': return 'bg-red-500/20 border-red-500 hover:bg-red-500/30';
-      default: return 'bg-muted hover:bg-muted/80';
+      default: return 'bg-card hover:bg-muted/80';
     }
   };
-  
+
   return (
     <div className="space-y-12">
       <PageHero
@@ -81,14 +86,14 @@ export default function MapInteractionPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-1 shadow-xl animate-fadeIn h-fit sticky top-24" style={{animationDelay: '0.2s'}}>
+        <Card className="lg:col-span-1 shadow-xl animate-fadeIn h-fit sticky top-24 bg-card" style={{animationDelay: '0.2s'}}>
           <CardHeader>
             <CardTitle className="font-headline text-xl flex items-center"><DollarSign className="mr-2 h-5 w-5 text-primary"/>Filter by Average Price</CardTitle>
             <CardDescription>Adjust the price range to find suitable areas.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Average Price Range (£)</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">Average Price Range (£)</label>
               <Slider
                 value={filters.priceRange}
                 min={MIN_PRICE}
@@ -106,27 +111,27 @@ export default function MapInteractionPage() {
         </Card>
 
         <div className="lg:col-span-2 space-y-8">
-          <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
+          <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.4s'}}>
             <CardHeader>
               <CardTitle className="font-headline text-xl flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary"/>London Map (Outcodes)</CardTitle>
             </CardHeader>
             <CardContent>
-              <Image 
-                src="https://placehold.co/800x500.png" 
-                alt="London Map Placeholder" 
-                width={800} 
-                height={500} 
+              <Image
+                src="https://placehold.co/800x500.png"
+                alt="London Map Placeholder"
+                width={800}
+                height={500}
                 className="rounded-md shadow-md w-full h-auto"
-                data-ai-hint="london map outline"
+                data-ai-hint="london boroughs map outline"
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
-                This image is a placeholder. In a real application, this would be an interactive map.
+                This image is a placeholder. In a real application, this would be a fully interactive map.
                 Please select a region from the list below to view details.
               </p>
             </CardContent>
           </Card>
 
-           <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.5s'}}>
+           <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.5s'}}>
             <CardHeader>
               <CardTitle className="font-headline text-xl">Select Region ({filteredRegions.length} results)</CardTitle>
             </CardHeader>
@@ -149,7 +154,7 @@ export default function MapInteractionPage() {
           </Card>
 
           {selectedRegion && (
-            <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.6s'}} id="region-details">
+            <Card className="shadow-xl animate-fadeIn bg-card" style={{animationDelay: '0.6s'}} id="region-details">
               <CardHeader>
                 <CardTitle className="font-headline text-2xl flex items-center">
                   <MapPin className="mr-2 h-6 w-6 text-primary" />
@@ -166,7 +171,7 @@ export default function MapInteractionPage() {
                 )}
                 {regionInsightsMutation.isSuccess && regionInsightsMutation.data && (
                   <div>
-                    <h4 className="font-semibold text-lg mb-2 font-headline flex items-center">
+                    <h4 className="font-semibold text-lg mb-2 font-headline flex items-center text-primary">
                       <TrendingUp className="mr-2 h-5 w-5 text-accent" /> AI Insights
                     </h4>
                     <p className="text-foreground/90 bg-accent/10 p-4 rounded-md border border-accent/30">{regionInsightsMutation.data.summary}</p>
@@ -179,17 +184,17 @@ export default function MapInteractionPage() {
                    </div>
                  )}
                 <div>
-                  <h4 className="font-semibold text-lg mb-2 font-headline flex items-center">
+                  <h4 className="font-semibold text-lg mb-2 font-headline flex items-center text-primary">
                     <BarChartIcon className="mr-2 h-5 w-5 text-primary" /> Price Chart (Illustrative)
                   </h4>
-                  <div className="bg-muted p-4 rounded-md text-center">
-                     <Image 
+                  <div className="bg-muted/50 p-4 rounded-md text-center">
+                     <Image
                         src={`https://placehold.co/600x300.png`}
                         alt={`Price chart for ${selectedRegion.id}`}
                         width={600}
                         height={300}
                         className="rounded-md mx-auto shadow-md"
-                        data-ai-hint="graph price"
+                        data-ai-hint="graph price trend"
                       />
                     <p className="text-sm text-muted-foreground mt-2">Illustrative price trend chart for {selectedRegion.id}.</p>
                   </div>
