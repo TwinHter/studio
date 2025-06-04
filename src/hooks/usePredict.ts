@@ -13,15 +13,15 @@ export function usePredict() {
     mutationFn: fetchFakePredictionForHook,
     onSuccess: (data, variables) => {
       toast({
-        title: "Prediction Successful",
-        description: `Price predicted for property at ${variables.fullAddress.substring(0,30)}...`,
+        title: "Prediction Generated",
+        description: `The price prediction for the property has been calculated.`,
       });
     },
     onError: (error) => {
       console.error('Prediction failed:', error);
       toast({
         title: "Prediction Failed",
-        description: "Could not retrieve prediction. Please try again.",
+        description: "Could not retrieve the price prediction. Please check your input and try again.",
         variant: "destructive",
       });
     },

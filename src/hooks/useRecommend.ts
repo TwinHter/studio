@@ -98,15 +98,15 @@ export function useRecommend() {
         return [newProperty, ...oldProperties];
       });
       toast({
-        title: "Property Added",
-        description: `${newProperty.name} has been successfully listed.`,
+        title: "Property Listed",
+        description: `The property "${newProperty.name}" has been successfully listed.`,
       });
     },
     onError: (error) => {
       console.error('Failed to add property:', error);
       toast({
-        title: "Failed to Add Property",
-        description: "Could not add the property. Please try again.",
+        title: "Listing Failed",
+        description: "Could not list the property at this time. Please try again.",
         variant: "destructive",
       });
     },
@@ -121,3 +121,4 @@ export function useRecommend() {
     addPropertyError: addPropertyMutation.error,
   };
 }
+

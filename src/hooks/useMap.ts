@@ -13,15 +13,15 @@ export function useMap() {
     mutationFn: fetchFakeRegionMarketDataForHook,
     onSuccess: (data) => {
       toast({
-        title: `Market Data for ${data.regionId}`,
-        description: "Successfully fetched market data for the region.",
+        title: "Region Data Loaded",
+        description: `Market data for ${data.regionName} (${data.regionId}) is now available.`,
       });
     },
     onError: (error, regionId) => {
       console.error(`Failed to fetch market data for ${regionId}:`, error);
       toast({
-        title: `Error Fetching Market Data for ${regionId}`,
-        description: "Could not load market data. Please try again.",
+        title: "Error Loading Region Data",
+        description: `Could not load market data for ${regionId}. Please try selecting it again.`,
         variant: "destructive",
       });
     },
@@ -35,3 +35,4 @@ export function useMap() {
     resetMarketData: mutation.reset,
   };
 }
+
