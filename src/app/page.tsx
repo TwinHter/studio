@@ -21,9 +21,6 @@ import {
   INTRO_ACCURACY_TEXT,
   INTRO_ACCURACY_CHART_TEXT,
   INTRO_ACCURACY_ICON,
-  INTRO_GOAL_SECTION_TITLE,
-  INTRO_GOAL_TEXT,
-  INTRO_GOAL_ICON,
   INTRO_TEAM_SECTION_TITLE,
   INTRO_TEAM_MEMBERS,
   INTRO_TEAM_ICON,
@@ -33,7 +30,6 @@ import {
 export default function IntroductionPage() {
   const DataAiIcon = INTRO_DATA_AI_ICON;
   const AccuracyIcon = INTRO_ACCURACY_ICON;
-  const GoalIcon = INTRO_GOAL_ICON;
   const TeamIcon = INTRO_TEAM_ICON;
 
   return (
@@ -112,20 +108,6 @@ export default function IntroductionPage() {
             </CardContent>
           </Card>
         </div>
-      </section>
-
-      <section className="animate-fadeIn text-center" style={{animationDelay: '0.7s'}}>
-        <Card className="max-w-2xl mx-auto shadow-lg bg-card">
-          <CardHeader>
-            <div className="flex items-center justify-center mb-2">
-              <GoalIcon className="w-8 h-8 text-primary mr-3" />
-              <CardTitle className="font-headline text-2xl text-primary">{INTRO_GOAL_SECTION_TITLE}</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="text-card-foreground/90">
-            <p>{INTRO_GOAL_TEXT}</p>
-          </CardContent>
-        </Card>
       </section>
 
       <section className="animate-fadeIn" style={{animationDelay: '0.8s'}}>

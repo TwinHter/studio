@@ -1,7 +1,7 @@
 
 import type { PropertyType, EnergyRating, Tenure } from '@/types';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data'; 
-import { TrendingUp, MapIcon as PageMapIcon, ListChecksIcon, Database, ShieldCheck, Sparkles, Users } from 'lucide-react'; 
+import { TrendingUp, MapIcon as PageMapIcon, ListChecksIcon, Database, ShieldCheck, Users } from 'lucide-react'; 
 
 // App Info
 export const APP_NAME = "London Housing";
@@ -62,10 +62,6 @@ export const INTRO_ACCURACY_TEXT = "Model accuracy is paramount. We use metrics 
 export const INTRO_ACCURACY_CHART_TEXT = "Example chart showing model performance (e.g., MAE, R²).";
 export const INTRO_ACCURACY_ICON = ShieldCheck;
 
-export const INTRO_GOAL_SECTION_TITLE = "Project Goal";
-export const INTRO_GOAL_ICON = Sparkles;
-export const INTRO_GOAL_TEXT = "London Housing aims to provide a transparent, user-friendly tool empowering users to make informed decisions in the property market by democratizing access to in-depth analysis.";
-
 export const INTRO_TEAM_SECTION_TITLE = "Project Team";
 export const INTRO_TEAM_ICON = Users;
 export const INTRO_TEAM_MEMBERS = [
@@ -80,8 +76,8 @@ export const INTRO_TEAM_MEMBERS = [
 export const PREDICTION_PAGE_HERO_TITLE = "Property Price Prediction";
 export const PREDICTION_PAGE_HERO_DESCRIPTION = "Enter the property details below to receive an AI-powered price prediction and market insights. Longitude and Latitude are auto-filled from the address.";
 
-export const MAP_PAGE_HERO_TITLE = "London Regional Market Explorer";
-export const MAP_PAGE_HERO_DESCRIPTION = "Explore London's outcodes. The map image is illustrative. Use filters and the list below to select a region and view its current average price, historical quarterly price trends, and market rank.";
+export const MAP_PAGE_HERO_TITLE = "London Regional Statistics Explorer";
+export const MAP_PAGE_HERO_DESCRIPTION = "Explore London's outcodes and their market statistics. The map image is illustrative. Use filters and the list below to select a region and view its current average price, historical quarterly price trends, and market rank.";
 
 export const RECOMMENDATIONS_PAGE_HERO_TITLE = "Suitable Property Recommendations";
 export const RECOMMENDATIONS_PAGE_HERO_DESCRIPTION = "Find your ideal London property based on your budget and requirements. Explore our curated list or upload your own.";
@@ -102,7 +98,7 @@ export const REGION_OPTIONS: string[] = Array.from(new Set(londonOutcodes.map(o 
 
 // Placeholder Image Hints
 export const PLACEHOLDER_HINTS = {
-  londonMap: "london map illustrative regions", 
+  londonMap: "london map illustrative outcodes", 
   accuracyChart: "graph accuracy",
   priceChart: "graph price trend",
   defaultHouse: "house exterior",
