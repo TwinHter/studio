@@ -57,13 +57,11 @@ export default function ContactPropertyPage() {
     setPredictionResult(null);
     setPredictionErrorText(null);
 
-    const currentDate = new Date();
     const inputData: PredictionInput = {
       fullAddress: property.address,
-      // Ensure property.region is one of the enum values defined in REGION_OPTIONS
       outcode: REGION_OPTIONS.includes(property.region) ? property.region as typeof REGION_OPTIONS[number] : REGION_OPTIONS[0],
-      longitude: undefined, 
-      latitude: undefined,
+      longitude: property.longitude, 
+      latitude: property.latitude,
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
       livingRooms: property.receptionRooms, // Mapping receptionRooms to livingRooms
@@ -71,8 +69,8 @@ export default function ContactPropertyPage() {
       propertyType: property.type,
       tenure: property.tenure,
       currentEnergyRating: property.energyRating,
-      sale_month: currentDate.getMonth() + 1,
-      sale_year: currentDate.getFullYear(),
+      sale_month: property.listedMonth || (new Date().getMonth() + 1), // Use listedMonth or fallback
+      sale_year: property.listedYear || new Date().getFullYear(),   // Use listedYear or fallback
     };
 
     try {
@@ -179,6 +177,11 @@ export default function ContactPropertyPage() {
                 <li><strong>Tenure:</strong> {property.tenure}</li>
                 <li><strong>Energy Rating:</strong> {property.energyRating}</li>
                 <li><strong>Region/Outcode:</strong> {property.region}</li>
+                {property.longitude && property.latitude && (
+                  <li><strong>Coordinates:</strong> {property.latitude.toFixed(4)}, {property.longitude.toFixed(4)}</li>
+                )}
+                <li><strong>Listed:</strong> {new Date(property.listedYear, property.listedMonth -1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</li>
+
               </ul>
               
               <Separator className="my-4" />
@@ -272,4 +275,3 @@ export default function ContactPropertyPage() {
     </div>
   );
 }
-

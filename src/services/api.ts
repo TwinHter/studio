@@ -29,10 +29,14 @@ export const fetchPricePrediction = async (data: PredictionInput): Promise<Predi
 
 export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
   const property = initialProperties.find(p => p.id === propertyId);
+  // Simulate delay if needed
+  // await new Promise(resolve => setTimeout(resolve, 500));
   return property;
 };
 
 export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInfo> => {
+  // Simulate delay if needed
+  // await new Promise(resolve => setTimeout(resolve, 300));
   return {
     ...DEFAULT_SALESMAN_INFO,
     name: "Emily Carter",
@@ -77,18 +81,32 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
 };
 
 export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
+  // Simulate delay if needed
+  // await new Promise(resolve => setTimeout(resolve, 700));
   return [...initialProperties]; 
 };
 
-export const addFakePropertyForHook = async (propertyData: Omit<Property, 'id' | 'image'> & { image: string }): Promise<Property> => {
+export const addFakePropertyForHook = async (
+  propertyData: Omit<Property, 'id' | 'image'> & { 
+    image: string; 
+    longitude?: number; 
+    latitude?: number; 
+    listedMonth: number; 
+    listedYear: number; 
+  }
+): Promise<Property> => {
+  // Simulate delay if needed
+  // await new Promise(resolve => setTimeout(resolve, 600));
   const newProperty: Property = {
     ...propertyData,
-    id: Date.now().toString(), 
+    id: Date.now().toString(), // Simple ID generation for fake data
   };
   return newProperty;
 };
 
 export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promise<RegionMarketData> => {
+  // Simulate delay if needed
+  // await new Promise(resolve => setTimeout(resolve, 400));
   const regionDetails = londonOutcodes.find(r => r.id === regionId);
   if (!regionDetails) {
     throw new Error(`Region ${regionId} not found.`);

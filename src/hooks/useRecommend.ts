@@ -6,9 +6,10 @@ import { fetchFakePropertiesForHook, addFakePropertyForHook } from '@/services/a
 import type { Property } from '@/types';
 import { useToast } from './use-toast';
 import { PLACEHOLDER_HINTS } from '@/lib/constants';
+import axios from 'axios';
 
 // Type for the data passed to the addProperty mutation
-export type NewPropertyData = Omit<Property, 'id' | 'image' | 'dataAiHint'> & { imageFile: FileList };
+export type NewPropertyData = Omit<Property, 'id' | 'image' | 'dataAiHint' | 'longitude' | 'latitude' | 'listedMonth' | 'listedYear'> & { imageFile: FileList };
 
 
 export function useRecommend() {
@@ -33,8 +34,44 @@ export function useRecommend() {
         reader.onerror = reject;
         reader.readAsDataURL(imageFile);
       });
+
+      let longitude: number | undefined = undefined;
+      let latitude: number | undefined = undefined;
+
+      // Geocode address
+      const trimmedAddress = newPropertyData.address.trim();
+      let processedAddress = trimmedAddress;
+      if (trimmedAddress.length >= 5 && !trimmedAddress.toLowerCase().includes('london')) {
+        processedAddress += ', London';
+      }
+
+      if (trimmedAddress.length >= 5) {
+        try {
+          const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(processedAddress)}&countrycodes=gb&limit=1`);
+          if (response.data && response.data.length > 0) {
+            const { lat, lon } = response.data[0];
+            longitude = parseFloat(lon);
+            latitude = parseFloat(lat);
+          } else {
+             console.warn("Geocoding failed for address:", newPropertyData.address, "- Coordinates will be undefined.");
+          }
+        } catch (error) {
+          console.error("Geocoding error during property upload:", error);
+          // Coordinates will remain undefined
+        }
+      }
       
-      const propertyToSave: Omit<Property, 'id'> & { image: string } = {
+      const currentDate = new Date();
+      const listedMonth = currentDate.getMonth() + 1;
+      const listedYear = currentDate.getFullYear();
+
+      const propertyToSave: Omit<Property, 'id'> & { 
+        image: string; 
+        longitude?: number; 
+        latitude?: number;
+        listedMonth: number;
+        listedYear: number;
+      } = {
         name: newPropertyData.name,
         address: newPropertyData.address,
         price: newPropertyData.price,
@@ -49,6 +86,10 @@ export function useRecommend() {
         description: newPropertyData.description,
         image: imageAsDataUrl,
         dataAiHint: PLACEHOLDER_HINTS.uploadedProperty,
+        longitude,
+        latitude,
+        listedMonth,
+        listedYear,
       };
       return addFakePropertyForHook(propertyToSave);
     },
@@ -80,4 +121,3 @@ export function useRecommend() {
     addPropertyError: addPropertyMutation.error,
   };
 }
-

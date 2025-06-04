@@ -21,6 +21,10 @@ export interface Property {
   image: string;
   description: string;
   dataAiHint?: string;
+  longitude?: number;
+  latitude?: number;
+  listedMonth: number;
+  listedYear: number;
 }
 
 export interface OutcodeData {
