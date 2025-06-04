@@ -75,7 +75,7 @@ export default function PredictionPage() {
 
   const geocodeAddress = useCallback(async (addressToGeocode: string) => {
     const trimmedAddress = addressToGeocode.trim();
-    if (trimmedAddress.length < 5) { // Adjusted to check based on form validation minimum
+    if (trimmedAddress.length < 5) { 
       form.setValue('longitude', undefined);
       form.setValue('latitude', undefined);
       if (form.formState.errors.fullAddress?.type === 'manual') {
@@ -116,14 +116,11 @@ export default function PredictionPage() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (watchedAddress !== undefined) { // Check if watchedAddress is defined
+      if (watchedAddress !== undefined) { 
           const currentFormAddress = form.getValues('fullAddress');
-          // Ensure geocodeAddress is called only if watchedAddress is the current value in the form
-          // and it's not an empty string (or very short)
           if (watchedAddress === currentFormAddress && watchedAddress.trim().length >= 5) { 
             geocodeAddress(watchedAddress);
           } else if (watchedAddress.trim().length < 5 && (form.getValues('latitude') !== undefined || form.getValues('longitude') !== undefined)) {
-            // Clear coordinates if address becomes too short
             form.setValue('longitude', undefined);
             form.setValue('latitude', undefined);
           }
@@ -140,23 +137,23 @@ export default function PredictionPage() {
     resetPrediction();
     
     const [yearStr, monthStr] = data.monthOfSale.split('-');
-    const sale_year = parseInt(yearStr, 10);
-    const sale_month = parseInt(monthStr, 10);
+    const sale_year_val = parseInt(yearStr, 10);
+    const sale_month_val = parseInt(monthStr, 10);
 
     const inputDataForApi: PredictionInput = {
       fullAddress: data.fullAddress,
-      outcode: data.outcode,
-      longitude: data.longitude,
       latitude: data.latitude,
+      longitude: data.longitude,
       bedrooms: data.bedrooms,
       bathrooms: data.bathrooms,
       livingRooms: data.livingRooms,
-      floorAreaSqM: data.floorAreaSqM,
+      sale_month: sale_month_val,
+      sale_year: sale_year_val,
       tenure: data.tenure,
-      propertyType: data.propertyType,
       currentEnergyRating: data.currentEnergyRating,
-      sale_month: sale_month,
-      sale_year: sale_year,
+      floorAreaSqM: data.floorAreaSqM,
+      outcode: data.outcode,
+      propertyType: data.propertyType,
     };
 
     try {
@@ -500,5 +497,3 @@ export default function PredictionPage() {
     </div>
   );
 }
-
-    

@@ -59,18 +59,18 @@ export default function ContactPropertyPage() {
 
     const inputData: PredictionInput = {
       fullAddress: property.address,
-      outcode: REGION_OPTIONS.includes(property.region) ? property.region as typeof REGION_OPTIONS[number] : REGION_OPTIONS[0],
-      longitude: property.longitude, 
       latitude: property.latitude,
+      longitude: property.longitude,
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
-      livingRooms: property.receptionRooms, // Mapping receptionRooms to livingRooms
-      floorAreaSqM: property.area || 70, // Defaulting to 70sqm if area is undefined
-      propertyType: property.type,
+      livingRooms: property.receptionRooms, // Mapped from receptionRooms
+      sale_month: property.listedMonth || (new Date().getMonth() + 1),
+      sale_year: property.listedYear || new Date().getFullYear(),
       tenure: property.tenure,
       currentEnergyRating: property.energyRating,
-      sale_month: property.listedMonth || (new Date().getMonth() + 1), // Use listedMonth or fallback
-      sale_year: property.listedYear || new Date().getFullYear(),   // Use listedYear or fallback
+      floorAreaSqM: property.area || 70, // Defaulting if area is undefined
+      outcode: REGION_OPTIONS.includes(property.region) ? property.region as typeof REGION_OPTIONS[number] : REGION_OPTIONS[0],
+      propertyType: property.type,
     };
 
     try {
