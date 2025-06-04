@@ -15,7 +15,7 @@ import axios from 'axios';
 
 let liveProperties: Property[] = [...initialPropertiesDataFromFile] as Property[];
 
-// Interface for the CSV row structure, matching the image provided by the user
+// Interface for the CSV row structure
 interface CsvRow {
   id: string;
   fullAddress: string;
@@ -125,7 +125,7 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     
     parsedCsvData = lines.slice(1).map(line => {
       const values = line.split(',');
-      // Mapping based on the new CSV structure (from user's image)
+      // Mapping based on the CSV structure:
       // ID,fullAddress,postcode,country,outcode,latitude,longitude,bathrooms,bedrooms,floorAreaSqM,livingRooms,tenure,propertyType,currentEnergyRating,sale_month,sale_year,price
       return {
         id: values[0],
@@ -133,8 +133,8 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
         postcode: values[2],
         country: values[3],
         outcode: values[4],
-        latitude: values[5] ? parseFloat(values[5]) : undefined,
-        longitude: values[6] ? parseFloat(values[6]) : undefined,
+        latitude: values[5] && values[5] !== '' ? parseFloat(values[5]) : undefined,
+        longitude: values[6] && values[6] !== '' ? parseFloat(values[6]) : undefined,
         bathrooms: parseInt(values[7]),
         bedrooms: parseInt(values[8]),
         floorAreaSqM: parseFloat(values[9]),
@@ -146,7 +146,7 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
         sale_year: parseInt(values[15]),
         price: parseFloat(values[16]),
       } as CsvRow;
-    }).filter(row => row.outcode && !isNaN(row.price));
+    }).filter(row => row.outcode && !isNaN(row.price) && row.sale_year && row.sale_month && row.price > 0);
   } catch (error) {
     console.error("Failed to read or parse data.csv:", error);
   }
@@ -155,10 +155,10 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
 
   const quarterlyPrices: Record<string, { total: number, count: number }> = {};
   const currentFullYear = new Date().getFullYear();
-  const threeYearsAgo = currentFullYear - 3;
+  const fiveYearsAgo = currentFullYear - 5; // Changed from 3 to 5 years
 
   regionSales.forEach(sale => {
-    if (sale.sale_year >= threeYearsAgo) {
+    if (sale.sale_year >= fiveYearsAgo) { // Updated condition to use fiveYearsAgo
       const quarter = getQuarter(sale.sale_month);
       const key = `Q${quarter} ${sale.sale_year}`;
       if (!quarterlyPrices[key]) {
@@ -170,10 +170,10 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
   });
 
   const quarterlyPriceHistory: QuarterlyPricePoint[] = [];
-  for (let year = threeYearsAgo; year <= currentFullYear; year++) {
+  for (let year = fiveYearsAgo; year <= currentFullYear; year++) { // Updated loop start year
     for (let q = 1; q <= 4; q++) {
       if (year === currentFullYear && q > getQuarter(new Date().getMonth() + 1)) {
-        break;
+        break; 
       }
       const key = `Q${q} ${year}`;
       if (quarterlyPrices[key] && quarterlyPrices[key].count > 0) {
@@ -182,11 +182,16 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
           price: Math.round(quarterlyPrices[key].total / quarterlyPrices[key].count / 1000) * 1000,
         });
       } else {
+         // Fill in missing quarters with previous data or a calculated estimate if at the beginning
          if (year < currentFullYear || (year === currentFullYear && q < getQuarter(new Date().getMonth() +1))) {
             const previousQuarterData = quarterlyPriceHistory.length > 0 ? quarterlyPriceHistory[quarterlyPriceHistory.length -1] : null;
+            let estimatedPriceForMissingQuarter = regionDetails.avgPrice * (0.95 + Math.random() * 0.1); // Default estimate
+            if(previousQuarterData) {
+                estimatedPriceForMissingQuarter = previousQuarterData.price * (0.995 + Math.random() * 0.01); // Slight variation from previous
+            }
             quarterlyPriceHistory.push({
                 quarter: key,
-                price: previousQuarterData ? previousQuarterData.price : Math.round(regionDetails.avgPrice * (0.95 + Math.random() * 0.1) / 1000) * 1000
+                price: Math.round(estimatedPriceForMissingQuarter / 1000) * 1000
             });
          }
       }
@@ -204,7 +209,8 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     return aQ - bQ;
   });
   
-  const limitedQuarterlyPriceHistory = quarterlyPriceHistory.slice(-12);
+  // Keep displaying up to the last 12 quarters for chart readability, from the 5-year data window
+  const limitedQuarterlyPriceHistory = quarterlyPriceHistory.slice(-12); 
 
   let currentAveragePrice = regionDetails.avgPrice;
   const allRegionSalesPrices = regionSales.map(s => s.price);
@@ -218,8 +224,8 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
       const avg = salesInOutcode.reduce((sum, s) => sum + s.price, 0) / salesInOutcode.length;
       return { ...oc, avgPrice: Math.round(avg / 1000) * 1000 };
     }
-    return oc; // Return original outcode data if no sales found in CSV
-  }).filter(oc => oc.avgPrice > 0); // Ensure we only consider outcodes with valid avgPrice
+    return oc; 
+  }).filter(oc => oc.avgPrice > 0); 
 
   const sortedRegions = [...outcodesWithCsvAvgPrice].sort((a, b) => b.avgPrice - a.avgPrice);
   const rank = sortedRegions.findIndex(r => r.id === regionId) + 1;
@@ -231,7 +237,8 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     regionId: regionDetails.id,
     regionName: regionDetails.name,
     currentAveragePrice,
-    quarterlyPriceHistory: limitedQuarterlyPriceHistory.length > 0 ? limitedQuarterlyPriceHistory : [{ quarter: "N/A", price: currentAveragePrice }],
+    // Ensure at least one data point if history is empty, using currentAveragePrice
+    quarterlyPriceHistory: limitedQuarterlyPriceHistory.length > 0 ? limitedQuarterlyPriceHistory : [{ quarter: `Current Avg.`, price: currentAveragePrice }],
     priceRank,
   };
 };
