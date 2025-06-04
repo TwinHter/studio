@@ -3,13 +3,13 @@
 
 import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
 import type { Property, SalesmanInfo, RegionMarketData, QuarterlyPricePoint } from '@/types'; 
-import { sampleProperties as initialProperties } from '@/lib/data/properties_data';
+// import { sampleProperties as initialProperties } from '@/lib/data/properties_data'; // Old import
+import initialProperties from '@/lib/data/properties.json'; // New import for JSON data
 import { londonOutcodes } from '@/lib/data/london_outcodes_data';
 import { DEFAULT_SALESMAN_INFO, PLACEHOLDER_HINTS } from '@/lib/constants';
 
 // These functions call the actual Genkit flows
 import { predictPrice as predictPriceFlow } from '@/ai/flows/price-prediction';
-// import { getRegionPriceInsights as getRegionPriceInsightsFlow } from '@/ai/flows/region-insights'; // No longer used
 
 // Import fake data for hook-specific service functions
 import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json'; 
@@ -21,17 +21,11 @@ export const fetchPricePrediction = async (data: PredictionInput): Promise<Predi
   return result;
 };
 
-// This function is no longer used as AI insights are removed from map page
-// export const fetchRegionInsights = async (data: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
-//   const result = await getRegionPriceInsightsFlow(data);
-//   return result;
-// };
-
 export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
   const property = initialProperties.find(p => p.id === propertyId);
   // Simulate delay if needed
   // await new Promise(resolve => setTimeout(resolve, 500));
-  return property;
+  return property as Property | undefined; // Cast as Property because JSON import might not infer type perfectly
 };
 
 export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInfo> => {
@@ -83,7 +77,7 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
 export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
   // Simulate delay if needed
   // await new Promise(resolve => setTimeout(resolve, 700));
-  return [...initialProperties]; 
+  return [...initialProperties] as Property[]; // Cast as Property[]
 };
 
 export const addFakePropertyForHook = async (
@@ -150,3 +144,4 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     priceRank,
   };
 };
+
