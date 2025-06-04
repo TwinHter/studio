@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, notFound } from 'next/navigation';
@@ -10,10 +10,13 @@ import { fetchPropertyDetails, fetchSalesmanInfo } from '@/services/api';
 import PageHero from '@/components/shared/PageHero';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Mail, Phone, MapPin, Home, ArrowLeft, UserCircle, Briefcase } from 'lucide-react';
+import { Loader2, Mail, Phone, MapPin, Home, ArrowLeft, UserCircle, Briefcase, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from '@/hooks/use-toast';
-import { CONTACT_PAGE_TITLE_TEMPLATE, PLACEHOLDER_HINTS } from '@/lib/constants';
+import { usePredict } from '@/hooks/usePredict';
+import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
+import { CONTACT_PAGE_TITLE_TEMPLATE, PLACEHOLDER_HINTS, REGION_OPTIONS } from '@/lib/constants';
 import type { Property, SalesmanInfo } from '@/types';
 
 export default function ContactPropertyPage() {
@@ -29,9 +32,14 @@ export default function ContactPropertyPage() {
 
   const { data: salesman, isLoading: isLoadingSalesman, error: salesmanError } = useQuery<SalesmanInfo>({
     queryKey: ['salesmanInfo', propertyId],
-    queryFn: () => fetchSalesmanInfo(propertyId), // propertyId could be used by API to fetch specific salesman
+    queryFn: () => fetchSalesmanInfo(propertyId),
     enabled: !!propertyId,
   });
+
+  const { predict } = usePredict();
+  const [predictionResult, setPredictionResult] = useState<PredictionOutput | null>(null);
+  const [isPredictingPropertyPrice, setIsPredictingPropertyPrice] = useState(false);
+  const [predictionErrorText, setPredictionErrorText] = useState<string | null>(null);
   
   useEffect(() => {
     if (propertyError) {
@@ -41,6 +49,76 @@ export default function ContactPropertyPage() {
       toast({ title: "Error", description: "Could not load contact information.", variant: "destructive" });
     }
   }, [propertyError, salesmanError, toast]);
+
+  const handlePredictPropertyPrice = async () => {
+    if (!property) return;
+
+    setIsPredictingPropertyPrice(true);
+    setPredictionResult(null);
+    setPredictionErrorText(null);
+
+    const currentDate = new Date();
+    const inputData: PredictionInput = {
+      fullAddress: property.address,
+      // Ensure property.region is one of the enum values defined in REGION_OPTIONS
+      outcode: REGION_OPTIONS.includes(property.region) ? property.region as typeof REGION_OPTIONS[number] : REGION_OPTIONS[0],
+      longitude: undefined, 
+      latitude: undefined,
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      livingRooms: property.receptionRooms, // Mapping receptionRooms to livingRooms
+      floorAreaSqM: property.area || 70, // Defaulting to 70sqm if area is undefined
+      propertyType: property.type,
+      tenure: property.tenure,
+      currentEnergyRating: property.energyRating,
+      sale_month: currentDate.getMonth() + 1,
+      sale_year: currentDate.getFullYear(),
+    };
+
+    try {
+      const result = await predict(inputData);
+      setPredictionResult(result);
+    } catch (e: any) {
+      console.error("Prediction error on contact page:", e);
+      setPredictionErrorText(e.message || "Failed to get price prediction.");
+      toast({
+        title: "Prediction Failed",
+        description: e.message || "Could not retrieve prediction for this property.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPredictingPropertyPrice(false);
+    }
+  };
+
+  const renderPriceComparison = () => {
+    if (!predictionResult || !property) return null;
+
+    const listedPrice = property.price;
+    const predictedPrice = predictionResult.price;
+    const diff = predictedPrice - listedPrice;
+    const percentageDiff = (diff / listedPrice) * 100;
+
+    let comparisonText;
+    if (Math.abs(percentageDiff) < 5) { // Within 5%
+      comparisonText = "This is closely aligned with the listed price.";
+    } else if (percentageDiff > 0) {
+      comparisonText = `This is ${percentageDiff.toFixed(1)}% higher than the listed price.`;
+    } else {
+      comparisonText = `This is ${Math.abs(percentageDiff).toFixed(1)}% lower than the listed price.`;
+    }
+
+    return (
+      <div className="mt-3 space-y-1">
+        <p className="text-sm font-semibold">AI Predicted Price: <span className="text-primary font-bold text-base">£{predictedPrice.toLocaleString()}</span></p>
+        <p className="text-xs text-muted-foreground">{comparisonText}</p>
+        {predictionResult.averageAreaPrice > 0 && 
+            <p className="text-xs text-muted-foreground">Average for similar properties in the area: £{predictionResult.averageAreaPrice.toLocaleString()}</p>
+        }
+      </div>
+    );
+  };
+
 
   if (isLoadingProperty || isLoadingSalesman) {
     return (
@@ -87,16 +165,52 @@ export default function ContactPropertyPage() {
                 <h3 className="font-semibold text-lg">{property.name}</h3>
                 <p className="text-muted-foreground text-sm">{property.address}</p>
               </div>
-              <p className="text-2xl font-bold text-primary">£{property.price.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-primary flex items-center">
+                <DollarSign size={24} className="mr-1" />
+                {property.price.toLocaleString()}
+                <span className="text-sm font-normal text-muted-foreground ml-1">(Listed Price)</span>
+              </p>
               <ul className="text-sm space-y-1 text-foreground/80">
                 <li><strong>Type:</strong> {property.type}</li>
                 <li><strong>Bedrooms:</strong> {property.bedrooms}</li>
                 <li><strong>Bathrooms:</strong> {property.bathrooms}</li>
-                <li><strong>Reception Rooms:</strong> {property.receptionRooms}</li>
+                <li><strong>Living Rooms:</strong> {property.receptionRooms}</li>
                 {property.area && <li><strong>Area:</strong> {property.area} m²</li>}
                 <li><strong>Tenure:</strong> {property.tenure}</li>
                 <li><strong>Energy Rating:</strong> {property.energyRating}</li>
+                <li><strong>Region/Outcode:</strong> {property.region}</li>
               </ul>
+              
+              <Separator className="my-4" />
+
+              <div className="space-y-2">
+                <h4 className="font-semibold text-md">Price Analysis</h4>
+                {!predictionResult && !isPredictingPropertyPrice && !predictionErrorText && (
+                  <Button onClick={handlePredictPropertyPrice} variant="secondary" className="w-full">
+                    <TrendingUp className="mr-2 h-4 w-4" /> Predict Current Market Price
+                  </Button>
+                )}
+                {isPredictingPropertyPrice && (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <span>Calculating AI prediction...</span>
+                  </div>
+                )}
+                {predictionErrorText && !isPredictingPropertyPrice && (
+                  <div className="text-destructive text-sm p-3 bg-destructive/10 rounded-md flex items-center">
+                    <AlertTriangle size={16} className="mr-2"/> {predictionErrorText}
+                  </div>
+                )}
+                {predictionResult && !isPredictingPropertyPrice && (
+                   <div className="p-3 bg-muted/50 rounded-md border">
+                    {renderPriceComparison()}
+                    <Button onClick={handlePredictPropertyPrice} variant="outline" size="sm" className="w-full mt-3">
+                      <TrendingUp className="mr-2 h-4 w-4" /> Re-predict
+                    </Button>
+                  </div>
+                )}
+              </div>
+
             </CardContent>
           </Card>
 
@@ -158,3 +272,4 @@ export default function ContactPropertyPage() {
     </div>
   );
 }
+
