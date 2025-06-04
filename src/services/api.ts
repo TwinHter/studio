@@ -1,18 +1,19 @@
 
-'use server'; 
+'use server';
 
 import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
-import type { Property, SalesmanInfo, RegionMarketData, QuarterlyPricePoint } from '@/types'; 
-import initialPropertiesData from '@/lib/data/properties.json'; 
+import type { Property, SalesmanInfo, RegionMarketData, QuarterlyPricePoint } from '@/types';
+import initialPropertiesDataFromFile from '@/lib/data/properties.json';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data';
 import { DEFAULT_SALESMAN_INFO, PLACEHOLDER_HINTS } from '@/lib/constants';
 
 import { predictPrice as predictPriceFlow } from '@/ai/flows/price-prediction';
-import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json'; 
+import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json';
+import axios from 'axios';
 
-// Ensure initialPropertiesData is correctly typed as Property[]
-const initialProperties: Property[] = initialPropertiesData as Property[];
-
+// Make 'liveProperties' a mutable, module-level variable, initialized with the JSON data.
+// This array will be modified in memory by addFakePropertyForHook.
+let liveProperties: Property[] = [...initialPropertiesDataFromFile] as Property[];
 
 export const fetchPricePrediction = async (data: PredictionInput): Promise<PredictionOutput> => {
   const result = await predictPriceFlow(data);
@@ -20,7 +21,8 @@ export const fetchPricePrediction = async (data: PredictionInput): Promise<Predi
 };
 
 export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
-  const property = initialProperties.find(p => p.id === propertyId);
+  // Read from the potentially modified in-memory array
+  const property = liveProperties.find(p => p.id === propertyId);
   return property;
 };
 
@@ -41,9 +43,9 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
   const basePredictedPrice = fakePredictionDataJson.price;
   const areaModifier = input.floorAreaSqM ? (input.floorAreaSqM / 100) * 30000 : 0;
   const finalPredictedPrice = Math.round((basePredictedPrice + areaModifier + (input.sale_year - 2023) * 5000) / 1000) * 1000;
-  
+
   const priceHistoryChartData = [];
-  let lastPrice = finalPredictedPrice * 0.98; 
+  let lastPrice = finalPredictedPrice * 0.98;
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   for (let i = 0; i < 12; i++) {
     const date = new Date(input.sale_year, input.sale_month - 1 + i, 1);
@@ -68,16 +70,20 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
 };
 
 export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
-  return [...initialProperties];
+  // Return a copy of the potentially modified in-memory array
+  return [...liveProperties];
 };
 
 export const addFakePropertyForHook = async (
-  propertyData: Omit<Property, 'id'> & { image: string; }
+  propertyData: Omit<Property, 'id'> & { image: string; longitude?: number; latitude?: number; sale_month: number; sale_year: number; }
 ): Promise<Property> => {
   const newProperty: Property = {
     ...propertyData,
-    id: Date.now().toString(), 
+    id: Date.now().toString(),
   };
+  liveProperties.push(newProperty); // Modify the in-memory array
+  // In a real backend, you would write 'liveProperties' back to properties.json here
+  // or save to a database.
   return newProperty;
 };
 
@@ -94,13 +100,13 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
 
   for (let year = currentYear - 2; year <= currentYear; year++) {
     for (let q = 1; q <= 4; q++) {
-      let quarterPrice = priceFluctuationBase * (1 + (Math.random() - 0.5) * 0.05); 
+      let quarterPrice = priceFluctuationBase * (1 + (Math.random() - 0.5) * 0.05);
       quarterPrice = Math.round(quarterPrice / 1000) * 1000;
       quarterlyPriceHistory.push({
         quarter: `Q${q} ${year}`,
         price: quarterPrice,
       });
-      priceFluctuationBase = quarterPrice * (1 + (Math.random() - 0.45) * 0.01); 
+      priceFluctuationBase = quarterPrice * (1 + (Math.random() - 0.45) * 0.01);
     }
   }
   if (quarterlyPriceHistory.length > 0) {
