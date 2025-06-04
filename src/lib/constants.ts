@@ -1,11 +1,11 @@
 
 import type { PropertyType, EnergyRating, Tenure } from '@/types';
-import { londonOutcodes } from '@/lib/data/london_outcodes_data'; // Updated to use the processed extended data
-import { TrendingUp, MapIcon as PageMapIcon, ListChecksIcon, Database, ShieldCheck, Sparkles, Users } from 'lucide-react'; // Renamed MapIcon to PageMapIcon to avoid conflict
+import { londonOutcodes } from '@/lib/data/london_outcodes_data'; 
+import { TrendingUp, MapIcon as PageMapIcon, ListChecksIcon, Database, ShieldCheck, Sparkles, Users } from 'lucide-react'; 
 
 // App Info
 export const APP_NAME = "London Housing";
-export const APP_TAGLINE = "AI-powered London house price prediction and property insights."; // Used for meta description primarily
+export const APP_TAGLINE = "AI-powered London house price prediction and property insights."; 
 export const APP_TITLE_TEMPLATE = (pageTitle?: string) => 
   pageTitle ? `${pageTitle} | ${APP_NAME}` : `${APP_NAME} - ${APP_TAGLINE}`;
 
@@ -33,7 +33,7 @@ export const INTRO_FEATURE_CARDS = [
   },
   { 
     title: "London Outcode Explorer", 
-    description: "View average prices and AI-generated insights for different London outcodes. The map image is illustrative; select regions from the list.", 
+    description: "View average prices and AI-generated insights for different London outcodes via a list. The map image is illustrative.", 
     IconComponent: PageMapIcon
   },
   { 
@@ -49,9 +49,9 @@ export const INTRO_DATA_AI_TEXT_P1 = "Our project utilizes comprehensive London 
 export const INTRO_DATA_AI_CHARACTERISTICS_LIST = [
   "<strong>Location:</strong> Full Address, Geolocation (Latitude, Longitude), Outcode.",
   "<strong>Characteristics:</strong> Property Type (Flat, Detached, etc.), Tenure (Freehold, Leasehold).",
-  "<strong>Size & Layout:</strong> Bedrooms, Bathrooms, Reception Rooms, Internal Area (sqm).",
+  "<strong>Size & Layout:</strong> Bedrooms, Bathrooms, Living Rooms, Floor Area (sqm).", // Updated "Reception Rooms" to "Living Rooms"
   "<strong>Condition:</strong> Current Energy Efficiency Rating (A-G).",
-  "<strong>Timing:</strong> Month of Sale for accurate predictions.",
+  "<strong>Timing:</strong> Month and Year of Sale for accurate predictions.",
 ];
 export const INTRO_DATA_AI_MODELS_TEXT = "We employ machine learning models like <strong>Ridge Regression</strong>, <strong>XGBoost</strong>, <strong>LightGBM</strong>, and <strong>Ensemble Learning</strong>, trained on meticulously processed data to identify complex price-influencing factors.";
 export const INTRO_DATA_AI_ICON = Database;
@@ -76,11 +76,11 @@ export const INTRO_TEAM_MEMBERS = [
 ];
 
 
-// Page Hero Texts (can be overridden by props in PageHero component)
+// Page Hero Texts
 export const PREDICTION_PAGE_HERO_TITLE = "Property Price Prediction";
-export const PREDICTION_PAGE_HERO_DESCRIPTION = "Enter the property details below to receive an AI-powered price prediction and market insights. Note: Longitude and Latitude are optional; in a full app, they would be derived from the address.";
+export const PREDICTION_PAGE_HERO_DESCRIPTION = "Enter the property details below to receive an AI-powered price prediction and market insights. Longitude and Latitude are auto-filled from the address.";
 
-export const MAP_PAGE_HERO_TITLE = "London Outcode Explorer";
+export const MAP_PAGE_HERO_TITLE = "London Regional Statistics";
 export const MAP_PAGE_HERO_DESCRIPTION = "Explore London's outcodes. The map image is for illustrative purposes. Use the filters and list below to select a region and view its average price and AI-driven market insights.";
 
 export const RECOMMENDATIONS_PAGE_HERO_TITLE = "Suitable Property Recommendations";
@@ -92,16 +92,17 @@ export const CONTACT_PAGE_TITLE_TEMPLATE = (propertyName: string) => `Enquire Ab
 export const PROPERTY_TYPE_OPTIONS: PropertyType[] = ['Flat', 'Detached', 'Terraced', 'Semi-detached', 'Bungalow', 'Maisonette'];
 export const ENERGY_RATING_OPTIONS: EnergyRating[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 export const TENURE_OPTIONS: Tenure[] = ['Freehold', 'Leasehold'];
-export const BEDROOM_OPTIONS: number[] = [0, 1, 2, 3, 4, 5, 6]; // 0 for studio
+export const BEDROOM_OPTIONS: number[] = [0, 1, 2, 3, 4, 5, 6]; 
 export const BATHROOM_OPTIONS: number[] = [0, 1, 2, 3, 4, 5];
-export const RECEPTION_OPTIONS: number[] = [0, 1, 2, 3, 4];
+export const RECEPTION_OPTIONS: number[] = [0, 1, 2, 3, 4]; // This can be re-purposed for Living Rooms if needed, or a new one created.
+export const LIVING_ROOM_OPTIONS: number[] = [0, 1, 2, 3, 4];
 
-// REGION_OPTIONS is now dynamically generated from the extended dataset
+
 export const REGION_OPTIONS: string[] = Array.from(new Set(londonOutcodes.map(o => o.id))).sort();
 
 // Placeholder Image Hints
 export const PLACEHOLDER_HINTS = {
-  londonMap: "london regions map illustrative", // Updated hint
+  londonMap: "london map illustrative", 
   accuracyChart: "graph accuracy",
   priceChart: "graph price trend",
   defaultHouse: "house exterior",
@@ -110,15 +111,12 @@ export const PLACEHOLDER_HINTS = {
   propertyGeneric: "property image"
 };
 
-// File Upload Constants (for Recommendations Page)
+// File Upload Constants
 export const MAX_FILE_SIZE_MB = 5;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 export const ACCEPTED_IMAGE_TYPES_STRING = ".jpg, .jpeg, .png, .webp";
 
-// Price Range constants for filters - these should be dynamically calculated ideally,
-// but for now, we set broad defaults that should cover the new extended dataset.
-// It's better if the Map page calculates this dynamically from the passed regionsData.
 export const MIN_PRICE_FILTER_DEFAULT = Math.min(...londonOutcodes.map(o => o.avgPrice), 100000);
 export const MAX_PRICE_FILTER_DEFAULT = Math.max(...londonOutcodes.map(o => o.avgPrice), 3000000);
 
@@ -126,10 +124,10 @@ export const MAX_PRICE_FILTER_DEFAULT = Math.max(...londonOutcodes.map(o => o.av
 // Prediction Form Constants
 export const PREDICTION_FORM_DEFAULT_BEDROOMS = 1;
 export const PREDICTION_FORM_DEFAULT_BATHROOMS = 1;
-export const PREDICTION_FORM_DEFAULT_RECEPTIONS = 1;
+export const PREDICTION_FORM_DEFAULT_LIVING_ROOMS = 1; // Changed from RECEPTIONS
 export const PREDICTION_MONTH_OF_SALE_FORMAT_DESC = "Month of sale must be in YYYY-MM format (e.g., 2024-07).";
 
-// Salesman default info (if API fails or for placeholders)
+// Salesman default info
 export const DEFAULT_SALESMAN_INFO = {
     name: "London Dwellings AI Team",
     email: "contact@londondwellings.ai",

@@ -25,23 +25,24 @@ const PredictionInputSchema = z.object({
   latitude: z.number().optional().describe('The latitude of the property (derived from address).'),
   bedrooms: z.number().int().min(0, {message: 'Bedrooms cannot be negative.'}).max(10, { message: 'Cannot exceed 10 bedrooms.' }).describe('The number of bedrooms.'),
   bathrooms: z.number().int().min(0, {message: 'Bathrooms cannot be negative.'}).max(10, { message: 'Cannot exceed 10 bathrooms.' }).describe('The number of bathrooms.'),
-  receptionRooms: z.number().int().min(0, {message: 'Reception rooms cannot be negative.'}).max(10, { message: 'Cannot exceed 10 reception rooms.' }).describe('The number of reception rooms (living rooms).'),
-  area: z.number().positive({ message: 'Area must be a positive number.' }).describe('The area of the property in square meters.'),
+  livingRooms: z.number().int().min(0, {message: 'Living rooms cannot be negative.'}).max(10, { message: 'Cannot exceed 10 living rooms.' }).describe('The number of living rooms.'),
+  floorAreaSqM: z.number().positive({ message: 'Floor area must be a positive number.' }).describe('The floor area of the property in square meters.'),
   tenure: z.enum(TENURE_OPTIONS as [Tenure, ...Tenure[]]).describe('The tenure type of the property (e.g., Freehold, Leasehold).'),
   propertyType: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]]).describe('The type of property.'),
   currentEnergyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]]).describe('The current energy efficiency rating of the property.'),
-  monthOfSale: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: PREDICTION_MONTH_OF_SALE_FORMAT_DESC }).describe('The month and year of sale (YYYY-MM).'),
+  sale_month: z.number().int().min(1).max(12).describe('The month of sale (1-12).'),
+  sale_year: z.number().int().min(1990).max(new Date().getFullYear() + 10).describe('The year of sale (YYYY).'),
 });
 // Type inferred from Zod schema, exported for use in components/services
 export type PredictionInput = z.infer<typeof PredictionInputSchema>;
 
 // Zod schema (NOT EXPORTED, but used internally by the flow)
 const PredictionOutputSchema = z.object({
-  predictedPrice: z.number().describe('The predicted price of the property.'),
-  priceTrend: z.enum(['increasing', 'decreasing', 'stable']).describe('The predicted price trend for the next 12 months.'),
-  averageAreaPrice: z.number().describe('The average price for similar properties in the area.'),
+  price: z.number().describe('The predicted price of the property.'),
+  isStable: z.boolean().describe('Whether the predicted price trend for the next 12 months is stable.'),
+  averageAreaPrice: z.number().describe('The average price for similar properties in the area.'), // Keeping this as it's useful context
   priceHistoryChartData: z.array(z.object({
-    month: z.string(),
+    month: z.string(), // e.g., "Jan 2025"
     price: z.number(),
   })).describe('The predicted price for the next 12 months.'),
 });
@@ -58,7 +59,7 @@ const prompt = ai.definePrompt({
   output: {schema: PredictionOutputSchema},
   prompt: `You are an AI real estate expert specializing in London property prices.
 
-You will receive property details and must predict its price for the specified month of sale, along with an estimation of the price trend in the next 12 months. You must also provide the average price for similar properties in the same outcode.
+You will receive property details and must predict its price for the specified month and year of sale. You also need to determine if the price trend for the next 12 months is stable and provide an average price for similar properties in the area.
 
 Property Details:
 Full Address: {{{fullAddress}}}
@@ -68,31 +69,24 @@ Latitude: {{{latitude}}}
 Property Type: {{{propertyType}}}
 Bedrooms: {{{bedrooms}}}
 Bathrooms: {{{bathrooms}}}
-Reception Rooms: {{{receptionRooms}}}
-Area (sqm): {{{area}}}
+Living Rooms: {{{livingRooms}}}
+Floor Area (sqm): {{{floorAreaSqM}}}
 Tenure: {{{tenure}}}
 Current Energy Rating: {{{currentEnergyRating}}}
-Month of Sale: {{{monthOfSale}}}
+Sale Month: {{{sale_month}}}
+Sale Year: {{{sale_year}}}
 
-Consider factors such as historical price data (1991-2023), property type, location, size, condition (implied by energy rating), tenure and current market trends for the specified month of sale.
+Consider factors such as historical price data (1991-2023), property type, location, size, condition (implied by energy rating), tenure and current market trends for the specified sale period.
 
-Output the predicted price, price trend (increasing, decreasing, or stable), average price for similar properties in the area, and the predicted price for the next 12 months from the month of sale.
+Output the predicted price, whether the trend is stable (isStable: true/false), average price for similar properties in the area, and the predicted price for the next 12 months.
 
-Here's an example of the expected output format for the priceHistoryChartData:
-
+Example for priceHistoryChartData:
 [
-  {
-    "month": "Jan 2025",
-    "price": 520000
-  },
-  {
-    "month": "Feb 2025",
-    "price": 525000
-  },
-  // ... remaining months
+  { "month": "Jan 2025", "price": 520000 },
+  { "month": "Feb 2025", "price": 525000 },
+  ...
 ]
-
-Ensure that the priceHistoryChartData includes predictions for each month of the next 12 months from the provided monthOfSale and that prices are realistic for the London property market.`,
+Ensure priceHistoryChartData covers 12 months from the sale_month and sale_year. Prices must be realistic for London.`,
 });
 
 const predictPriceFlow = ai.defineFlow(
@@ -102,72 +96,74 @@ const predictPriceFlow = ai.defineFlow(
     outputSchema: PredictionOutputSchema,
   },
   async (input: PredictionInput): Promise<PredictionOutput> => {
-    // Fake data implementation based on new inputs
     let basePrice = 200000;
     basePrice += input.bedrooms * 70000;
     basePrice += input.bathrooms * 40000;
-    basePrice += input.receptionRooms * 30000;
-    basePrice += input.area * 1500;
+    basePrice += input.livingRooms * 35000; // Adjusted for livingRooms
+    basePrice += input.floorAreaSqM * 1600; // Adjusted for floorAreaSqM
 
     if (input.tenure === 'Freehold') basePrice *= 1.1;
 
     const energyRatingModifiers: Record<EnergyRating, number> = { 'A': 1.1, 'B': 1.05, 'C': 1.0, 'D': 0.95, 'E': 0.9, 'F': 0.85, 'G': 0.8 };
     basePrice *= energyRatingModifiers[input.currentEnergyRating];
 
-    // Refined price modification based on outcode groups
-    const highValueOutcodes = ['SW1', 'W1', 'WC1', 'NW1']; // Added WC1, NW1
-    const midValueOutcodes = ['N1', 'E1', 'SE1', 'EC1']; // Added EC1
-    // Low value outcodes are implicitly others like IG1, CR0
-
+    const highValueOutcodes = ['SW1A', 'SW1E', 'SW1H', 'SW1P', 'SW1V', 'SW1W', 'SW1X', 'SW1Y', 'W1K', 'W1J', 'WC2', 'EC2'];
+    const midValueOutcodes = ['N1', 'E1', 'SE1', 'EC1', 'NW1', 'W1G', 'W1U', 'W1B', 'W1C', 'W1D', 'W1F', 'W1T', 'W1W', 'W2', 'W8', 'W9', 'W11', 'WC1'];
+    
     if (highValueOutcodes.some(oc => input.outcode.startsWith(oc))) {
-      basePrice *= 1.25;
+      basePrice *= 1.35; // Increased modifier for very high value
     } else if (midValueOutcodes.some(oc => input.outcode.startsWith(oc))) {
-      basePrice *= 1.10;
-    } else { // Default/lower value areas
+      basePrice *= 1.15;
+    } else { 
         basePrice *= 1.0;
     }
 
+    // Simulate some effect from sale_year and sale_month
+    const yearFactor = 1 + (input.sale_year - 2023) * 0.02; // 2% increase per year from 2023
+    const monthFactor = 1 + (input.sale_month - 6) * 0.002; // Slight seasonal adjustment around mid-year
+    basePrice *= yearFactor * monthFactor;
 
-    const [saleYear, saleMonth] = input.monthOfSale.split('-').map(Number);
-    const predictedPrice = Math.round(basePrice / 1000) * 1000;
+    const predictedSalePrice = Math.round(basePrice / 1000) * 1000;
 
     const priceHistoryChartData = [];
-    let lastPrice = predictedPrice * 0.98; // Start slightly lower for trend
+    let lastPrice = predictedSalePrice * 0.98; 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     for (let i = 0; i < 12; i++) {
-      const date = new Date(saleYear, saleMonth -1 + i, 1);
+      // Start from the input sale_month and sale_year
+      const date = new Date(input.sale_year, input.sale_month - 1 + i, 1);
       const month = monthNames[date.getMonth()];
       const year = date.getFullYear();
-      lastPrice = lastPrice * (1 + (Math.random() * 0.015 - 0.004)); // Slight random fluctuation for trend
+      lastPrice = lastPrice * (1 + (Math.random() * 0.015 - 0.005)); // Random fluctuation
       priceHistoryChartData.push({
         month: `${month} ${year}`,
         price: Math.round(lastPrice / 1000) * 1000,
       });
     }
     
-    // Ensure the first month in chart data aligns with the predicted price (or is very close)
-    if (priceHistoryChartData.length > 0) {
+    // Ensure the first month in chart data is very close to the predicted sale price
+     if (priceHistoryChartData.length > 0) {
         const initialChartPrice = priceHistoryChartData[0].price;
-        const adjustmentFactor = predictedPrice / initialChartPrice;
-        // Adjust all chart prices to be relative to the predicted price, maintaining their trend.
+        const adjustmentFactor = predictedSalePrice / initialChartPrice;
         priceHistoryChartData.forEach(item => {
             item.price = Math.round((item.price * adjustmentFactor) / 1000) * 1000;
         });
-        // Recalculate the first price to be very close to predicted after scaling the trend
-        priceHistoryChartData[0].price = Math.round((predictedPrice * (0.99 + Math.random() * 0.02)) /1000) * 1000;
+        // Ensure the first element's price is very close to the main predicted price
+        priceHistoryChartData[0].price = Math.round((predictedSalePrice * (0.995 + Math.random() * 0.01)) /1000) * 1000;
     }
 
 
+    const trendOptions: Array<'increasing' | 'decreasing' | 'stable'> = ['increasing', 'decreasing', 'stable'];
+    const randomTrend = trendOptions[Math.floor(Math.random() * trendOptions.length)];
+
     const fakeOutput: PredictionOutput = {
-      predictedPrice: predictedPrice,
-      priceTrend: ['increasing', 'decreasing', 'stable'][Math.floor(Math.random() * 3)] as 'increasing' | 'decreasing' | 'stable',
-      averageAreaPrice: Math.round((predictedPrice * (0.85 + Math.random() * 0.25)) / 1000) * 1000, // Adjusted range
+      price: predictedSalePrice,
+      isStable: randomTrend === 'stable',
+      averageAreaPrice: Math.round((predictedSalePrice * (0.88 + Math.random() * 0.17)) / 1000) * 1000,
       priceHistoryChartData: priceHistoryChartData,
     };
-
-    // Removed artificial delay: await new Promise(resolve => setTimeout(resolve, 1000));
 
     return fakeOutput;
   }
 );
+

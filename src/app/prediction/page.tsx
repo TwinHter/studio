@@ -24,29 +24,30 @@ import {
   REGION_OPTIONS,
   PREDICTION_FORM_DEFAULT_BEDROOMS,
   PREDICTION_FORM_DEFAULT_BATHROOMS,
-  PREDICTION_FORM_DEFAULT_RECEPTIONS,
+  PREDICTION_FORM_DEFAULT_LIVING_ROOMS, // Updated constant name
   PREDICTION_MONTH_OF_SALE_FORMAT_DESC
 } from '@/lib/constants';
 import type { PropertyType, EnergyRating, Tenure } from '@/types';
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
-const predictionFormSchema = z.object({
+// Schema for the form itself
+const predictionFormClientSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address must be at least 5 characters.' }),
   outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: 'Outcode is required.' }),
   longitude: z.coerce.number().optional(),
   latitude: z.coerce.number().optional(),
   bedrooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more bedrooms.' }).max(10, { message: 'Cannot exceed 10 bedrooms.' }),
   bathrooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more bathrooms.' }).max(10, { message: 'Cannot exceed 10 bathrooms.' }),
-  receptionRooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more reception rooms.' }).max(10, { message: 'Cannot exceed 10 reception rooms.' }),
-  area: z.coerce.number().positive({ message: 'Area must be a positive number.' }),
+  livingRooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more living rooms.' }).max(10, { message: 'Cannot exceed 10 living rooms.' }),
+  floorAreaSqM: z.coerce.number().positive({ message: 'Floor area must be a positive number.' }),
   tenure: z.enum(TENURE_OPTIONS as [Tenure, ...Tenure[]], { required_error: 'Tenure is required.' }),
   propertyType: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]], { required_error: 'Property type is required.' }),
   currentEnergyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]], { required_error: 'Energy rating is required.' }),
   monthOfSale: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: PREDICTION_MONTH_OF_SALE_FORMAT_DESC }),
 });
 
-type PredictionFormValues = z.infer<typeof predictionFormSchema>;
+type PredictionFormClientValues = z.infer<typeof predictionFormClientSchema>;
 
 export default function PredictionPage() {
   const { predict, isPredicting, predictionData, predictionError, resetPrediction } = usePredict();
@@ -54,8 +55,8 @@ export default function PredictionPage() {
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  const form = useForm<PredictionFormValues>({
-    resolver: zodResolver(predictionFormSchema),
+  const form = useForm<PredictionFormClientValues>({
+    resolver: zodResolver(predictionFormClientSchema),
     defaultValues: {
       fullAddress: '',
       outcode: undefined,
@@ -63,8 +64,8 @@ export default function PredictionPage() {
       latitude: undefined,
       bedrooms: PREDICTION_FORM_DEFAULT_BEDROOMS,
       bathrooms: PREDICTION_FORM_DEFAULT_BATHROOMS,
-      receptionRooms: PREDICTION_FORM_DEFAULT_RECEPTIONS,
-      area: undefined,
+      livingRooms: PREDICTION_FORM_DEFAULT_LIVING_ROOMS,
+      floorAreaSqM: undefined,
       tenure: undefined,
       propertyType: undefined,
       currentEnergyRating: undefined,
@@ -73,17 +74,16 @@ export default function PredictionPage() {
   });
 
   const geocodeAddress = useCallback(async (address: string) => {
-    if (address.trim().length < 10) { // Increased minimum length for a more meaningful address
+    if (address.trim().length < 10) {
       form.setValue('longitude', undefined);
       form.setValue('latitude', undefined);
-      // Clear previous geocoding errors if address becomes too short
       if (form.formState.errors.fullAddress?.type === 'manual') {
         form.clearErrors('fullAddress');
       }
       return;
     }
     setIsGeocoding(true);
-    form.clearErrors('fullAddress'); // Clear previous errors before new attempt
+    form.clearErrors('fullAddress');
     try {
       const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gb&limit=1`);
       if (response.data && response.data.length > 0) {
@@ -109,15 +109,13 @@ export default function PredictionPage() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (watchedAddress !== undefined) { // Ensure watchedAddress is not undefined
-          // Check if the current watched address is the one that was last submitted or if it has changed
-          // This check helps prevent re-geocoding if the form was submitted and then re-focused
+      if (watchedAddress !== undefined) {
           const currentFormAddress = form.getValues('fullAddress');
           if (watchedAddress === currentFormAddress) {
             geocodeAddress(watchedAddress);
           }
       }
-    }, 1000); // 1-second debounce
+    }, 1000); 
 
     return () => {
       clearTimeout(handler);
@@ -125,16 +123,31 @@ export default function PredictionPage() {
   }, [watchedAddress, geocodeAddress, form]);
 
 
-  const onSubmit: SubmitHandler<PredictionFormValues> = async (data) => {
+  const onSubmit: SubmitHandler<PredictionFormClientValues> = async (data) => {
     resetPrediction();
-    const inputData: PredictionInput = {
-      ...data,
+    
+    const [yearStr, monthStr] = data.monthOfSale.split('-');
+    const sale_year = parseInt(yearStr, 10);
+    const sale_month = parseInt(monthStr, 10);
+
+    const inputDataForApi: PredictionInput = {
+      fullAddress: data.fullAddress,
       outcode: data.outcode,
-      ...(data.longitude && { longitude: data.longitude }),
-      ...(data.latitude && { latitude: data.latitude }),
+      longitude: data.longitude,
+      latitude: data.latitude,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      livingRooms: data.livingRooms, // Changed from receptionRooms
+      floorAreaSqM: data.floorAreaSqM, // Changed from area
+      tenure: data.tenure,
+      propertyType: data.propertyType,
+      currentEnergyRating: data.currentEnergyRating,
+      sale_month: sale_month, // New field
+      sale_year: sale_year,   // New field
     };
+
     try {
-      await predict(inputData);
+      await predict(inputDataForApi);
     } catch (e) {
       console.error("Submit error", e)
     }
@@ -260,10 +273,10 @@ export default function PredictionPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="receptionRooms"
+                  name="livingRooms" 
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4" />Reception Rooms</FormLabel>
+                      <FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4" />Living Rooms</FormLabel> 
                       <FormControl>
                         <Input type="number" placeholder="e.g., 1" {...field} />
                       </FormControl>
@@ -275,10 +288,10 @@ export default function PredictionPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     control={form.control}
-                    name="area"
+                    name="floorAreaSqM" 
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4" />Area (sqm)</FormLabel>
+                        <FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4" />Floor Area (sqm)</FormLabel> 
                         <FormControl>
                             <Input type="number" placeholder="e.g., 70" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
                         </FormControl>
@@ -408,7 +421,7 @@ export default function PredictionPage() {
               <div className="bg-muted p-6 rounded-lg">
                 <p className="text-sm text-muted-foreground font-medium">Predicted Price</p>
                 <p className="text-3xl font-bold text-primary">
-                  £{predictionData.predictedPrice.toLocaleString()}
+                  £{predictionData.price.toLocaleString()}
                 </p>
               </div>
               <div className="bg-muted p-6 rounded-lg">
@@ -419,8 +432,8 @@ export default function PredictionPage() {
               </div>
               <div className="bg-muted p-6 rounded-lg">
                 <p className="text-sm text-muted-foreground font-medium">Trend (12 months)</p>
-                <p className="text-3xl font-bold capitalize" style={{ color: predictionData.priceTrend === 'increasing' ? 'hsl(var(--chart-1))' : predictionData.priceTrend === 'decreasing' ? 'hsl(var(--destructive))' : 'hsl(var(--chart-5))' }}>
-                  {predictionData.priceTrend}
+                <p className="text-3xl font-bold capitalize" style={{ color: predictionData.isStable ? 'hsl(var(--chart-5))' : 'hsl(var(--chart-1))' }}>
+                  {predictionData.isStable ? 'Stable' : 'Dynamic'}
                 </p>
               </div>
             </div>
@@ -457,6 +470,3 @@ export default function PredictionPage() {
     </div>
   );
 }
-
-
-    
