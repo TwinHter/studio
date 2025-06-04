@@ -2,15 +2,15 @@
 "use client";
 
 import { useMutation } from '@tanstack/react-query';
-import { fetchFakeRegionMarketDataForHook } from '@/services/api';
+import { getRegionMarketData } from '@/services/api'; // Renamed function
 import type { RegionMarketData } from '@/types';
 import { useToast } from './use-toast';
 
 export function useMap() {
   const { toast } = useToast();
 
-  const mutation = useMutation<RegionMarketData, Error, string>({ // Input is regionId (string)
-    mutationFn: fetchFakeRegionMarketDataForHook,
+  const mutation = useMutation<RegionMarketData, Error, string>({ 
+    mutationFn: getRegionMarketData, // Using renamed function
     onSuccess: (data) => {
       toast({
         title: "Region Data Loaded",
@@ -35,4 +35,3 @@ export function useMap() {
     resetMarketData: mutation.reset,
   };
 }
-

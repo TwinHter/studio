@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, notFound } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { fetchPropertyDetails } from '@/services/api';
+import { getPropertyDetails } from '@/services/api'; // Renamed function
 import PageHero from '@/components/shared/PageHero';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,22 +26,19 @@ export default function ContactPropertyPage() {
 
   const { data: property, isLoading: isLoadingProperty, error: propertyError } = useQuery<Property | null>({
     queryKey: ['propertyDetails', propertyId],
-    queryFn: () => fetchPropertyDetails(propertyId),
+    queryFn: () => getPropertyDetails(propertyId), // Using renamed function
     enabled: !!propertyId,
   });
 
-  // SalesmanInfo is now part of the property object or fallback to DEFAULT_SALESMAN_INFO
   const contactPerson = {
     name: property?.uploaderName || DEFAULT_SALESMAN_INFO.name,
     email: property?.uploaderEmail || DEFAULT_SALESMAN_INFO.email,
     phone: property?.uploaderPhone || DEFAULT_SALESMAN_INFO.phone,
-    // bio: property?.uploaderName ? `${property.uploaderName} listed this property.` : DEFAULT_SALESMAN_INFO.bio, // Removed
-    imageUrl: DEFAULT_SALESMAN_INFO.imageUrl, // Using default avatar for now
+    imageUrl: DEFAULT_SALESMAN_INFO.imageUrl, 
     dataAiHint: property?.uploaderName ? PLACEHOLDER_HINTS.salesmanPortrait : DEFAULT_SALESMAN_INFO.dataAiHint,
   };
 
-
-  const { predict } = usePredict();
+  const { predict } = usePredict(); // predict function from usePredict will now use axios
   const [predictionResult, setPredictionResult] = useState<PredictionOutput | null>(null);
   const [isPredictingPropertyPrice, setIsPredictingPropertyPrice] = useState(false);
   const [predictionErrorText, setPredictionErrorText] = useState<string | null>(null);
@@ -76,7 +73,7 @@ export default function ContactPropertyPage() {
     };
 
     try {
-      const result = await predict(inputData);
+      const result = await predict(inputData); // This now calls the API route via axios
       setPredictionResult(result);
     } catch (e: any) {
       console.error("Prediction error on contact page:", e);
@@ -118,7 +115,6 @@ export default function ContactPropertyPage() {
       </div>
     );
   };
-
 
   if (isLoadingProperty) {
     return (
@@ -183,7 +179,6 @@ export default function ContactPropertyPage() {
                   <li><strong>Coordinates:</strong> {property.latitude.toFixed(4)}, {property.longitude.toFixed(4)}</li>
                 )}
                 <li><strong>Listed:</strong> {new Date(property.sale_year, property.sale_month -1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</li>
-
               </ul>
 
               <Separator className="my-4" />
@@ -215,10 +210,8 @@ export default function ContactPropertyPage() {
                   </div>
                 )}
               </div>
-
             </CardContent>
           </Card>
-
 
           <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
             <CardHeader>
@@ -232,13 +225,8 @@ export default function ContactPropertyPage() {
                 </Avatar>
                 <div>
                   <h3 className="text-xl font-semibold">{contactPerson.name}</h3>
-                  {/* <p className="text-sm text-muted-foreground">{property.uploaderName ? "Property Lister" : "Property Consultant"}</p> */} {/* Removed title */}
                 </div>
               </div>
-              {/* <p className="text-foreground/80 text-sm flex items-start">
-                <Briefcase size={16} className="mr-2 mt-0.5 flex-shrink-0 text-primary" />
-                {contactPerson.bio}
-              </p> */} {/* Removed bio */}
               <div className="space-y-2 pt-2 border-t">
                 <p className="flex items-center">
                   <Mail size={16} className="mr-2 text-primary" />
@@ -260,7 +248,6 @@ export default function ContactPropertyPage() {
                   <Mail className="mr-2 h-4 w-4" /> Email {contactPerson.name.split(' ')[0]}
                 </a>
               </Button>
-               {/* <p className="text-xs text-muted-foreground text-center">Please mention property ID: {property.id} when enquiring.</p> */} {/* Removed property ID note */}
             </CardContent>
           </Card>
         </div>

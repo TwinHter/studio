@@ -2,7 +2,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchFakePropertiesForHook, addFakePropertyForHook } from '@/services/api';
+import { getProperties, addProperty as addPropertyToListing } from '@/services/api'; // Renamed functions
 import type { Property } from '@/types';
 import { useToast } from './use-toast';
 import { PLACEHOLDER_HINTS } from '@/lib/constants';
@@ -16,7 +16,6 @@ export type NewPropertyData = Omit<Property, 'id' | 'image' | 'dataAiHint' | 'lo
   uploaderPhone?: string;
 };
 
-
 export function useRecommend() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -26,8 +25,8 @@ export function useRecommend() {
     isLoading: isLoadingProperties, 
     error: fetchPropertiesError 
   } = useQuery<Property[], Error>({
-    queryKey: ['fakeProperties'],
-    queryFn: fetchFakePropertiesForHook,
+    queryKey: ['properties'], // Changed queryKey for clarity
+    queryFn: getProperties,    // Using renamed function
   });
 
   const addPropertyMutation = useMutation<Property, Error, NewPropertyData>({
@@ -93,10 +92,10 @@ export function useRecommend() {
         uploaderEmail: newPropertyData.uploaderEmail,
         uploaderPhone: newPropertyData.uploaderPhone,
       };
-      return addFakePropertyForHook(propertyToSave);
+      return addPropertyToListing(propertyToSave); // Using renamed function
     },
     onSuccess: (newProperty) => {
-      queryClient.setQueryData<Property[]>(['fakeProperties'], (oldProperties = []) => {
+      queryClient.setQueryData<Property[]>(['properties'], (oldProperties = []) => { // Using updated queryKey
         return [newProperty, ...oldProperties];
       });
       toast({
