@@ -65,10 +65,9 @@ export const INTRO_ACCURACY_ICON = ShieldCheck;
 export const INTRO_TEAM_SECTION_TITLE = "Project Team";
 export const INTRO_TEAM_ICON = Users;
 export const INTRO_TEAM_MEMBERS = [
-  { name: "An Nguyen", role: "Project Lead & AI Architect" },
-  { name: "Binh Tran", role: "Data Specialist & Backend Developer" },
-  { name: "Cuong Le", role: "Frontend Engineer & UI/UX Designer" },
-  { name: "Dung Pham", role: "QA & Testing Lead" },
+  { name: "Nguyễn Hữu Đặng Nguyên", role: "ID: 23521045" },
+  { name: "Trần Vạn Tấn", role: "ID: 23521813" },
+  { name: "Trần Vinh Khánh", role: "ID: 23520729" },
 ];
 
 
