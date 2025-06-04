@@ -53,12 +53,12 @@ export const INTRO_DATA_AI_CHARACTERISTICS_LIST = [
   "<strong>Condition:</strong> Current Energy Efficiency Rating (A-G).",
   "<strong>Timing:</strong> Month and Year of Sale for accurate predictions.",
 ];
-export const INTRO_DATA_AI_MODELS_TEXT = "We employ machine learning models like <strong>Ridge Regression</strong>, <strong>XGBoost</strong>, <strong>LightGBM</strong>, and <strong>Ensemble Learning</strong>, trained on meticulously processed data to identify complex price-influencing factors.";
+export const INTRO_DATA_AI_MODELS_TEXT = "We employ and fine-tune advanced machine learning models including <strong>XGBoost</strong>, <strong>Neural Networks</strong>, and <strong>Recurrent Neural Networks (RNNs)</strong>, trained on meticulously processed data to identify complex price-influencing factors.";
 export const INTRO_DATA_AI_ICON = Database;
 
 export const INTRO_ACCURACY_SECTION_TITLE = "Model Accuracy";
 export const INTRO_ACCURACY_CARD_DESCRIPTION = "Evaluating our model's performance";
-export const INTRO_ACCURACY_TEXT = "Model accuracy is paramount. We use metrics like MAE (Mean Absolute Error) and R² (R-squared) to continuously evaluate and refine our predictions, aiming for maximum reliability.";
+export const INTRO_ACCURACY_TEXT = "Model accuracy is paramount. We use a comprehensive suite of metrics including <strong>MAE (Mean Absolute Error)</strong>, <strong>MSE (Mean Squared Error)</strong>, <strong>R² (R-squared)</strong>, and <strong>RMSE (Root Mean Squared Error)</strong> to continuously evaluate and refine our predictions, aiming for maximum reliability.";
 export const INTRO_ACCURACY_CHART_TEXT = "Example chart showing model performance (e.g., MAE, R²).";
 export const INTRO_ACCURACY_ICON = ShieldCheck;
 
@@ -93,7 +93,7 @@ export const PROPERTY_TYPE_OPTIONS: AppPropertyType[] = [
     'Detached Bungalow', 'Semi-Detached Bungalow',
     'Mid Terrace Bungalow', 'Semi-Detached Property',
     'Detached Property', 'End Terrace Property', 'Terraced Bungalow',
-    'End Terrace Bungalow', 'Flat', 'Detached', 'Semi-detached', 'Bungalow', 'Maisonette' // Including original simple types
+    'End Terrace Bungalow', 'Flat', 'Detached', 'Semi-detached', 'Bungalow', 'Maisonette' 
 ];
 export const ENERGY_RATING_OPTIONS: EnergyRating[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 export const TENURE_OPTIONS: AppTenure[] = ['Freehold', 'Leasehold', 'Feudal', 'Shared'];
