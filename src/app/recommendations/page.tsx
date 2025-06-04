@@ -336,7 +336,7 @@ export default function RecommendationsPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <FormField control={uploadForm.control} name="price" render={({ field }) => (
-                      <FormItem><FormLabel className="flex items-center"><Coins className="mr-2 h-4 w-4 text-muted-foreground" />Price (£)</FormLabel><FormControl><Input type="number" placeholder="e.g., 500000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                      <FormItem><FormLabel className="flex items-center"><Coins className="mr-2 h-4 w-4 text-muted-foreground" />Price (£)</FormLabel><FormControl><Input type="number" placeholder="e.g., 500000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={uploadForm.control} name="propertyType" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />Property Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl><SelectContent>{PROPERTY_TYPE_OPTIONS.map(pt => <SelectItem key={pt} value={pt}>{pt}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
                     <FormField control={uploadForm.control} name="outcode" render={({ field }) => (
@@ -370,7 +370,7 @@ export default function RecommendationsPage() {
                     <FormField control={uploadForm.control} name="uploaderEmail" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><MailIcon className="mr-2 h-4 w-4 text-muted-foreground" />Your Email</FormLabel><FormControl><Input type="email" placeholder="e.g., john.doe@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={uploadForm.control} name="uploaderPhone" render={({ field }) => (
-                      <FormItem><FormLabel className="flex items-center"><Phone className="mr-2 h-4 w-4 text-muted-foreground" />Your Phone (Optional)</FormLabel><FormControl><Input type="tel" placeholder="e.g., 020 1234 5678" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                      <FormItem><FormLabel className="flex items-center"><Phone className="mr-2 h-4 w-4 text-muted-foreground" />Your Phone (Optional)</FormLabel><FormControl><Input type="tel" placeholder="e.g., 020 1234 5678" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -471,3 +471,5 @@ export default function RecommendationsPage() {
     </div>
   );
 }
+
+    
