@@ -19,7 +19,10 @@
     "longitude": -0.0722,
     "latitude": 51.5154,
     "sale_month": 3,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "Alice Wonderland",
+    "uploaderEmail": "alice.w@example.com",
+    "uploaderPhone": "020 1234 5678"
   },
   {
     "id": "2",
@@ -36,11 +39,14 @@
     "outcode": "SW1A",
     "image": "https://placehold.co/601x400.png",
     "description": "Luxury flat in a prestigious SW1A development, offering stunning panoramic city views and concierge service.",
-    "dataAiHint": "modern flat",
+    "dataAiHint": "modern flat city",
     "longitude": -0.1357,
     "latitude": 51.4975,
     "sale_month": 4,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "Bob The Builder",
+    "uploaderEmail": "bob.b@example.com",
+    "uploaderPhone": "020 8765 4321"
   },
   {
     "id": "3",
@@ -61,7 +67,10 @@
     "longitude": -0.1062,
     "latitude": 51.5348,
     "sale_month": 2,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "Carol Danvers",
+    "uploaderEmail": "carol.d@example.com",
+    "uploaderPhone": "020 3333 4444"
   },
   {
     "id": "4",
@@ -82,12 +91,14 @@
     "longitude": -0.0840,
     "latitude": 51.5000,
     "sale_month": 5,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "David Copperfield",
+    "uploaderEmail": "david.c@example.com"
   },
   {
     "id": "5",
-    "name": "Affordable Starter Flat in Ilford",
-    "fullAddress": "2B, Union Court, Ilford, IG1",
+    "name": "Affordable Starter Flat in Leyton",
+    "fullAddress": "2B, Union Court, Leyton, E10",
     "price": 320000,
     "propertyType": "Flat/Maisonette",
     "bedrooms": 1,
@@ -98,17 +109,20 @@
     "tenure": "Leasehold",
     "outcode": "E10", 
     "image": "https://placehold.co/600x403.png",
-    "description": "An ideal first-time buy or investment property in IG1, offering great value, modern interiors, and excellent transport links.",
+    "description": "An ideal first-time buy or investment property in E10, offering great value, modern interiors, and excellent transport links.",
     "dataAiHint": "starter flat exterior",
-    "longitude": 0.0730,
-    "latitude": 51.5580,
+    "longitude": 0.0030,
+    "latitude": 51.5680,
     "sale_month": 1,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "Eve Moneypenny",
+    "uploaderEmail": "eve.m@example.com",
+    "uploaderPhone": "020 7777 8888"
   },
   {
     "id": "6",
-    "name": "Large Detached House, Croydon",
-    "fullAddress": "The Beeches, Addiscombe Road, CR0",
+    "name": "Large Detached House, Wanstead",
+    "fullAddress": "The Beeches, High Street, Wanstead, E11",
     "price": 950000,
     "propertyType": "Detached House",
     "bedrooms": 5,
@@ -119,12 +133,14 @@
     "tenure": "Freehold",
     "outcode": "E11", 
     "image": "https://placehold.co/603x400.png",
-    "description": "An expansive detached residence in CR0 with modern amenities, multiple reception rooms, a large driveway, and a substantial garden.",
+    "description": "An expansive detached residence in E11 with modern amenities, multiple reception rooms, a large driveway, and a substantial garden.",
     "dataAiHint": "large house exterior",
-    "longitude": -0.0770,
-    "latitude": 51.3762,
+    "longitude": 0.0270,
+    "latitude": 51.5762,
     "sale_month": 3,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "Frank Castle",
+    "uploaderEmail": "frank.c@example.com"
   },
   {
     "id": "7",
@@ -145,7 +161,10 @@
     "longitude": -0.1509,
     "latitude": 51.5128,
     "sale_month": 4,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "Grace Hopper",
+    "uploaderEmail": "grace.h@example.com",
+    "uploaderPhone": "020 1122 3344"
   },
   {
     "id": "8",
@@ -166,8 +185,9 @@
     "longitude": -0.0759,
     "latitude": 51.5055,
     "sale_month": 2,
-    "sale_year": 2024
+    "sale_year": 2024,
+    "uploaderName": "Harry Potter",
+    "uploaderEmail": "harry.p@example.com",
+    "uploaderPhone": "020 5555 6666"
   }
 ]
-
-    

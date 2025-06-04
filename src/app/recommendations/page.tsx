@@ -19,7 +19,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useRecommend, type NewPropertyData } from '@/hooks/useRecommend';
 import type { Property, PropertyType, EnergyRating, Tenure } from '@/types';
 import { 
-  DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact, UploadCloud, User, MailIcon, Building2, Coins, X, Loader2 
+  DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact, UploadCloud, User, MailIcon, Building2, Coins, X, Loader2, Phone
 } from 'lucide-react';
 import {
   RECOMMENDATIONS_PAGE_HERO_TITLE,
@@ -43,27 +43,27 @@ import {
 type RecommendationFilters = {
   maxPrice?: number;
   propertyType?: Property['propertyType'];
-  outcode?: string; // Changed from region
+  outcode?: string; 
   bedrooms?: number;
   bathrooms?: number;
-  livingRooms?: number; // Changed from receptionRooms
+  livingRooms?: number; 
   tenure?: Property['tenure'];
-  currentEnergyRating?: Property['currentEnergyRating']; // Changed from energyRating
+  currentEnergyRating?: Property['currentEnergyRating']; 
 };
 
-// Schema for the upload form, ensures field names match the final Property structure where appropriate
+
 const uploadPropertyFormSchema = z.object({
   name: z.string().min(5, "Property name must be at least 5 characters."),
-  fullAddress: z.string().min(10, "Full address must be at least 10 characters."), // Changed from address
+  fullAddress: z.string().min(10, "Full address must be at least 10 characters."), 
   price: z.coerce.number().positive("Price must be a positive number."),
-  propertyType: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]], { required_error: "Property type is required." }), // Changed from type
+  propertyType: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]], { required_error: "Property type is required." }), 
   bedrooms: z.coerce.number().int().min(0, "Bedrooms must be 0 or more."),
   bathrooms: z.coerce.number().int().min(0, "Bathrooms must be 0 or more."),
-  livingRooms: z.coerce.number().int().min(0, "Living rooms must be 0 or more."), // Changed from receptionRooms
-  floorAreaSqM: z.coerce.number().positive("Area must be a positive number.").optional(), // Changed from area
-  currentEnergyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]], { required_error: "Energy rating is required." }), // Changed from energyRating
+  livingRooms: z.coerce.number().int().min(0, "Living rooms must be 0 or more."), 
+  floorAreaSqM: z.coerce.number().positive("Area must be a positive number.").optional(), 
+  currentEnergyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]], { required_error: "Energy rating is required." }), 
   tenure: z.enum(TENURE_OPTIONS as [Tenure, ...Tenure[]], { required_error: "Tenure is required." }),
-  outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: "Outcode is required." }), // Changed from region
+  outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: "Outcode is required." }), 
   description: z.string().min(20, "Description must be at least 20 characters.").max(500, "Description cannot exceed 500 characters."),
   imageFile: z
     .custom<FileList>()
@@ -75,13 +75,14 @@ const uploadPropertyFormSchema = z.object({
     ),
   uploaderName: z.string().min(2, "Your name must be at least 2 characters."),
   uploaderEmail: z.string().email("Please enter a valid email address."),
+  uploaderPhone: z.string().optional(),
 });
 
 type UploadPropertyFormValues = z.infer<typeof uploadPropertyFormSchema>;
 
 export default function RecommendationsPage() {
   const searchParams = useSearchParams();
-  const initialOutcode = searchParams.get('region'); // query param is 'region', maps to 'outcode'
+  const initialOutcode = searchParams.get('region'); 
 
   const { 
     properties: displayedProperties, 
@@ -107,9 +108,9 @@ export default function RecommendationsPage() {
     resolver: zodResolver(uploadPropertyFormSchema),
     defaultValues: {
       name: "", fullAddress: "", price: undefined, propertyType: undefined, 
-      bedrooms: BEDROOM_OPTIONS[1], bathrooms: BATHROOM_OPTIONS[1], livingRooms: RECEPTION_OPTIONS[1], // Default livingRooms from RECEPTION_OPTIONS
+      bedrooms: BEDROOM_OPTIONS[1], bathrooms: BATHROOM_OPTIONS[1], livingRooms: RECEPTION_OPTIONS[1], 
       floorAreaSqM: undefined, currentEnergyRating: undefined, tenure: undefined, outcode: undefined, 
-      description: "", imageFile: undefined, uploaderName: "", uploaderEmail: "",
+      description: "", imageFile: undefined, uploaderName: "", uploaderEmail: "", uploaderPhone: ""
     },
   });
 
@@ -142,7 +143,7 @@ export default function RecommendationsPage() {
       if (filters.livingRooms !== undefined && property.livingRooms < filters.livingRooms) return false;
       if (filters.tenure && property.tenure !== filters.tenure) return false;
       if (filters.currentEnergyRating && property.currentEnergyRating !== filters.currentEnergyRating) return false;
-      if (searchTerm && !`${property.name} ${property.fullAddress} ${property.description}`.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (searchTerm && !`${property.name} ${property.fullAddress} ${property.description} ${property.uploaderName}`.toLowerCase().includes(searchTerm.toLowerCase())) return false;
       return true;
     });
   }, [filters, searchTerm, displayedProperties]);
@@ -163,8 +164,6 @@ export default function RecommendationsPage() {
   };
 
   const handleFileUploadSubmit: SubmitHandler<UploadPropertyFormValues> = async (data) => {
-    // Ensure field names match NewPropertyData which omits 'id', 'image', 'dataAiHint', 'longitude', 'latitude', 'sale_month', 'sale_year'
-    // These are added by the hook/service.
     const propertyDataForHook: NewPropertyData = {
       name: data.name,
       fullAddress: data.fullAddress,
@@ -179,6 +178,9 @@ export default function RecommendationsPage() {
       outcode: data.outcode,
       description: data.description,
       imageFile: data.imageFile,
+      uploaderName: data.uploaderName,
+      uploaderEmail: data.uploaderEmail,
+      uploaderPhone: data.uploaderPhone,
     };
     try {
       await addProperty(propertyDataForHook);
@@ -293,7 +295,7 @@ export default function RecommendationsPage() {
             <label htmlFor="searchTermRec" className="block text-sm font-medium text-foreground mb-1">Keyword Search</label>
             <Input 
               id="searchTermRec" 
-              placeholder="e.g., near park, balcony, victorian..." 
+              placeholder="e.g., near park, balcony, victorian, uploader name..." 
               value={searchTerm}
               onChange={handleSearchChange}
               className="bg-card"
@@ -360,12 +362,15 @@ export default function RecommendationsPage() {
                     <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Detailed description of the property..." {...field} rows={4} /></FormControl><FormMessage /></FormItem>)} />
                   <FormField control={uploadForm.control} name="imageFile" render={({ field: { onChange, value, ...rest } }) => (
                     <FormItem><FormLabel>Property Image</FormLabel><FormControl><Input type="file" accept={ACCEPTED_IMAGE_TYPES_STRING} onChange={(e) => onChange(e.target.files)} {...rest} className="file:text-primary file:font-medium"/></FormControl><FormDescription>Max file size: {MAX_FILE_SIZE_MB}MB. Accepted: {ACCEPTED_IMAGE_TYPES_STRING}.</FormDescription><FormMessage /></FormItem>)} />
+                  
                   <h3 className="text-lg font-semibold text-foreground border-b pt-4 pb-2">Your Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <FormField control={uploadForm.control} name="uploaderName" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><User className="mr-2 h-4 w-4 text-muted-foreground" />Your Name</FormLabel><FormControl><Input placeholder="e.g., John Doe" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={uploadForm.control} name="uploaderEmail" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><MailIcon className="mr-2 h-4 w-4 text-muted-foreground" />Your Email</FormLabel><FormControl><Input type="email" placeholder="e.g., john.doe@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={uploadForm.control} name="uploaderPhone" render={({ field }) => (
+                      <FormItem><FormLabel className="flex items-center"><Phone className="mr-2 h-4 w-4 text-muted-foreground" />Your Phone (Optional)</FormLabel><FormControl><Input type="tel" placeholder="e.g., 020 1234 5678" {...field} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
                 </CardContent>
                 <CardFooter>

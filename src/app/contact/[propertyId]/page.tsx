@@ -6,9 +6,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, notFound } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { fetchPropertyDetails, fetchSalesmanInfo } from '@/services/api';
+import { fetchPropertyDetails } from '@/services/api';
 import PageHero from '@/components/shared/PageHero';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Mail, Phone, MapPin, Home, ArrowLeft, UserCircle, Briefcase, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,8 +16,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from '@/hooks/use-toast';
 import { usePredict } from '@/hooks/usePredict';
 import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
-import { CONTACT_PAGE_TITLE_TEMPLATE, PLACEHOLDER_HINTS, REGION_OPTIONS } from '@/lib/constants';
-import type { Property, SalesmanInfo } from '@/types';
+import { CONTACT_PAGE_TITLE_TEMPLATE, PLACEHOLDER_HINTS, DEFAULT_SALESMAN_INFO, REGION_OPTIONS } from '@/lib/constants';
+import type { Property } from '@/types';
 
 export default function ContactPropertyPage() {
   const params = useParams();
@@ -30,11 +30,16 @@ export default function ContactPropertyPage() {
     enabled: !!propertyId,
   });
 
-  const { data: salesman, isLoading: isLoadingSalesman, error: salesmanError } = useQuery<SalesmanInfo>({
-    queryKey: ['salesmanInfo', propertyId],
-    queryFn: () => fetchSalesmanInfo(propertyId),
-    enabled: !!propertyId,
-  });
+  // SalesmanInfo is now part of the property object or fallback to DEFAULT_SALESMAN_INFO
+  const contactPerson = {
+    name: property?.uploaderName || DEFAULT_SALESMAN_INFO.name,
+    email: property?.uploaderEmail || DEFAULT_SALESMAN_INFO.email,
+    phone: property?.uploaderPhone || DEFAULT_SALESMAN_INFO.phone,
+    bio: property?.uploaderName ? `${property.uploaderName} listed this property.` : DEFAULT_SALESMAN_INFO.bio,
+    imageUrl: DEFAULT_SALESMAN_INFO.imageUrl, // Using default avatar for now
+    dataAiHint: property?.uploaderName ? PLACEHOLDER_HINTS.salesmanPortrait : DEFAULT_SALESMAN_INFO.dataAiHint,
+  };
+
 
   const { predict } = usePredict();
   const [predictionResult, setPredictionResult] = useState<PredictionOutput | null>(null);
@@ -45,10 +50,7 @@ export default function ContactPropertyPage() {
     if (propertyError) {
       toast({ title: "Error", description: "Could not load property details.", variant: "destructive" });
     }
-    if (salesmanError) {
-      toast({ title: "Error", description: "Could not load contact information.", variant: "destructive" });
-    }
-  }, [propertyError, salesmanError, toast]);
+  }, [propertyError, toast]);
 
   const handlePredictPropertyPrice = async () => {
     if (!property) return;
@@ -69,7 +71,7 @@ export default function ContactPropertyPage() {
       tenure: property.tenure,
       currentEnergyRating: property.currentEnergyRating,
       floorAreaSqM: property.floorAreaSqM || 70,
-      outcode: property.outcode, // Ensure outcode is passed
+      outcode: property.outcode,
       propertyType: property.propertyType,
     };
 
@@ -118,7 +120,7 @@ export default function ContactPropertyPage() {
   };
 
 
-  if (isLoadingProperty || isLoadingSalesman) {
+  if (isLoadingProperty) {
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -217,59 +219,50 @@ export default function ContactPropertyPage() {
             </CardContent>
           </Card>
 
-          {salesman && (
-            <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
-              <CardHeader>
-                <CardTitle className="font-headline text-2xl flex items-center"><UserCircle className="mr-2 h-6 w-6 text-primary"/>Your Contact Person</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={salesman.imageUrl} alt={salesman.name} data-ai-hint={salesman.dataAiHint || PLACEHOLDER_HINTS.salesmanPortrait} />
-                    <AvatarFallback>{salesman.name.substring(0,2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="text-xl font-semibold">{salesman.name}</h3>
-                    <p className="text-sm text-muted-foreground">Property Consultant</p>
-                  </div>
+          
+          <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl flex items-center"><UserCircle className="mr-2 h-6 w-6 text-primary"/>Contact Person</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={contactPerson.imageUrl} alt={contactPerson.name} data-ai-hint={contactPerson.dataAiHint} />
+                  <AvatarFallback>{contactPerson.name.substring(0,2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-xl font-semibold">{contactPerson.name}</h3>
+                  <p className="text-sm text-muted-foreground">{property.uploaderName ? "Property Lister" : "Property Consultant"}</p>
                 </div>
-                <p className="text-foreground/80 text-sm flex items-start">
-                  <Briefcase size={16} className="mr-2 mt-0.5 flex-shrink-0 text-primary" />
-                  {salesman.bio}
+              </div>
+              <p className="text-foreground/80 text-sm flex items-start">
+                <Briefcase size={16} className="mr-2 mt-0.5 flex-shrink-0 text-primary" />
+                {contactPerson.bio}
+              </p>
+              <div className="space-y-2 pt-2 border-t">
+                <p className="flex items-center">
+                  <Mail size={16} className="mr-2 text-primary" />
+                  <a href={`mailto:${contactPerson.email}`} className="hover:underline text-accent-foreground hover:text-primary">
+                    {contactPerson.email}
+                  </a>
                 </p>
-                <div className="space-y-2 pt-2 border-t">
-                  <p className="flex items-center">
-                    <Mail size={16} className="mr-2 text-primary" />
-                    <a href={`mailto:${salesman.email}`} className="hover:underline text-accent-foreground hover:text-primary">
-                      {salesman.email}
-                    </a>
-                  </p>
+                {contactPerson.phone && (
                   <p className="flex items-center">
                     <Phone size={16} className="mr-2 text-primary" />
-                    <a href={`tel:${salesman.phone.replace(/\s/g, '')}`} className="hover:underline text-accent-foreground hover:text-primary">
-                      {salesman.phone}
+                    <a href={`tel:${contactPerson.phone.replace(/\s/g, '')}`} className="hover:underline text-accent-foreground hover:text-primary">
+                      {contactPerson.phone}
                     </a>
                   </p>
-                </div>
-                <Button className="w-full mt-4" asChild>
-                   <a href={`mailto:${salesman.email}?subject=Enquiry%20about%20Property%20ID:%20${property.id}%20-%20${encodeURIComponent(property.name)}&body=Dear%20${salesman.name.split(' ')[0]},%0D%0A%0D%0AI%20am%20interested%20in%20the%20property%20'${encodeURIComponent(property.name)}'%20(ID:%20${property.id})%20located%20at%20${encodeURIComponent(property.fullAddress)}.%0D%0A%0D%0APlease%20provide%20me%20with%20more%20information.%0D%0A%0D%0AThank%20you.`}>
-                    <Mail className="mr-2 h-4 w-4" /> Email {salesman.name.split(' ')[0]}
-                  </a>
-                </Button>
-                 <p className="text-xs text-muted-foreground text-center">Please mention property ID: {property.id} when enquiring.</p>
-              </CardContent>
-            </Card>
-          )}
-           {!salesman && !isLoadingSalesman && (
-             <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
-                <CardHeader>
-                    <CardTitle className="font-headline text-xl">Contact Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">Contact details are currently unavailable. Please try again later.</p>
-                </CardContent>
-             </Card>
-           )}
+                )}
+              </div>
+              <Button className="w-full mt-4" asChild>
+                 <a href={`mailto:${contactPerson.email}?subject=Enquiry%20about%20Property%20ID:%20${property.id}%20-%20${encodeURIComponent(property.name)}&body=Dear%20${contactPerson.name.split(' ')[0]},%0D%0A%0D%0AI%20am%20interested%20in%20the%20property%20'${encodeURIComponent(property.name)}'%20(ID:%20${property.id})%20located%20at%20${encodeURIComponent(property.fullAddress)}.%0D%0A%0D%0APlease%20provide%20me%20with%20more%20information.%0D%0A%0D%0AThank%20you.`}>
+                  <Mail className="mr-2 h-4 w-4" /> Email {contactPerson.name.split(' ')[0]}
+                </a>
+              </Button>
+               <p className="text-xs text-muted-foreground text-center">Please mention property ID: {property.id} when enquiring.</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

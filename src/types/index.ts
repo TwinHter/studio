@@ -8,7 +8,7 @@ export type PropertyType =
   | 'Detached Bungalow' | 'Semi-Detached Bungalow'
   | 'Mid Terrace Bungalow' | 'Semi-Detached Property'
   | 'Detached Property' | 'End Terrace Property' | 'Terraced Bungalow'
-  | 'End Terrace Bungalow' | 'Flat' | 'Detached' | 'Semi-detached' | 'Bungalow' | 'Maisonette'; // Added original simple types for broader compatibility if needed
+  | 'End Terrace Bungalow' | 'Flat' | 'Detached' | 'Semi-detached' | 'Bungalow' | 'Maisonette';
 
 export type EnergyRating = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 export type Tenure = 'Freehold' | 'Leasehold' | 'Feudal' | 'Shared';
@@ -34,6 +34,9 @@ export interface Property {
   latitude?: number;
   sale_month: number; 
   sale_year: number; 
+  uploaderName: string;
+  uploaderEmail: string;
+  uploaderPhone?: string;
 }
 
 export interface OutcodeData {
@@ -42,15 +45,6 @@ export interface OutcodeData {
   avgPrice: number;
   priceCategory: 'low' | 'medium' | 'high';
   description: string;
-}
-
-export interface SalesmanInfo {
-  name: string;
-  email: string;
-  phone: string;
-  bio: string;
-  imageUrl?: string;
-  dataAiHint?: string;
 }
 
 export interface QuarterlyPricePoint {
@@ -69,6 +63,3 @@ export interface RegionMarketData {
 // Note: AI Flow specific Input/Output types (PredictionInput, PredictionOutput, etc.)
 // will continue to be defined and exported from their respective flow files (e.g., src/ai/flows/price-prediction.ts)
 // as they are directly inferred from Zod schemas. Components should import them from there.
-
-
-    

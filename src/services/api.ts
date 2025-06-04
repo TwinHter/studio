@@ -4,10 +4,10 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
-import type { Property, SalesmanInfo, RegionMarketData, QuarterlyPricePoint, PropertyType, Tenure, EnergyRating } from '@/types';
+import type { Property, RegionMarketData, QuarterlyPricePoint, PropertyType, Tenure, EnergyRating } from '@/types';
 import initialPropertiesDataFromFile from '@/lib/data/properties.json';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data';
-import { DEFAULT_SALESMAN_INFO, PLACEHOLDER_HINTS } from '@/lib/constants';
+import { DEFAULT_SALESMAN_INFO, PLACEHOLDER_HINTS } from '@/lib/constants'; // DEFAULT_SALESMAN_INFO might still be useful for fallbacks
 
 import { predictPrice as predictPriceFlow } from '@/ai/flows/price-prediction';
 import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json';
@@ -15,7 +15,6 @@ import axios from 'axios';
 
 let liveProperties: Property[] = [...initialPropertiesDataFromFile] as Property[];
 
-// Interface for the CSV row structure
 interface CsvRow {
   id: string;
   fullAddress: string;
@@ -46,18 +45,7 @@ export const fetchPropertyDetails = async (propertyId: string): Promise<Property
   return property;
 };
 
-export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInfo> => {
-  return {
-    ...DEFAULT_SALESMAN_INFO,
-    name: "Emily Carter",
-    email: "emily.carter@londondwellings.ai",
-    phone: "+44 20 1234 5678",
-    bio: "Your dedicated London property expert, specializing in matching clients with their ideal homes and investments. With years of experience in the London market, Emily provides personalized service and in-depth local knowledge.",
-    imageUrl: `https://placehold.co/150x150.png`,
-    dataAiHint: PLACEHOLDER_HINTS.salesmanPortrait
-  };
-};
-
+// fetchSalesmanInfo is no longer needed as uploader info is part of Property.
 
 export const fetchFakePredictionForHook = async (input: PredictionInput): Promise<PredictionOutput> => {
   const basePredictedPrice = fakePredictionDataJson.price;
@@ -94,7 +82,16 @@ export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
 };
 
 export const addFakePropertyForHook = async (
-  propertyData: Omit<Property, 'id'> & { image: string; longitude?: number; latitude?: number; sale_month: number; sale_year: number; }
+  propertyData: Omit<Property, 'id'> & { 
+    image: string; 
+    longitude?: number; 
+    latitude?: number; 
+    sale_month: number; 
+    sale_year: number;
+    uploaderName: string;
+    uploaderEmail: string;
+    uploaderPhone?: string;
+  }
 ): Promise<Property> => {
   const newProperty: Property = {
     ...propertyData,
@@ -125,8 +122,6 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     
     parsedCsvData = lines.slice(1).map(line => {
       const values = line.split(',');
-      // Mapping based on the CSV structure:
-      // ID,fullAddress,postcode,country,outcode,latitude,longitude,bathrooms,bedrooms,floorAreaSqM,livingRooms,tenure,propertyType,currentEnergyRating,sale_month,sale_year,price
       return {
         id: values[0],
         fullAddress: values[1],
@@ -155,10 +150,10 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
 
   const quarterlyPrices: Record<string, { total: number, count: number }> = {};
   const currentFullYear = new Date().getFullYear();
-  const fiveYearsAgo = currentFullYear - 5; // Changed from 3 to 5 years
+  const fiveYearsAgo = currentFullYear - 5;
 
   regionSales.forEach(sale => {
-    if (sale.sale_year >= fiveYearsAgo) { // Updated condition to use fiveYearsAgo
+    if (sale.sale_year >= fiveYearsAgo) { 
       const quarter = getQuarter(sale.sale_month);
       const key = `Q${quarter} ${sale.sale_year}`;
       if (!quarterlyPrices[key]) {
@@ -170,7 +165,7 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
   });
 
   const quarterlyPriceHistory: QuarterlyPricePoint[] = [];
-  for (let year = fiveYearsAgo; year <= currentFullYear; year++) { // Updated loop start year
+  for (let year = fiveYearsAgo; year <= currentFullYear; year++) { 
     for (let q = 1; q <= 4; q++) {
       if (year === currentFullYear && q > getQuarter(new Date().getMonth() + 1)) {
         break; 
@@ -182,12 +177,11 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
           price: Math.round(quarterlyPrices[key].total / quarterlyPrices[key].count / 1000) * 1000,
         });
       } else {
-         // Fill in missing quarters with previous data or a calculated estimate if at the beginning
          if (year < currentFullYear || (year === currentFullYear && q < getQuarter(new Date().getMonth() +1))) {
             const previousQuarterData = quarterlyPriceHistory.length > 0 ? quarterlyPriceHistory[quarterlyPriceHistory.length -1] : null;
-            let estimatedPriceForMissingQuarter = regionDetails.avgPrice * (0.95 + Math.random() * 0.1); // Default estimate
+            let estimatedPriceForMissingQuarter = regionDetails.avgPrice * (0.95 + Math.random() * 0.1); 
             if(previousQuarterData) {
-                estimatedPriceForMissingQuarter = previousQuarterData.price * (0.995 + Math.random() * 0.01); // Slight variation from previous
+                estimatedPriceForMissingQuarter = previousQuarterData.price * (0.995 + Math.random() * 0.01); 
             }
             quarterlyPriceHistory.push({
                 quarter: key,
@@ -209,7 +203,6 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     return aQ - bQ;
   });
   
-  // Keep displaying up to the last 12 quarters for chart readability, from the 5-year data window
   const limitedQuarterlyPriceHistory = quarterlyPriceHistory.slice(-12); 
 
   let currentAveragePrice = regionDetails.avgPrice;
@@ -237,10 +230,7 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     regionId: regionDetails.id,
     regionName: regionDetails.name,
     currentAveragePrice,
-    // Ensure at least one data point if history is empty, using currentAveragePrice
     quarterlyPriceHistory: limitedQuarterlyPriceHistory.length > 0 ? limitedQuarterlyPriceHistory : [{ quarter: `Current Avg.`, price: currentAveragePrice }],
     priceRank,
   };
 };
-
-    

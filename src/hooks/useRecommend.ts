@@ -8,11 +8,12 @@ import { useToast } from './use-toast';
 import { PLACEHOLDER_HINTS } from '@/lib/constants';
 import axios from 'axios';
 
-// Type for the data passed to the addProperty mutation
-// Ensure this reflects the new field names for Property where appropriate
-export type NewPropertyData = Omit<Property, 'id' | 'image' | 'dataAiHint' | 'longitude' | 'latitude' | 'sale_month' | 'sale_year' | 'price'> & {
-  price: number; // Price is required from form
+export type NewPropertyData = Omit<Property, 'id' | 'image' | 'dataAiHint' | 'longitude' | 'latitude' | 'sale_month' | 'sale_year' | 'price' | 'uploaderName' | 'uploaderEmail' | 'uploaderPhone'> & {
+  price: number;
   imageFile: FileList;
+  uploaderName: string;
+  uploaderEmail: string;
+  uploaderPhone?: string;
 };
 
 
@@ -88,6 +89,9 @@ export function useRecommend() {
         latitude,
         sale_month,
         sale_year,
+        uploaderName: newPropertyData.uploaderName,
+        uploaderEmail: newPropertyData.uploaderEmail,
+        uploaderPhone: newPropertyData.uploaderPhone,
       };
       return addFakePropertyForHook(propertyToSave);
     },
