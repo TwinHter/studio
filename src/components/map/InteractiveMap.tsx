@@ -3,27 +3,26 @@
 
 import React from 'react';
 import Image from 'next/image';
-import type { OutcodeData } from '@/types';
+import type { OutcodeData } from '@/types'; // Not directly used but good for context
 import { PLACEHOLDER_HINTS } from '@/lib/constants';
 
 interface InteractiveMapProps {
-  // Props remain the same to maintain the interface with the parent component,
-  // but they are not used for direct map interaction anymore.
-  regionsData: OutcodeData[];
-  onRegionSelect: (regionId: string) => void;
-  selectedRegionId?: string | null;
+  regionsData: OutcodeData[]; // Not used for rendering map, but might be useful if functionality expands
+  onRegionSelect: (regionId: string) => void; // Not used by this static version
+  selectedRegionId?: string | null; // Not used by this static version
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSelect, selectedRegionId }) => {
   return (
-    <div className="bg-muted p-2 rounded-lg shadow-md aspect-[4/3] max-h-[600px] overflow-hidden flex flex-col justify-center items-center">
+    <div className="bg-muted p-2 rounded-lg shadow-md aspect-auto max-h-[600px] overflow-hidden flex flex-col justify-center items-center">
       <Image
-        src="https://placehold.co/800x600.png" // Generic placeholder size
-        alt="Illustrative map of London outcodes"
-        width={800}
-        height={600}
-        className="w-full h-auto object-contain rounded-md" // object-contain to ensure it fits within the aspect ratio box
-        data-ai-hint={PLACEHOLDER_HINTS.londonMap} 
+        src="https://www.doogal.co.uk/images/london_postcode_map.gif" 
+        alt="Map of London outcodes"
+        width={800} 
+        height={600} 
+        className="w-full h-auto object-contain rounded-md"
+        data-ai-hint={PLACEHOLDER_HINTS.londonMap}
+        unoptimized // Required for GIFs if not using a custom loader
       />
       <p className="text-xs text-muted-foreground mt-2 text-center">
         Illustrative map of London regions. Please use the list or filters to select an outcode for details.
@@ -33,3 +32,5 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ regionsData, onRegionSe
 };
 
 export default InteractiveMap;
+
+    
