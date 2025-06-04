@@ -93,7 +93,7 @@ export default function IntroductionPage() {
               <CardDescription>{INTRO_ACCURACY_CARD_DESCRIPTION}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-card-foreground/90 flex-grow">
-              <p>{INTRO_ACCURACY_TEXT}</p>
+              <p dangerouslySetInnerHTML={{ __html: INTRO_ACCURACY_TEXT }} />
               <div className="bg-muted/50 p-4 rounded-md text-center border">
                 <Image
                   src="https://placehold.co/600x300.png"
