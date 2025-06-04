@@ -2,31 +2,30 @@
 'use server'; 
 
 import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
-import type { RegionPriceInsightsInput, RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
-import type { Property, SalesmanInfo } from '@/types'; // General types
+import type { Property, SalesmanInfo, RegionMarketData, QuarterlyPricePoint } from '@/types'; 
 import { sampleProperties as initialProperties } from '@/lib/data/properties_data';
+import { londonOutcodes } from '@/lib/data/london_outcodes_data';
 import { DEFAULT_SALESMAN_INFO, PLACEHOLDER_HINTS } from '@/lib/constants';
 
 // These functions call the actual Genkit flows
 import { predictPrice as predictPriceFlow } from '@/ai/flows/price-prediction';
-import { getRegionPriceInsights as getRegionPriceInsightsFlow } from '@/ai/flows/region-insights';
+// import { getRegionPriceInsights as getRegionPriceInsightsFlow } from '@/ai/flows/region-insights'; // No longer used
 
 // Import fake data for hook-specific service functions
-import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json'; // Updated to new structure
-import fakeRegionInsightsData from '@/lib/data/fake_region_insights.json';
+import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json'; 
 
 // --- Original Service Functions (Potentially for real backend/Genkit calls) ---
 
-// This function will call the Genkit flow, which now expects the new input and returns new output.
 export const fetchPricePrediction = async (data: PredictionInput): Promise<PredictionOutput> => {
   const result = await predictPriceFlow(data);
   return result;
 };
 
-export const fetchRegionInsights = async (data: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
-  const result = await getRegionPriceInsightsFlow(data);
-  return result;
-};
+// This function is no longer used as AI insights are removed from map page
+// export const fetchRegionInsights = async (data: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
+//   const result = await getRegionPriceInsightsFlow(data);
+//   return result;
+// };
 
 export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
   const property = initialProperties.find(p => p.id === propertyId);
@@ -47,15 +46,11 @@ export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInf
 
 // --- New Service Functions for Hooks (Using Fake JSON Data) ---
 
-// This function now simulates the NEW output structure.
-// The input 'input' to this function will be of the new PredictionInput type from the flow.
 export const fetchFakePredictionForHook = async (input: PredictionInput): Promise<PredictionOutput> => {
   const basePredictedPrice = fakePredictionDataJson.price;
-  // Simulate some variation based on input, e.g. floorAreaSqM
-  const areaModifier = input.floorAreaSqM ? (input.floorAreaSqM / 100) * 30000 : 0; // Adjusted calculation
+  const areaModifier = input.floorAreaSqM ? (input.floorAreaSqM / 100) * 30000 : 0;
   const finalPredictedPrice = Math.round((basePredictedPrice + areaModifier + (input.sale_year - 2023) * 5000) / 1000) * 1000;
   
-  // Generate dynamic priceHistoryChartData based on input sale_month and sale_year
   const priceHistoryChartData = [];
   let lastPrice = finalPredictedPrice * 0.98; 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -73,11 +68,10 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
     priceHistoryChartData[0].price = Math.round((finalPredictedPrice * (0.995 + Math.random() * 0.01)) /1000) * 1000;
   }
 
-
   return {
     price: finalPredictedPrice,
-    isStable: fakePredictionDataJson.isStable, // Keep isStable from JSON or make it dynamic
-    averageAreaPrice: Math.round((finalPredictedPrice * (0.90 + Math.random()*0.15)) / 1000) * 1000, // Make average area price dynamic
+    isStable: fakePredictionDataJson.isStable,
+    averageAreaPrice: Math.round((finalPredictedPrice * (0.90 + Math.random()*0.15)) / 1000) * 1000,
     priceHistoryChartData: priceHistoryChartData,
   };
 };
@@ -94,8 +88,47 @@ export const addFakePropertyForHook = async (propertyData: Omit<Property, 'id' |
   return newProperty;
 };
 
-export const fetchFakeRegionInsightsForHook = async (input: RegionPriceInsightsInput): Promise<RegionPriceInsightsOutput> => {
-  const regionKey = input.region as keyof typeof fakeRegionInsightsData;
-  const insight = fakeRegionInsightsData[regionKey] || fakeRegionInsightsData['DEFAULT'];
-  return insight;
+export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promise<RegionMarketData> => {
+  const regionDetails = londonOutcodes.find(r => r.id === regionId);
+  if (!regionDetails) {
+    throw new Error(`Region ${regionId} not found.`);
+  }
+
+  const currentAveragePrice = regionDetails.avgPrice;
+  const quarterlyPriceHistory: QuarterlyPricePoint[] = [];
+  const currentYear = new Date().getFullYear();
+  let priceFluctuationBase = currentAveragePrice;
+
+  for (let year = currentYear - 2; year <= currentYear; year++) {
+    for (let q = 1; q <= 4; q++) {
+      // Simulate some price trend over the years and quarters
+      let quarterPrice = priceFluctuationBase * (1 + (Math.random() - 0.5) * 0.05); // +/- 5% fluctuation
+      quarterPrice = Math.round(quarterPrice / 1000) * 1000;
+      quarterlyPriceHistory.push({
+        quarter: `Q${q} ${year}`,
+        price: quarterPrice,
+      });
+      // Slightly adjust base for next quarter to show some trend
+      priceFluctuationBase = quarterPrice * (1 + (Math.random() - 0.45) * 0.01); 
+    }
+  }
+   // Ensure the last data point is close to currentAveragePrice
+  if (quarterlyPriceHistory.length > 0) {
+    quarterlyPriceHistory[quarterlyPriceHistory.length -1].price = Math.round(currentAveragePrice * (0.98 + Math.random()*0.04) /1000) *1000;
+  }
+
+
+  // Calculate rank
+  const sortedRegions = [...londonOutcodes].sort((a, b) => b.avgPrice - a.avgPrice);
+  const rank = sortedRegions.findIndex(r => r.id === regionId) + 1;
+  const totalRegions = sortedRegions.length;
+  const priceRank = `Rank: ${rank} of ${totalRegions}`;
+
+  return {
+    regionId: regionDetails.id,
+    regionName: regionDetails.name,
+    currentAveragePrice,
+    quarterlyPriceHistory,
+    priceRank,
+  };
 };

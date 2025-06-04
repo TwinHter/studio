@@ -1,27 +1,2 @@
 
-{
-  "E1": {
-    "summary": "Fake Insight for E1: This popular East London area shows strong rental demand and ongoing new developments, making it a dynamic market."
-  },
-  "SW1": {
-    "summary": "Fake Insight for SW1: As a prime central London location, SW1 continues to attract high-net-worth individuals. Prices are premium but offer stability."
-  },
-  "N1": {
-    "summary": "Fake Insight for N1: Known for its village-like atmosphere and excellent amenities, N1 is highly sought after by families and professionals."
-  },
-  "SE1": {
-    "summary": "Fake Insight for SE1: Significant regeneration has transformed SE1, offering diverse property types and excellent connectivity."
-  },
-  "W1": {
-    "summary": "Fake Insight for W1: Mayfair and Soho represent the epitome of luxury London living, with world-class shopping and entertainment."
-  },
-  "IG1": {
-    "summary": "Fake Insight for IG1: Ilford provides more affordable housing options with good transport links to central London."
-  },
-  "CR0": {
-    "summary": "Fake Insight for CR0: Croydon is a major commercial hub with ongoing development, offering a mix of residential and commercial opportunities."
-  },
-  "DEFAULT": {
-    "summary": "This is a default fake insight for the selected region. It generally indicates a stable market with potential for moderate growth based on local factors."
-  }
-}
+Removed. This file is no longer needed as AI insights have been replaced by quarterly market data.

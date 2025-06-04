@@ -2,36 +2,36 @@
 "use client";
 
 import { useMutation } from '@tanstack/react-query';
-import { fetchFakeRegionInsightsForHook } from '@/services/api';
-import type { RegionPriceInsightsInput, RegionPriceInsightsOutput } from '@/ai/flows/region-insights';
+import { fetchFakeRegionMarketDataForHook } from '@/services/api';
+import type { RegionMarketData } from '@/types';
 import { useToast } from './use-toast';
 
 export function useMap() {
   const { toast } = useToast();
 
-  const mutation = useMutation<RegionPriceInsightsOutput, Error, RegionPriceInsightsInput>({
-    mutationFn: fetchFakeRegionInsightsForHook,
-    onSuccess: (data, variables) => {
+  const mutation = useMutation<RegionMarketData, Error, string>({ // Input is regionId (string)
+    mutationFn: fetchFakeRegionMarketDataForHook,
+    onSuccess: (data) => {
       toast({
-        title: `Fake Insights for ${variables.region} (Hook)`,
-        description: "Successfully fetched simulated insights for the region.",
+        title: `Market Data for ${data.regionId}`,
+        description: "Successfully fetched market data for the region.",
       });
     },
-    onError: (error, variables) => {
-      console.error(`Failed to fetch fake insights for ${variables.region} (Hook):`, error);
+    onError: (error, regionId) => {
+      console.error(`Failed to fetch market data for ${regionId}:`, error);
       toast({
-        title: `Error Fetching Insights for ${variables.region} (Hook)`,
-        description: "Could not load fake insights. Please try again.",
+        title: `Error Fetching Market Data for ${regionId}`,
+        description: "Could not load market data. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   return {
-    getInsights: mutation.mutateAsync,
-    isFetchingInsights: mutation.isPending,
-    insightsData: mutation.data,
-    insightsError: mutation.error,
-    resetInsights: mutation.reset,
+    fetchMarketData: mutation.mutateAsync,
+    isFetchingMarketData: mutation.isPending,
+    marketData: mutation.data,
+    marketDataError: mutation.error,
+    resetMarketData: mutation.reset,
   };
 }

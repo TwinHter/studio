@@ -16,7 +16,7 @@ export function useRecommend() {
   const { toast } = useToast();
 
   const { 
-    data: properties = [], // Default to empty array
+    data: properties = [], 
     isLoading: isLoadingProperties, 
     error: fetchPropertiesError 
   } = useQuery<Property[], Error>({
@@ -26,7 +26,6 @@ export function useRecommend() {
 
   const addPropertyMutation = useMutation<Property, Error, NewPropertyData>({
     mutationFn: async (newPropertyData) => {
-      // Convert FileList to data URL string before sending to the "API"
       const imageFile = newPropertyData.imageFile[0];
       const imageAsDataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -48,25 +47,24 @@ export function useRecommend() {
         tenure: newPropertyData.tenure,
         region: newPropertyData.region,
         description: newPropertyData.description,
-        image: imageAsDataUrl, // Pass the data URL
-        dataAiHint: PLACEHOLDER_HINTS.uploadedProperty, // Add default hint
+        image: imageAsDataUrl,
+        dataAiHint: PLACEHOLDER_HINTS.uploadedProperty,
       };
       return addFakePropertyForHook(propertyToSave);
     },
     onSuccess: (newProperty) => {
-      // Manually update the cache for 'fakeProperties'
       queryClient.setQueryData<Property[]>(['fakeProperties'], (oldProperties = []) => {
         return [newProperty, ...oldProperties];
       });
       toast({
-        title: "Property Added (Hook)",
-        description: `${newProperty.name} has been added to the list (simulated).`,
+        title: "Property Added",
+        description: `${newProperty.name} has been successfully listed.`,
       });
     },
     onError: (error) => {
-      console.error('Failed to add property (Hook):', error);
+      console.error('Failed to add property:', error);
       toast({
-        title: "Failed to Add Property (Hook)",
+        title: "Failed to Add Property",
         description: "Could not add the property. Please try again.",
         variant: "destructive",
       });
@@ -82,3 +80,4 @@ export function useRecommend() {
     addPropertyError: addPropertyMutation.error,
   };
 }
+

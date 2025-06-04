@@ -33,7 +33,7 @@ export const INTRO_FEATURE_CARDS = [
   },
   { 
     title: "London Outcode Explorer", 
-    description: "View average prices and AI-generated insights for different London outcodes via a list. The map image is illustrative.", 
+    description: "Explore average prices and market trends for London outcodes. Select a region to see its current average price, historical quarterly prices, and price rank.", 
     IconComponent: PageMapIcon
   },
   { 
@@ -49,7 +49,7 @@ export const INTRO_DATA_AI_TEXT_P1 = "Our project utilizes comprehensive London 
 export const INTRO_DATA_AI_CHARACTERISTICS_LIST = [
   "<strong>Location:</strong> Full Address, Geolocation (Latitude, Longitude), Outcode.",
   "<strong>Characteristics:</strong> Property Type (Flat, Detached, etc.), Tenure (Freehold, Leasehold).",
-  "<strong>Size & Layout:</strong> Bedrooms, Bathrooms, Living Rooms, Floor Area (sqm).", // Updated "Reception Rooms" to "Living Rooms"
+  "<strong>Size & Layout:</strong> Bedrooms, Bathrooms, Living Rooms, Floor Area (sqm).",
   "<strong>Condition:</strong> Current Energy Efficiency Rating (A-G).",
   "<strong>Timing:</strong> Month and Year of Sale for accurate predictions.",
 ];
@@ -80,8 +80,8 @@ export const INTRO_TEAM_MEMBERS = [
 export const PREDICTION_PAGE_HERO_TITLE = "Property Price Prediction";
 export const PREDICTION_PAGE_HERO_DESCRIPTION = "Enter the property details below to receive an AI-powered price prediction and market insights. Longitude and Latitude are auto-filled from the address.";
 
-export const MAP_PAGE_HERO_TITLE = "London Regional Statistics";
-export const MAP_PAGE_HERO_DESCRIPTION = "Explore London's outcodes. The map image is for illustrative purposes. Use the filters and list below to select a region and view its average price and AI-driven market insights.";
+export const MAP_PAGE_HERO_TITLE = "London Regional Market Explorer";
+export const MAP_PAGE_HERO_DESCRIPTION = "Explore London's outcodes. The map image is illustrative. Use filters and the list below to select a region and view its current average price, historical quarterly price trends, and market rank.";
 
 export const RECOMMENDATIONS_PAGE_HERO_TITLE = "Suitable Property Recommendations";
 export const RECOMMENDATIONS_PAGE_HERO_DESCRIPTION = "Find your ideal London property based on your budget and requirements. Explore our curated list or upload your own.";
@@ -94,7 +94,7 @@ export const ENERGY_RATING_OPTIONS: EnergyRating[] = ['A', 'B', 'C', 'D', 'E', '
 export const TENURE_OPTIONS: Tenure[] = ['Freehold', 'Leasehold'];
 export const BEDROOM_OPTIONS: number[] = [0, 1, 2, 3, 4, 5, 6]; 
 export const BATHROOM_OPTIONS: number[] = [0, 1, 2, 3, 4, 5];
-export const RECEPTION_OPTIONS: number[] = [0, 1, 2, 3, 4]; // This can be re-purposed for Living Rooms if needed, or a new one created.
+export const RECEPTION_OPTIONS: number[] = [0, 1, 2, 3, 4]; 
 export const LIVING_ROOM_OPTIONS: number[] = [0, 1, 2, 3, 4];
 
 
@@ -102,7 +102,7 @@ export const REGION_OPTIONS: string[] = Array.from(new Set(londonOutcodes.map(o 
 
 // Placeholder Image Hints
 export const PLACEHOLDER_HINTS = {
-  londonMap: "london map illustrative", 
+  londonMap: "london map illustrative regions", 
   accuracyChart: "graph accuracy",
   priceChart: "graph price trend",
   defaultHouse: "house exterior",
@@ -117,14 +117,14 @@ export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 export const ACCEPTED_IMAGE_TYPES_STRING = ".jpg, .jpeg, .png, .webp";
 
-export const MIN_PRICE_FILTER_DEFAULT = Math.min(...londonOutcodes.map(o => o.avgPrice), 100000);
-export const MAX_PRICE_FILTER_DEFAULT = Math.max(...londonOutcodes.map(o => o.avgPrice), 3000000);
+export const MIN_PRICE_FILTER_DEFAULT = londonOutcodes.length > 0 ? Math.min(...londonOutcodes.map(o => o.avgPrice), 100000) : 100000;
+export const MAX_PRICE_FILTER_DEFAULT = londonOutcodes.length > 0 ? Math.max(...londonOutcodes.map(o => o.avgPrice), 3000000) : 3000000;
 
 
 // Prediction Form Constants
 export const PREDICTION_FORM_DEFAULT_BEDROOMS = 1;
 export const PREDICTION_FORM_DEFAULT_BATHROOMS = 1;
-export const PREDICTION_FORM_DEFAULT_LIVING_ROOMS = 1; // Changed from RECEPTIONS
+export const PREDICTION_FORM_DEFAULT_LIVING_ROOMS = 1;
 export const PREDICTION_MONTH_OF_SALE_FORMAT_DESC = "Month of sale must be in YYYY-MM format (e.g., 2024-07).";
 
 // Salesman default info
@@ -136,3 +136,4 @@ export const DEFAULT_SALESMAN_INFO = {
     imageUrl: `https://placehold.co/150x150.png`,
     dataAiHint: "team avatar"
 };
+

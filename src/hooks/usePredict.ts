@@ -13,25 +13,26 @@ export function usePredict() {
     mutationFn: fetchFakePredictionForHook,
     onSuccess: (data, variables) => {
       toast({
-        title: "Fake Prediction Successful (Hook)",
-        description: `Price predicted for property at ${variables.fullAddress.substring(0,30)}... using fake data.`,
+        title: "Prediction Successful",
+        description: `Price predicted for property at ${variables.fullAddress.substring(0,30)}...`,
       });
     },
     onError: (error) => {
-      console.error('Fake Prediction failed (Hook):', error);
+      console.error('Prediction failed:', error);
       toast({
-        title: "Fake Prediction Failed (Hook)",
-        description: "Could not retrieve fake prediction. Please try again.",
+        title: "Prediction Failed",
+        description: "Could not retrieve prediction. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   return {
-    predict: mutation.mutateAsync, // Expose mutateAsync for promise-based handling if needed
+    predict: mutation.mutateAsync,
     isPredicting: mutation.isPending,
     predictionData: mutation.data,
     predictionError: mutation.error,
     resetPrediction: mutation.reset,
   };
 }
+

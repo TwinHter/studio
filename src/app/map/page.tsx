@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data'; 
-import type { OutcodeData } from '@/types';
+import type { OutcodeData, RegionMarketData } from '@/types';
 import { useMap } from '@/hooks/useMap';
-import { MapPin, Home, Loader2, AlertTriangle, TrendingUp, BarChartIcon, DollarSign, Map as MapLucideIcon } from 'lucide-react';
+import { MapPin, Home, Loader2, AlertTriangle, BarChartIcon, DollarSign, Map as MapLucideIcon, Activity } from 'lucide-react';
+import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
+import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { 
   MAP_PAGE_HERO_TITLE, 
   MAP_PAGE_HERO_DESCRIPTION, 
@@ -21,7 +23,6 @@ import {
 } from '@/lib/constants';
 import Image from 'next/image'; 
 
-// Dynamically import the map display component for client-side rendering
 const InteractiveMapDisplay = dynamic(() => import('@/components/map/InteractiveMap'), {
   ssr: false, 
   loading: () => <div className="flex justify-center items-center h-[400px] w-full bg-muted rounded-md shadow-md aspect-[4/3] max-h-[600px]"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading map area...</p></div>,
@@ -34,7 +35,7 @@ type RegionFilters = {
 export default function MapInteractionPage() {
   const [selectedRegion, setSelectedRegion] = useState<OutcodeData | null>(null);
   const [filters, setFilters] = useState<RegionFilters>({});
-  const { getInsights, isFetchingInsights, insightsData, insightsError, resetInsights } = useMap();
+  const { fetchMarketData, isFetchingMarketData, marketData, marketDataError, resetMarketData } = useMap();
 
   const actualMinPrice = useMemo(() => Math.min(...londonOutcodes.map(r => r.avgPrice), MIN_PRICE_FILTER_DEFAULT), []);
   const actualMaxPrice = useMemo(() => Math.max(...londonOutcodes.map(r => r.avgPrice), MAX_PRICE_FILTER_DEFAULT), []);
@@ -57,18 +58,18 @@ export default function MapInteractionPage() {
     const region = londonOutcodes.find(r => r.id === regionId);
     if (region) {
       setSelectedRegion(region);
-      resetInsights(); 
+      resetMarketData(); 
       try {
-        await getInsights({ region: region.id });
+        await fetchMarketData(region.id);
       } catch (e) {
-        console.error("Region select error", e);
+        console.error("Region select error for market data", e);
       }
       const detailsElement = document.getElementById('region-details');
       if (detailsElement) {
         detailsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
-  }, [getInsights, resetInsights]); 
+  }, [fetchMarketData, resetMarketData]); 
 
   const getRegionColorClassForButton = (priceCategory: OutcodeData['priceCategory']) => {
     switch (priceCategory) {
@@ -78,6 +79,13 @@ export default function MapInteractionPage() {
       default: return 'bg-card hover:bg-muted/80';
     }
   };
+  
+  const chartConfig: ChartConfig = {
+    price: {
+      label: "Avg. Price (£)",
+      color: "hsl(var(--primary))",
+    },
+  } satisfies ChartConfig;
 
   return (
     <div className="space-y-12">
@@ -120,8 +128,8 @@ export default function MapInteractionPage() {
             <CardContent>
               <InteractiveMapDisplay 
                 regionsData={londonOutcodes} 
-                onRegionSelect={handleRegionSelect} // Still passed, though not used for direct map click
-                selectedRegionId={selectedRegion?.id} // Still passed for consistency
+                onRegionSelect={handleRegionSelect}
+                selectedRegionId={selectedRegion?.id}
               />
             </CardContent>
           </Card>
@@ -137,7 +145,7 @@ export default function MapInteractionPage() {
                   variant="outline"
                   className={`p-4 h-auto text-left flex flex-col items-start justify-start border-2 transition-all duration-200 ${getRegionColorClassForButton(region.priceCategory)} ${selectedRegion?.id === region.id ? 'ring-2 ring-offset-2 ring-primary scale-105' : 'hover:scale-105'}`}
                   onClick={() => handleRegionSelect(region.id)}
-                  disabled={isFetchingInsights && selectedRegion?.id === region.id}
+                  disabled={isFetchingMarketData && selectedRegion?.id === region.id}
                 >
                   <span className="font-bold text-sm">{region.id}</span>
                   <span className="text-xs block truncate w-full">{region.name.split(',')[0]}</span>
@@ -155,45 +163,57 @@ export default function MapInteractionPage() {
                   <MapPin className="mr-2 h-6 w-6 text-primary" />
                   {selectedRegion.name} ({selectedRegion.id})
                 </CardTitle>
-                <CardDescription>Current Average Price: £{selectedRegion.avgPrice.toLocaleString()}</CardDescription>
+                 {marketData && marketData.regionId === selectedRegion.id && (
+                   <CardDescription>
+                     Current Average Price: £{marketData.currentAveragePrice.toLocaleString()}
+                     <span className="ml-2 text-sm font-semibold text-accent-foreground">({marketData.priceRank})</span>
+                   </CardDescription>
+                 )}
               </CardHeader>
-              <CardContent className="space-y-4">
-                {isFetchingInsights && (
+              <CardContent className="space-y-6">
+                {isFetchingMarketData && (
                   <div className="flex items-center justify-center p-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="ml-2 text-muted-foreground">Loading AI insights...</p>
+                    <p className="ml-2 text-muted-foreground">Loading market data...</p>
                   </div>
                 )}
-                {insightsError && (
+                {marketDataError && (
                   <div className="flex items-center text-muted-foreground p-4 border border-dashed rounded-md bg-destructive/10 border-destructive/30">
                      <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />
-                     <span>Could not load AI insights for this region: {insightsError.message}</span>
+                     <span>Could not load market data for this region: {marketDataError.message}</span>
                    </div>
                  )}
-                {insightsData && !isFetchingInsights && (
+                {marketData && marketData.regionId === selectedRegion.id && !isFetchingMarketData && (
                   <div>
                     <h4 className="font-semibold text-lg mb-2 font-headline flex items-center text-primary">
-                      <TrendingUp className="mr-2 h-5 w-5 text-accent" /> AI Insights
+                      <Activity className="mr-2 h-5 w-5 text-primary" /> Quarterly Price Trend (Last 3 Years)
                     </h4>
-                    <p className="text-foreground/90 bg-accent/10 p-4 rounded-md border border-accent/30">{insightsData.summary}</p>
+                    {marketData.quarterlyPriceHistory && marketData.quarterlyPriceHistory.length > 0 ? (
+                      <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={marketData.quarterlyPriceHistory} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="quarter" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                            <YAxis 
+                              stroke="hsl(var(--muted-foreground))" 
+                              tickFormatter={(value) => `£${(value / 1000).toFixed(0)}k`} 
+                              tick={{ fontSize: 10 }} 
+                              domain={['dataMin - 20000', 'dataMax + 20000']}
+                              allowDataOverflow={true}
+                            />
+                            <RechartsTooltip
+                              content={<ChartTooltipContent indicator="line" />}
+                              cursor={{ stroke: "hsl(var(--accent))", strokeWidth: 2, strokeDasharray: "3 3" }}
+                            />
+                            <Line type="monotone" dataKey="price" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--chart-1))" }} activeDot={{ r: 5, stroke: "hsl(var(--background))", strokeWidth: 1 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-4">No quarterly price data available for this region.</p>
+                    )}
                   </div>
                 )}
-                <div>
-                  <h4 className="font-semibold text-lg mb-2 font-headline flex items-center text-primary">
-                    <BarChartIcon className="mr-2 h-5 w-5 text-primary" /> Price Chart (Illustrative)
-                  </h4>
-                  <div className="bg-muted/50 p-4 rounded-md text-center">
-                     <Image
-                        src={`https://placehold.co/600x300.png`} 
-                        alt={`Illustrative price chart for ${selectedRegion.id}`}
-                        width={600}
-                        height={300}
-                        className="rounded-md mx-auto shadow-md"
-                        data-ai-hint={PLACEHOLDER_HINTS.priceChart}
-                      />
-                    <p className="text-sm text-muted-foreground mt-2">Illustrative price trend chart for {selectedRegion.id}.</p>
-                  </div>
-                </div>
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
@@ -209,3 +229,4 @@ export default function MapInteractionPage() {
     </div>
   );
 }
+
