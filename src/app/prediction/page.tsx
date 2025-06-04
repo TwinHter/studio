@@ -21,17 +21,19 @@ import {
   PROPERTY_TYPE_OPTIONS,
   ENERGY_RATING_OPTIONS,
   TENURE_OPTIONS,
-  REGION_OPTIONS, // Import REGION_OPTIONS
+  REGION_OPTIONS,
   PREDICTION_FORM_DEFAULT_BEDROOMS,
   PREDICTION_FORM_DEFAULT_BATHROOMS,
   PREDICTION_FORM_DEFAULT_RECEPTIONS,
   PREDICTION_MONTH_OF_SALE_FORMAT_DESC
 } from '@/lib/constants';
 import type { PropertyType, EnergyRating, Tenure } from '@/types';
+import { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
 
 const predictionFormSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address must be at least 5 characters.' }),
-  outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: 'Outcode is required.' }), // Updated outcode validation
+  outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: 'Outcode is required.' }),
   longitude: z.coerce.number().optional(),
   latitude: z.coerce.number().optional(),
   bedrooms: z.coerce.number().int().min(0, { message: 'Must be 0 or more bedrooms.' }).max(10, { message: 'Cannot exceed 10 bedrooms.' }),
@@ -50,12 +52,13 @@ export default function PredictionPage() {
   const { predict, isPredicting, predictionData, predictionError, resetPrediction } = usePredict();
   const currentYear = new Date().getFullYear();
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   const form = useForm<PredictionFormValues>({
     resolver: zodResolver(predictionFormSchema),
     defaultValues: {
       fullAddress: '',
-      outcode: undefined, // Default to undefined for Select placeholder
+      outcode: undefined,
       longitude: undefined,
       latitude: undefined,
       bedrooms: PREDICTION_FORM_DEFAULT_BEDROOMS,
@@ -69,11 +72,64 @@ export default function PredictionPage() {
     },
   });
 
+  const geocodeAddress = useCallback(async (address: string) => {
+    if (address.trim().length < 10) { // Increased minimum length for a more meaningful address
+      form.setValue('longitude', undefined);
+      form.setValue('latitude', undefined);
+      // Clear previous geocoding errors if address becomes too short
+      if (form.formState.errors.fullAddress?.type === 'manual') {
+        form.clearErrors('fullAddress');
+      }
+      return;
+    }
+    setIsGeocoding(true);
+    form.clearErrors('fullAddress'); // Clear previous errors before new attempt
+    try {
+      const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gb&limit=1`);
+      if (response.data && response.data.length > 0) {
+        const { lat, lon } = response.data[0];
+        form.setValue('longitude', parseFloat(lon), { shouldValidate: true });
+        form.setValue('latitude', parseFloat(lat), { shouldValidate: true });
+      } else {
+        form.setError('fullAddress', { type: 'manual', message: 'Address not found. Please check or enter coordinates manually.' });
+        form.setValue('longitude', undefined);
+        form.setValue('latitude', undefined);
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      form.setError('fullAddress', { type: 'manual', message: 'Geocoding failed. Please enter coordinates manually.' });
+      form.setValue('longitude', undefined);
+      form.setValue('latitude', undefined);
+    } finally {
+      setIsGeocoding(false);
+    }
+  }, [form]);
+
+  const watchedAddress = form.watch('fullAddress');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (watchedAddress !== undefined) { // Ensure watchedAddress is not undefined
+          // Check if the current watched address is the one that was last submitted or if it has changed
+          // This check helps prevent re-geocoding if the form was submitted and then re-focused
+          const currentFormAddress = form.getValues('fullAddress');
+          if (watchedAddress === currentFormAddress) {
+            geocodeAddress(watchedAddress);
+          }
+      }
+    }, 1000); // 1-second debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [watchedAddress, geocodeAddress, form]);
+
+
   const onSubmit: SubmitHandler<PredictionFormValues> = async (data) => {
     resetPrediction();
     const inputData: PredictionInput = {
       ...data,
-      outcode: data.outcode, // Ensure outcode is passed correctly
+      outcode: data.outcode,
       ...(data.longitude && { longitude: data.longitude }),
       ...(data.latitude && { latitude: data.latitude }),
     };
@@ -101,7 +157,7 @@ export default function PredictionPage() {
       <Card className="max-w-3xl mx-auto shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
         <CardHeader>
           <CardTitle className="font-headline text-2xl flex items-center"><Home className="mr-2 h-6 w-6 text-primary" />Enter Property Details</CardTitle>
-          <CardDescription>Provide the following details for our AI to predict the price using hook-based fake data.</CardDescription>
+          <CardDescription>Provide the following details for our AI to predict the price. Longitude and latitude can be auto-filled.</CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -111,10 +167,15 @@ export default function PredictionPage() {
                 name="fullAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4" />Full Address</FormLabel>
+                    <FormLabel className="flex items-center">
+                      <MapPin className="mr-2 h-4 w-4" />
+                      Full Address
+                      {isGeocoding && <Loader2 className="ml-2 h-4 w-4 animate-spin text-primary" />}
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="e.g., 10 Downing Street, London" {...field} />
                     </FormControl>
+                    <FormDescription>Coordinates will be auto-filled after you stop typing.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -147,9 +208,9 @@ export default function PredictionPage() {
                   name="longitude"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Longitude (Optional)</FormLabel>
+                      <FormLabel>Longitude</FormLabel>
                       <FormControl>
-                        <Input type="number" step="any" placeholder="e.g., -0.1278" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
+                        <Input type="number" step="any" placeholder="Auto-filled or e.g., -0.1278" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -160,9 +221,9 @@ export default function PredictionPage() {
                   name="latitude"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Latitude (Optional)</FormLabel>
+                      <FormLabel>Latitude</FormLabel>
                       <FormControl>
-                        <Input type="number" step="any" placeholder="e.g., 51.5074" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
+                        <Input type="number" step="any" placeholder="Auto-filled or e.g., 51.5074" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -310,9 +371,9 @@ export default function PredictionPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isPredicting} className="w-full">
+              <Button type="submit" disabled={isPredicting || isGeocoding} className="w-full">
                 {isPredicting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <TrendingUp className="mr-2 h-4 w-4" />}
-                {isPredicting ? 'Predicting (Hook)...' : 'Predict Price (Hook)'}
+                {isPredicting ? 'Predicting...' : 'Predict Price'}
               </Button>
             </CardFooter>
           </form>
@@ -322,7 +383,7 @@ export default function PredictionPage() {
       {isPredicting && (
         <div className="flex justify-center items-center mt-12">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="ml-3 text-lg">Fetching prediction using hook...</p>
+          <p className="ml-3 text-lg">Fetching prediction...</p>
         </div>
       )}
 
@@ -340,7 +401,7 @@ export default function PredictionPage() {
       {predictionData && !isPredicting && (
         <Card className="mt-12 shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl flex items-center"><Coins className="mr-2 h-6 w-6 text-primary" />Prediction Results (from Hook)</CardTitle>
+            <CardTitle className="font-headline text-2xl flex items-center"><Coins className="mr-2 h-6 w-6 text-primary" />Prediction Results</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
@@ -396,3 +457,6 @@ export default function PredictionPage() {
     </div>
   );
 }
+
+
+    
