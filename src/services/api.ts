@@ -13,30 +13,27 @@ import { predictPrice as predictPriceFlow } from '@/ai/flows/price-prediction';
 import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json';
 import axios from 'axios';
 
-// Make 'liveProperties' a mutable, module-level variable, initialized with the JSON data.
-// This array will be modified in memory by addFakePropertyForHook.
 let liveProperties: Property[] = [...initialPropertiesDataFromFile] as Property[];
 
-
-// Interface for the CSV row structure, matching public/data.csv
+// Interface for the CSV row structure, matching the image provided by the user
 interface CsvRow {
-  outcode: string;
-  sale_year: number;
-  sale_month: number;
-  price: number;
-  propertyType: PropertyType;
-  bedrooms: number;
-  bathrooms: number;
-  tenure: Tenure;
-  currentEnergyRating: EnergyRating;
-  floorAreaSqM: number;
+  id: string;
   fullAddress: string;
-  name: string;
-  description: string;
-  image: string;
-  dataAiHint: string;
-  longitude?: number;
+  postcode: string;
+  country: string;
+  outcode: string;
   latitude?: number;
+  longitude?: number;
+  bathrooms: number;
+  bedrooms: number;
+  floorAreaSqM: number;
+  livingRooms: number;
+  tenure: Tenure;
+  propertyType: PropertyType;
+  currentEnergyRating: EnergyRating;
+  sale_month: number;
+  sale_year: number;
+  price: number;
 }
 
 export const fetchPricePrediction = async (data: PredictionInput): Promise<PredictionOutput> => {
@@ -45,7 +42,6 @@ export const fetchPricePrediction = async (data: PredictionInput): Promise<Predi
 };
 
 export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
-  // Read from the potentially modified in-memory array
   const property = liveProperties.find(p => p.id === propertyId);
   return property;
 };
@@ -94,7 +90,6 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
 };
 
 export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
-  // Return a copy of the potentially modified in-memory array
   return [...liveProperties];
 };
 
@@ -105,7 +100,7 @@ export const addFakePropertyForHook = async (
     ...propertyData,
     id: Date.now().toString(),
   };
-  liveProperties.unshift(newProperty); // Add to the beginning to show up first
+  liveProperties.unshift(newProperty);
   return newProperty;
 };
 
@@ -128,34 +123,32 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     const fileContent = fs.readFileSync(csvFilePath, 'utf-8');
     const lines = fileContent.trim().split(/\r?\n/);
     
-    // Skip header row by starting map from index 1
     parsedCsvData = lines.slice(1).map(line => {
       const values = line.split(',');
-      // Assuming CSV columns are in the exact order of CsvRow interface fields
+      // Mapping based on the new CSV structure (from user's image)
+      // ID,fullAddress,postcode,country,outcode,latitude,longitude,bathrooms,bedrooms,floorAreaSqM,livingRooms,tenure,propertyType,currentEnergyRating,sale_month,sale_year,price
       return {
-        outcode: values[0],
-        sale_year: parseInt(values[1]),
-        sale_month: parseInt(values[2]),
-        price: parseFloat(values[3]),
-        propertyType: values[4] as PropertyType,
-        bedrooms: parseInt(values[5]),
-        bathrooms: parseInt(values[6]),
-        tenure: values[7] as Tenure,
-        currentEnergyRating: values[8] as EnergyRating,
+        id: values[0],
+        fullAddress: values[1],
+        postcode: values[2],
+        country: values[3],
+        outcode: values[4],
+        latitude: values[5] ? parseFloat(values[5]) : undefined,
+        longitude: values[6] ? parseFloat(values[6]) : undefined,
+        bathrooms: parseInt(values[7]),
+        bedrooms: parseInt(values[8]),
         floorAreaSqM: parseFloat(values[9]),
-        fullAddress: values[10],
-        name: values[11],
-        description: values[12],
-        image: values[13],
-        dataAiHint: values[14],
-        longitude: values[15] ? parseFloat(values[15]) : undefined,
-        latitude: values[16] ? parseFloat(values[16]) : undefined,
+        livingRooms: parseInt(values[10]),
+        tenure: values[11] as Tenure,
+        propertyType: values[12] as PropertyType,
+        currentEnergyRating: values[13] as EnergyRating,
+        sale_month: parseInt(values[14]),
+        sale_year: parseInt(values[15]),
+        price: parseFloat(values[16]),
       } as CsvRow;
-    }).filter(row => row.outcode && !isNaN(row.price)); // Basic validation
+    }).filter(row => row.outcode && !isNaN(row.price));
   } catch (error) {
     console.error("Failed to read or parse data.csv:", error);
-    // Fallback or throw error - for now, continue with empty data which will show 'N/A' or default region avg.
-    // Depending on requirements, might throw new Error("Could not load regional market data source.");
   }
 
   const regionSales = parsedCsvData.filter(sale => sale.outcode === regionId);
@@ -225,13 +218,14 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
       const avg = salesInOutcode.reduce((sum, s) => sum + s.price, 0) / salesInOutcode.length;
       return { ...oc, avgPrice: Math.round(avg / 1000) * 1000 };
     }
-    return oc;
-  });
+    return oc; // Return original outcode data if no sales found in CSV
+  }).filter(oc => oc.avgPrice > 0); // Ensure we only consider outcodes with valid avgPrice
 
   const sortedRegions = [...outcodesWithCsvAvgPrice].sort((a, b) => b.avgPrice - a.avgPrice);
   const rank = sortedRegions.findIndex(r => r.id === regionId) + 1;
   const totalRegions = sortedRegions.length;
-  const priceRank = `Rank: ${rank} of ${totalRegions}`;
+  const priceRank = totalRegions > 0 && rank > 0 ? `Rank: ${rank} of ${totalRegions}` : "Rank: N/A";
+
 
   return {
     regionId: regionDetails.id,
