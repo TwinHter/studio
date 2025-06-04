@@ -35,7 +35,7 @@ export default function ContactPropertyPage() {
     name: property?.uploaderName || DEFAULT_SALESMAN_INFO.name,
     email: property?.uploaderEmail || DEFAULT_SALESMAN_INFO.email,
     phone: property?.uploaderPhone || DEFAULT_SALESMAN_INFO.phone,
-    bio: property?.uploaderName ? `${property.uploaderName} listed this property.` : DEFAULT_SALESMAN_INFO.bio,
+    // bio: property?.uploaderName ? `${property.uploaderName} listed this property.` : DEFAULT_SALESMAN_INFO.bio, // Removed
     imageUrl: DEFAULT_SALESMAN_INFO.imageUrl, // Using default avatar for now
     dataAiHint: property?.uploaderName ? PLACEHOLDER_HINTS.salesmanPortrait : DEFAULT_SALESMAN_INFO.dataAiHint,
   };
@@ -232,13 +232,13 @@ export default function ContactPropertyPage() {
                 </Avatar>
                 <div>
                   <h3 className="text-xl font-semibold">{contactPerson.name}</h3>
-                  <p className="text-sm text-muted-foreground">{property.uploaderName ? "Property Lister" : "Property Consultant"}</p>
+                  {/* <p className="text-sm text-muted-foreground">{property.uploaderName ? "Property Lister" : "Property Consultant"}</p> */} {/* Removed title */}
                 </div>
               </div>
-              <p className="text-foreground/80 text-sm flex items-start">
+              {/* <p className="text-foreground/80 text-sm flex items-start">
                 <Briefcase size={16} className="mr-2 mt-0.5 flex-shrink-0 text-primary" />
                 {contactPerson.bio}
-              </p>
+              </p> */} {/* Removed bio */}
               <div className="space-y-2 pt-2 border-t">
                 <p className="flex items-center">
                   <Mail size={16} className="mr-2 text-primary" />
@@ -260,7 +260,7 @@ export default function ContactPropertyPage() {
                   <Mail className="mr-2 h-4 w-4" /> Email {contactPerson.name.split(' ')[0]}
                 </a>
               </Button>
-               <p className="text-xs text-muted-foreground text-center">Please mention property ID: {property.id} when enquiring.</p>
+               {/* <p className="text-xs text-muted-foreground text-center">Please mention property ID: {property.id} when enquiring.</p> */} {/* Removed property ID note */}
             </CardContent>
           </Card>
         </div>
