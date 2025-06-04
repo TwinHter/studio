@@ -3,18 +3,16 @@
 
 import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
 import type { Property, SalesmanInfo, RegionMarketData, QuarterlyPricePoint } from '@/types'; 
-// import { sampleProperties as initialProperties } from '@/lib/data/properties_data'; // Old import
-import initialProperties from '@/lib/data/properties.json'; // New import for JSON data
+import initialPropertiesData from '@/lib/data/properties.json'; 
 import { londonOutcodes } from '@/lib/data/london_outcodes_data';
 import { DEFAULT_SALESMAN_INFO, PLACEHOLDER_HINTS } from '@/lib/constants';
 
-// These functions call the actual Genkit flows
 import { predictPrice as predictPriceFlow } from '@/ai/flows/price-prediction';
-
-// Import fake data for hook-specific service functions
 import fakePredictionDataJson from '@/lib/data/fake_prediction_output.json'; 
 
-// --- Original Service Functions (Potentially for real backend/Genkit calls) ---
+// Ensure initialPropertiesData is correctly typed as Property[]
+const initialProperties: Property[] = initialPropertiesData as Property[];
+
 
 export const fetchPricePrediction = async (data: PredictionInput): Promise<PredictionOutput> => {
   const result = await predictPriceFlow(data);
@@ -23,14 +21,10 @@ export const fetchPricePrediction = async (data: PredictionInput): Promise<Predi
 
 export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
   const property = initialProperties.find(p => p.id === propertyId);
-  // Simulate delay if needed
-  // await new Promise(resolve => setTimeout(resolve, 500));
-  return property as Property | undefined; // Cast as Property because JSON import might not infer type perfectly
+  return property;
 };
 
 export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInfo> => {
-  // Simulate delay if needed
-  // await new Promise(resolve => setTimeout(resolve, 300));
   return {
     ...DEFAULT_SALESMAN_INFO,
     name: "Emily Carter",
@@ -42,7 +36,6 @@ export const fetchSalesmanInfo = async (propertyId: string): Promise<SalesmanInf
   };
 };
 
-// --- New Service Functions for Hooks (Using Fake JSON Data) ---
 
 export const fetchFakePredictionForHook = async (input: PredictionInput): Promise<PredictionOutput> => {
   const basePredictedPrice = fakePredictionDataJson.price;
@@ -75,32 +68,20 @@ export const fetchFakePredictionForHook = async (input: PredictionInput): Promis
 };
 
 export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
-  // Simulate delay if needed
-  // await new Promise(resolve => setTimeout(resolve, 700));
-  return [...initialProperties] as Property[]; // Cast as Property[]
+  return [...initialProperties];
 };
 
 export const addFakePropertyForHook = async (
-  propertyData: Omit<Property, 'id' | 'image'> & { 
-    image: string; 
-    longitude?: number; 
-    latitude?: number; 
-    listedMonth: number; 
-    listedYear: number; 
-  }
+  propertyData: Omit<Property, 'id'> & { image: string; }
 ): Promise<Property> => {
-  // Simulate delay if needed
-  // await new Promise(resolve => setTimeout(resolve, 600));
   const newProperty: Property = {
     ...propertyData,
-    id: Date.now().toString(), // Simple ID generation for fake data
+    id: Date.now().toString(), 
   };
   return newProperty;
 };
 
 export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promise<RegionMarketData> => {
-  // Simulate delay if needed
-  // await new Promise(resolve => setTimeout(resolve, 400));
   const regionDetails = londonOutcodes.find(r => r.id === regionId);
   if (!regionDetails) {
     throw new Error(`Region ${regionId} not found.`);
@@ -113,24 +94,19 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
 
   for (let year = currentYear - 2; year <= currentYear; year++) {
     for (let q = 1; q <= 4; q++) {
-      // Simulate some price trend over the years and quarters
-      let quarterPrice = priceFluctuationBase * (1 + (Math.random() - 0.5) * 0.05); // +/- 5% fluctuation
+      let quarterPrice = priceFluctuationBase * (1 + (Math.random() - 0.5) * 0.05); 
       quarterPrice = Math.round(quarterPrice / 1000) * 1000;
       quarterlyPriceHistory.push({
         quarter: `Q${q} ${year}`,
         price: quarterPrice,
       });
-      // Slightly adjust base for next quarter to show some trend
       priceFluctuationBase = quarterPrice * (1 + (Math.random() - 0.45) * 0.01); 
     }
   }
-   // Ensure the last data point is close to currentAveragePrice
   if (quarterlyPriceHistory.length > 0) {
     quarterlyPriceHistory[quarterlyPriceHistory.length -1].price = Math.round(currentAveragePrice * (0.98 + Math.random()*0.04) /1000) *1000;
   }
 
-
-  // Calculate rank
   const sortedRegions = [...londonOutcodes].sort((a, b) => b.avgPrice - a.avgPrice);
   const rank = sortedRegions.findIndex(r => r.id === regionId) + 1;
   const totalRegions = sortedRegions.length;
@@ -144,4 +120,3 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     priceRank,
   };
 };
-

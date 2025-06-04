@@ -16,13 +16,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-// import { sampleProperties } from '@/lib/data/properties_data'; // No longer directly used for initial state
-import { useRecommend, type NewPropertyData } from '@/hooks/useRecommend'; // Import the hook and NewPropertyData type
+import { useRecommend, type NewPropertyData } from '@/hooks/useRecommend';
 import type { Property, PropertyType, EnergyRating, Tenure } from '@/types';
 import { 
   DollarSign, Home, BedDouble, Search, MapPin, ListFilter, Bath, Sofa, Zap, FileText, Tv2, Contact, UploadCloud, User, MailIcon, Building2, Coins, X, Loader2 
 } from 'lucide-react';
-// import { useToast } from '@/hooks/use-toast'; // Toast handled by the hook
 import {
   RECOMMENDATIONS_PAGE_HERO_TITLE,
   RECOMMENDATIONS_PAGE_HERO_DESCRIPTION,
@@ -30,9 +28,9 @@ import {
   MIN_PRICE_FILTER_DEFAULT,
   PROPERTY_TYPE_OPTIONS,
   BEDROOM_OPTIONS,
-  REGION_OPTIONS,
+  REGION_OPTIONS, // This is actually outcode options
   BATHROOM_OPTIONS,
-  RECEPTION_OPTIONS,
+  RECEPTION_OPTIONS, // Kept for general room counts if needed, but livingRooms is primary
   TENURE_OPTIONS,
   ENERGY_RATING_OPTIONS,
   MAX_FILE_SIZE_MB,
@@ -44,27 +42,28 @@ import {
 
 type RecommendationFilters = {
   maxPrice?: number;
-  propertyType?: Property['type'];
-  region?: string;
+  propertyType?: Property['propertyType'];
+  outcode?: string; // Changed from region
   bedrooms?: number;
   bathrooms?: number;
-  receptionRooms?: number;
+  livingRooms?: number; // Changed from receptionRooms
   tenure?: Property['tenure'];
-  energyRating?: Property['energyRating'];
+  currentEnergyRating?: Property['currentEnergyRating']; // Changed from energyRating
 };
 
+// Schema for the upload form, ensures field names match the final Property structure where appropriate
 const uploadPropertyFormSchema = z.object({
   name: z.string().min(5, "Property name must be at least 5 characters."),
-  address: z.string().min(10, "Address must be at least 10 characters."),
+  fullAddress: z.string().min(10, "Full address must be at least 10 characters."), // Changed from address
   price: z.coerce.number().positive("Price must be a positive number."),
-  type: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]], { required_error: "Property type is required." }),
+  propertyType: z.enum(PROPERTY_TYPE_OPTIONS as [PropertyType, ...PropertyType[]], { required_error: "Property type is required." }), // Changed from type
   bedrooms: z.coerce.number().int().min(0, "Bedrooms must be 0 or more."),
   bathrooms: z.coerce.number().int().min(0, "Bathrooms must be 0 or more."),
-  receptionRooms: z.coerce.number().int().min(0, "Reception rooms must be 0 or more."),
-  area: z.coerce.number().positive("Area must be a positive number.").optional(),
-  energyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]], { required_error: "Energy rating is required." }),
+  livingRooms: z.coerce.number().int().min(0, "Living rooms must be 0 or more."), // Changed from receptionRooms
+  floorAreaSqM: z.coerce.number().positive("Area must be a positive number.").optional(), // Changed from area
+  currentEnergyRating: z.enum(ENERGY_RATING_OPTIONS as [EnergyRating, ...EnergyRating[]], { required_error: "Energy rating is required." }), // Changed from energyRating
   tenure: z.enum(TENURE_OPTIONS as [Tenure, ...Tenure[]], { required_error: "Tenure is required." }),
-  region: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: "Region is required." }),
+  outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: "Outcode is required." }), // Changed from region
   description: z.string().min(20, "Description must be at least 20 characters.").max(500, "Description cannot exceed 500 characters."),
   imageFile: z
     .custom<FileList>()
@@ -82,8 +81,7 @@ type UploadPropertyFormValues = z.infer<typeof uploadPropertyFormSchema>;
 
 export default function RecommendationsPage() {
   const searchParams = useSearchParams();
-  const initialRegion = searchParams.get('region');
-  // const { toast } = useToast(); // No longer needed here
+  const initialOutcode = searchParams.get('region'); // query param is 'region', maps to 'outcode'
 
   const { 
     properties: displayedProperties, 
@@ -101,31 +99,29 @@ export default function RecommendationsPage() {
 
   const [filters, setFilters] = useState<RecommendationFilters>({
     maxPrice: currentMaxPrice,
-    region: initialRegion || undefined,
+    outcode: initialOutcode || undefined,
   });
   const [searchTerm, setSearchTerm] = useState('');
 
   const uploadForm = useForm<UploadPropertyFormValues>({
     resolver: zodResolver(uploadPropertyFormSchema),
     defaultValues: {
-      name: "", address: "", price: undefined, type: undefined, 
-      bedrooms: BEDROOM_OPTIONS[1], bathrooms: BATHROOM_OPTIONS[1], receptionRooms: RECEPTION_OPTIONS[1], 
-      area: undefined, energyRating: undefined, tenure: undefined, region: undefined, 
+      name: "", fullAddress: "", price: undefined, propertyType: undefined, 
+      bedrooms: BEDROOM_OPTIONS[1], bathrooms: BATHROOM_OPTIONS[1], livingRooms: RECEPTION_OPTIONS[1], // Default livingRooms from RECEPTION_OPTIONS
+      floorAreaSqM: undefined, currentEnergyRating: undefined, tenure: undefined, outcode: undefined, 
       description: "", imageFile: undefined, uploaderName: "", uploaderEmail: "",
     },
   });
 
   useEffect(() => {
-    if (initialRegion) {
-      setFilters(prev => ({ ...prev, region: initialRegion, maxPrice: currentMaxPrice }));
+    if (initialOutcode) {
+      setFilters(prev => ({ ...prev, outcode: initialOutcode, maxPrice: currentMaxPrice }));
     } else {
       setFilters(prev => ({ ...prev, maxPrice: currentMaxPrice }));
     }
-  }, [initialRegion, currentMaxPrice]);
+  }, [initialOutcode, currentMaxPrice]);
 
   useEffect(() => {
-    // Update filters.maxPrice if displayedProperties (and thus currentMaxPrice) changes
-    // This ensures the slider's max value is correctly set initially and on property list updates
     setFilters(prev => ({ ...prev, maxPrice: currentMaxPrice }));
   }, [currentMaxPrice]);
 
@@ -139,14 +135,14 @@ export default function RecommendationsPage() {
     if (!displayedProperties) return [];
     return displayedProperties.filter(property => {
       if (filters.maxPrice && property.price > filters.maxPrice) return false;
-      if (filters.propertyType && property.type !== filters.propertyType) return false;
-      if (filters.region && property.region !== filters.region) return false;
+      if (filters.propertyType && property.propertyType !== filters.propertyType) return false;
+      if (filters.outcode && property.outcode !== filters.outcode) return false;
       if (filters.bedrooms !== undefined && property.bedrooms < filters.bedrooms) return false;
       if (filters.bathrooms !== undefined && property.bathrooms < filters.bathrooms) return false;
-      if (filters.receptionRooms !== undefined && property.receptionRooms < filters.receptionRooms) return false;
+      if (filters.livingRooms !== undefined && property.livingRooms < filters.livingRooms) return false;
       if (filters.tenure && property.tenure !== filters.tenure) return false;
-      if (filters.energyRating && property.energyRating !== filters.energyRating) return false;
-      if (searchTerm && !`${property.name} ${property.address} ${property.description}`.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (filters.currentEnergyRating && property.currentEnergyRating !== filters.currentEnergyRating) return false;
+      if (searchTerm && !`${property.name} ${property.fullAddress} ${property.description}`.toLowerCase().includes(searchTerm.toLowerCase())) return false;
       return true;
     });
   }, [filters, searchTerm, displayedProperties]);
@@ -155,7 +151,7 @@ export default function RecommendationsPage() {
     let processedValue = value;
     if (value === 'all' || value === '') {
       processedValue = undefined;
-    } else if ((key === 'bedrooms' || key === 'bathrooms' || key === 'receptionRooms') && typeof value === 'string') {
+    } else if ((key === 'bedrooms' || key === 'bathrooms' || key === 'livingRooms') && typeof value === 'string') {
       processedValue = parseInt(value);
       if (isNaN(processedValue)) processedValue = undefined;
     }
@@ -167,29 +163,28 @@ export default function RecommendationsPage() {
   };
 
   const handleFileUploadSubmit: SubmitHandler<UploadPropertyFormValues> = async (data) => {
+    // Ensure field names match NewPropertyData which omits 'id', 'image', 'dataAiHint', 'longitude', 'latitude', 'sale_month', 'sale_year'
+    // These are added by the hook/service.
     const propertyDataForHook: NewPropertyData = {
       name: data.name,
-      address: data.address,
+      fullAddress: data.fullAddress,
       price: data.price,
-      type: data.type,
+      propertyType: data.propertyType,
       bedrooms: data.bedrooms,
       bathrooms: data.bathrooms,
-      receptionRooms: data.receptionRooms,
-      area: data.area,
-      energyRating: data.energyRating,
+      livingRooms: data.livingRooms,
+      floorAreaSqM: data.floorAreaSqM,
+      currentEnergyRating: data.currentEnergyRating,
       tenure: data.tenure,
-      region: data.region,
+      outcode: data.outcode,
       description: data.description,
-      imageFile: data.imageFile, // Pass the FileList
-      // uploaderName and uploaderEmail are not part of the Property type for the hook to save
+      imageFile: data.imageFile,
     };
     try {
-      await addProperty(propertyDataForHook); // Call addProperty from the hook
+      await addProperty(propertyDataForHook);
       uploadForm.reset();
       setShowUploadForm(false);
-      // Toast notification is handled by the hook
     } catch (e) {
-      // Error handling is done within the hook
       console.error("Upload submit error", e);
     }
   };
@@ -204,7 +199,7 @@ export default function RecommendationsPage() {
       <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.2s'}}>
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center"><ListFilter className="mr-2 h-5 w-5 text-primary"/>Search Filters</CardTitle>
-          <CardDescription>Refine your criteria to find your dream home. Data from hook.</CardDescription>
+          <CardDescription>Refine your criteria to find your dream home.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
@@ -229,17 +224,17 @@ export default function RecommendationsPage() {
                 <SelectTrigger id="propertyTypeFilterRec"><SelectValue placeholder="All types" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All types</SelectItem>
-                  {PROPERTY_TYPE_OPTIONS.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                  {PROPERTY_TYPE_OPTIONS.map(pt => <SelectItem key={pt} value={pt}>{pt}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label htmlFor="regionFilterRec" className="block text-sm font-medium text-foreground mb-1">Region (Outcode)</label>
-              <Select onValueChange={(value) => handleFilterChange('region', value)} value={filters.region || 'all'}>
-                <SelectTrigger id="regionFilterRec"><SelectValue placeholder="All regions" /></SelectTrigger>
+              <label htmlFor="outcodeFilterRec" className="block text-sm font-medium text-foreground mb-1">Outcode</label>
+              <Select onValueChange={(value) => handleFilterChange('outcode', value)} value={filters.outcode || 'all'}>
+                <SelectTrigger id="outcodeFilterRec"><SelectValue placeholder="All outcodes" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All regions</SelectItem>
-                  {REGION_OPTIONS.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
+                  <SelectItem value="all">All outcodes</SelectItem>
+                  {REGION_OPTIONS.map(oc => <SelectItem key={oc} value={oc}>{oc}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -264,9 +259,9 @@ export default function RecommendationsPage() {
               </Select>
             </div>
              <div>
-              <label htmlFor="receptionFilterRec" className="block text-sm font-medium text-foreground mb-1">Min. Receptions</label>
-              <Select onValueChange={(value) => handleFilterChange('receptionRooms', value)} value={filters.receptionRooms?.toString() || 'all'}>
-                <SelectTrigger id="receptionFilterRec"><SelectValue placeholder="Any" /></SelectTrigger>
+              <label htmlFor="livingRoomsFilterRec" className="block text-sm font-medium text-foreground mb-1">Min. Living Rooms</label>
+              <Select onValueChange={(value) => handleFilterChange('livingRooms', value)} value={filters.livingRooms?.toString() || 'all'}>
+                <SelectTrigger id="livingRoomsFilterRec"><SelectValue placeholder="Any" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any</SelectItem>
                   {RECEPTION_OPTIONS.map(num => <SelectItem key={num} value={String(num)}>{num}+ rooms</SelectItem>)}
@@ -279,14 +274,14 @@ export default function RecommendationsPage() {
                 <SelectTrigger id="tenureFilterRec"><SelectValue placeholder="Any tenure" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any tenure</SelectItem>
-                  {TENURE_OPTIONS.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                  {TENURE_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label htmlFor="energyRatingFilterRec" className="block text-sm font-medium text-foreground mb-1">Energy Rating</label>
-              <Select onValueChange={(value) => handleFilterChange('energyRating', value)} value={filters.energyRating || 'all'}>
-                <SelectTrigger id="energyRatingFilterRec"><SelectValue placeholder="Any rating" /></SelectTrigger>
+              <label htmlFor="currentEnergyRatingFilterRec" className="block text-sm font-medium text-foreground mb-1">Energy Rating</label>
+              <Select onValueChange={(value) => handleFilterChange('currentEnergyRating', value)} value={filters.currentEnergyRating || 'all'}>
+                <SelectTrigger id="currentEnergyRatingFilterRec"><SelectValue placeholder="Any rating" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any rating</SelectItem>
                   {ENERGY_RATING_OPTIONS.map(rating => <SelectItem key={rating} value={rating}>Rating {rating}</SelectItem>)}
@@ -310,7 +305,7 @@ export default function RecommendationsPage() {
       <div className="my-8 text-center animate-fadeIn" style={{animationDelay: '0.2s'}}>
         {!showUploadForm && (
           <Button onClick={() => setShowUploadForm(true)} size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
-            <UploadCloud className="mr-2 h-5 w-5" /> List Your Property (via Hook)
+            <UploadCloud className="mr-2 h-5 w-5" /> List Your Property
           </Button>
         )}
       </div>
@@ -325,7 +320,7 @@ export default function RecommendationsPage() {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              <CardDescription>Contribute to our listings. This will use the `addProperty` from hook.</CardDescription>
+              <CardDescription>Contribute to our listings.</CardDescription>
             </CardHeader>
             <Form {...uploadForm}>
               <form onSubmit={uploadForm.handleSubmit(handleFileUploadSubmit)}>
@@ -334,36 +329,36 @@ export default function RecommendationsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={uploadForm.control} name="name" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground" />Property Name</FormLabel><FormControl><Input placeholder="e.g., Modern City Apartment" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={uploadForm.control} name="address" render={({ field }) => (
+                    <FormField control={uploadForm.control} name="fullAddress" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Full Address</FormLabel><FormControl><Input placeholder="e.g., 123 Main St, London, E1 1AB" {...field} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <FormField control={uploadForm.control} name="price" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><Coins className="mr-2 h-4 w-4 text-muted-foreground" />Price (£)</FormLabel><FormControl><Input type="number" placeholder="e.g., 500000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={uploadForm.control} name="type" render={({ field }) => (
-                      <FormItem><FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />Property Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl><SelectContent>{PROPERTY_TYPE_OPTIONS.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
-                    <FormField control={uploadForm.control} name="region" render={({ field }) => (
-                      <FormItem><FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Region (Outcode)</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger></FormControl><SelectContent>{REGION_OPTIONS.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
+                    <FormField control={uploadForm.control} name="propertyType" render={({ field }) => (
+                      <FormItem><FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />Property Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl><SelectContent>{PROPERTY_TYPE_OPTIONS.map(pt => <SelectItem key={pt} value={pt}>{pt}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
+                    <FormField control={uploadForm.control} name="outcode" render={({ field }) => (
+                      <FormItem><FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Outcode</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select outcode" /></SelectTrigger></FormControl><SelectContent>{REGION_OPTIONS.map(oc => <SelectItem key={oc} value={oc}>{oc}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <FormField control={uploadForm.control} name="bedrooms" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><BedDouble className="mr-2 h-4 w-4 text-muted-foreground" />Bedrooms</FormLabel><FormControl><Input type="number" placeholder="e.g., 2" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={uploadForm.control} name="bathrooms" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><Bath className="mr-2 h-4 w-4 text-muted-foreground" />Bathrooms</FormLabel><FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={uploadForm.control} name="receptionRooms" render={({ field }) => (
-                      <FormItem><FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4 text-muted-foreground" />Receptions</FormLabel><FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={uploadForm.control} name="area" render={({ field }) => (
-                      <FormItem><FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground"/>Area (sqm)</FormLabel><FormControl><Input type="number" placeholder="e.g., 70 (optional)" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={uploadForm.control} name="livingRooms" render={({ field }) => (
+                      <FormItem><FormLabel className="flex items-center"><Tv2 className="mr-2 h-4 w-4 text-muted-foreground" />Living Rooms</FormLabel><FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={uploadForm.control} name="floorAreaSqM" render={({ field }) => (
+                      <FormItem><FormLabel className="flex items-center"><Home className="mr-2 h-4 w-4 text-muted-foreground"/>Floor Area (sqm)</FormLabel><FormControl><Input type="number" placeholder="e.g., 70 (optional)" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={uploadForm.control} name="tenure" render={({ field }) => (
-                      <FormItem><FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Tenure</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select tenure" /></SelectTrigger></FormControl><SelectContent>{TENURE_OPTIONS.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
-                    <FormField control={uploadForm.control} name="energyRating" render={({ field }) => (
+                      <FormItem><FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Tenure</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select tenure" /></SelectTrigger></FormControl><SelectContent>{TENURE_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
+                    <FormField control={uploadForm.control} name="currentEnergyRating" render={({ field }) => (
                       <FormItem><FormLabel className="flex items-center"><Zap className="mr-2 h-4 w-4 text-muted-foreground" />Energy Rating</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select rating" /></SelectTrigger></FormControl><SelectContent>{ENERGY_RATING_OPTIONS.map(rating => <SelectItem key={rating} value={rating}>Rating {rating}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
                   </div>
                   <FormField control={uploadForm.control} name="description" render={({ field }) => (
                     <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Detailed description of the property..." {...field} rows={4} /></FormControl><FormMessage /></FormItem>)} />
-                  <FormField control={uploadForm.control} name="imageFile" render={({ field: { onChange, value, ...rest } }) => ( // Ensure `value` is destructured to avoid passing it to Input if it's managed by RHF and is a FileList
+                  <FormField control={uploadForm.control} name="imageFile" render={({ field: { onChange, value, ...rest } }) => (
                     <FormItem><FormLabel>Property Image</FormLabel><FormControl><Input type="file" accept={ACCEPTED_IMAGE_TYPES_STRING} onChange={(e) => onChange(e.target.files)} {...rest} className="file:text-primary file:font-medium"/></FormControl><FormDescription>Max file size: {MAX_FILE_SIZE_MB}MB. Accepted: {ACCEPTED_IMAGE_TYPES_STRING}.</FormDescription><FormMessage /></FormItem>)} />
                   <h3 className="text-lg font-semibold text-foreground border-b pt-4 pb-2">Your Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -422,10 +417,10 @@ export default function RecommendationsPage() {
                       data-ai-hint={property.dataAiHint || PLACEHOLDER_HINTS.defaultHouse}
                     />
                     <div className="absolute top-2 right-2 bg-primary/80 text-primary-foreground px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm">
-                      {property.region}
+                      {property.outcode}
                     </div>
                     <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold backdrop-blur-sm flex items-center">
-                      <Zap size={12} className="mr-1 text-yellow-400" /> Energy Rating: {property.energyRating}
+                      <Zap size={12} className="mr-1 text-yellow-400" /> Energy Rating: {property.currentEnergyRating}
                     </div>
                   </CardHeader>
                   <CardContent className="p-6 flex-grow">
@@ -433,14 +428,14 @@ export default function RecommendationsPage() {
                       <Link href={`/contact/${property.id}`}>{property.name}</Link>
                     </CardTitle>
                     <CardDescription className="text-sm text-muted-foreground mb-2 flex items-center">
-                      <MapPin size={14} className="mr-1.5 flex-shrink-0" /> {property.address}
+                      <MapPin size={14} className="mr-1.5 flex-shrink-0" /> {property.fullAddress}
                     </CardDescription>
                     <div className="text-sm text-muted-foreground mb-3 space-y-1">
-                      <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.type} - {property.tenure}</div>
+                      <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.propertyType} - {property.tenure}</div>
                       <div className="flex items-center"><BedDouble size={14} className="mr-1.5" /> {property.bedrooms} bed{property.bedrooms === 1 ? '' : 's'}</div>
                       <div className="flex items-center"><Bath size={14} className="mr-1.5" /> {property.bathrooms} bath{property.bathrooms === 1 ? '' : 's'}</div>
-                      <div className="flex items-center"><Tv2 size={14} className="mr-1.5" /> {property.receptionRooms} reception{property.receptionRooms === 1 ? '' : 's'}</div>
-                      {property.area && <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.area} m²</div>}
+                      <div className="flex items-center"><Tv2 size={14} className="mr-1.5" /> {property.livingRooms} living room{property.livingRooms === 1 ? '' : 's'}</div>
+                      {property.floorAreaSqM && <div className="flex items-center"><Home size={14} className="mr-1.5" /> {property.floorAreaSqM} m²</div>}
                     </div>
                     <p className="text-foreground/90 text-sm mb-4 line-clamp-3">{property.description}</p>
                   </CardContent>

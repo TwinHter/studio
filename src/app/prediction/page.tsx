@@ -21,7 +21,7 @@ import {
   PROPERTY_TYPE_OPTIONS,
   ENERGY_RATING_OPTIONS,
   TENURE_OPTIONS,
-  REGION_OPTIONS,
+  REGION_OPTIONS, // These are outcode options
   PREDICTION_FORM_DEFAULT_BEDROOMS,
   PREDICTION_FORM_DEFAULT_BATHROOMS,
   PREDICTION_FORM_DEFAULT_LIVING_ROOMS,
@@ -31,7 +31,7 @@ import type { PropertyType, EnergyRating, Tenure } from '@/types';
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
-// Schema for the form itself
+// Schema for the form itself, using renamed fields where appropriate
 const predictionFormClientSchema = z.object({
   fullAddress: z.string().min(5, { message: 'Full address must be at least 5 characters.' }),
   outcode: z.enum(REGION_OPTIONS as [string, ...string[]], { required_error: 'Outcode is required.' }),
@@ -234,8 +234,8 @@ export default function PredictionPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {REGION_OPTIONS.map((region) => (
-                            <SelectItem key={region} value={region}>{region}</SelectItem>
+                          {REGION_OPTIONS.map((oc) => (
+                            <SelectItem key={oc} value={oc}>{oc}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -339,8 +339,8 @@ export default function PredictionPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {PROPERTY_TYPE_OPTIONS.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          {PROPERTY_TYPE_OPTIONS.map((pt) => (
+                            <SelectItem key={pt} value={pt}>{pt}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -363,8 +363,8 @@ export default function PredictionPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {TENURE_OPTIONS.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          {TENURE_OPTIONS.map((t) => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

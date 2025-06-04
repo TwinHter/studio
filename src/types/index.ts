@@ -8,27 +8,27 @@ export type Tenure = 'Freehold' | 'Leasehold';
 export interface Property {
   id: string;
   name: string;
-  address: string;
+  fullAddress: string; // Renamed from address
   price: number;
-  type: PropertyType;
+  propertyType: PropertyType; // Renamed from type
   bedrooms: number;
   bathrooms: number;
-  receptionRooms: number;
-  area?: number; // Square meters
-  energyRating: EnergyRating;
+  livingRooms: number; // Renamed from receptionRooms
+  floorAreaSqM?: number; // Renamed from area
+  currentEnergyRating: EnergyRating; // Renamed from energyRating
   tenure: Tenure;
-  region: string; // outcode like E1
+  outcode: string; // Renamed from region
   image: string;
   description: string;
   dataAiHint?: string;
   longitude?: number;
   latitude?: number;
-  listedMonth: number;
-  listedYear: number;
+  sale_month: number; // Ensured presence
+  sale_year: number; // Ensured presence
 }
 
 export interface OutcodeData {
-  id: string;
+  id: string; // This is the outcode
   name: string;
   avgPrice: number;
   priceCategory: 'low' | 'medium' | 'high';
@@ -50,7 +50,7 @@ export interface QuarterlyPricePoint {
 }
 
 export interface RegionMarketData {
-  regionId: string;
+  regionId: string; // This is the outcode
   regionName: string;
   quarterlyPriceHistory: QuarterlyPricePoint[];
   currentAveragePrice: number;

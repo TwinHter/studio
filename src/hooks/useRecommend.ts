@@ -9,7 +9,11 @@ import { PLACEHOLDER_HINTS } from '@/lib/constants';
 import axios from 'axios';
 
 // Type for the data passed to the addProperty mutation
-export type NewPropertyData = Omit<Property, 'id' | 'image' | 'dataAiHint' | 'longitude' | 'latitude' | 'listedMonth' | 'listedYear'> & { imageFile: FileList };
+// Ensure this reflects the new field names for Property where appropriate
+export type NewPropertyData = Omit<Property, 'id' | 'image' | 'dataAiHint' | 'longitude' | 'latitude' | 'sale_month' | 'sale_year' | 'price'> & {
+  price: number; // Price is required from form
+  imageFile: FileList;
+};
 
 
 export function useRecommend() {
@@ -38,8 +42,7 @@ export function useRecommend() {
       let longitude: number | undefined = undefined;
       let latitude: number | undefined = undefined;
 
-      // Geocode address
-      const trimmedAddress = newPropertyData.address.trim();
+      const trimmedAddress = newPropertyData.fullAddress.trim();
       let processedAddress = trimmedAddress;
       if (trimmedAddress.length >= 5 && !trimmedAddress.toLowerCase().includes('london')) {
         processedAddress += ', London';
@@ -53,43 +56,38 @@ export function useRecommend() {
             longitude = parseFloat(lon);
             latitude = parseFloat(lat);
           } else {
-             console.warn("Geocoding failed for address:", newPropertyData.address, "- Coordinates will be undefined.");
+             console.warn("Geocoding failed for address:", newPropertyData.fullAddress, "- Coordinates will be undefined.");
           }
         } catch (error) {
           console.error("Geocoding error during property upload:", error);
-          // Coordinates will remain undefined
         }
       }
       
       const currentDate = new Date();
-      const listedMonth = currentDate.getMonth() + 1;
-      const listedYear = currentDate.getFullYear();
+      const sale_month = currentDate.getMonth() + 1;
+      const sale_year = currentDate.getFullYear();
 
       const propertyToSave: Omit<Property, 'id'> & { 
         image: string; 
-        longitude?: number; 
-        latitude?: number;
-        listedMonth: number;
-        listedYear: number;
       } = {
         name: newPropertyData.name,
-        address: newPropertyData.address,
+        fullAddress: newPropertyData.fullAddress,
         price: newPropertyData.price,
-        type: newPropertyData.type,
+        propertyType: newPropertyData.propertyType,
         bedrooms: newPropertyData.bedrooms,
         bathrooms: newPropertyData.bathrooms,
-        receptionRooms: newPropertyData.receptionRooms,
-        area: newPropertyData.area,
-        energyRating: newPropertyData.energyRating,
+        livingRooms: newPropertyData.livingRooms,
+        floorAreaSqM: newPropertyData.floorAreaSqM,
+        currentEnergyRating: newPropertyData.currentEnergyRating,
         tenure: newPropertyData.tenure,
-        region: newPropertyData.region,
+        outcode: newPropertyData.outcode,
         description: newPropertyData.description,
         image: imageAsDataUrl,
         dataAiHint: PLACEHOLDER_HINTS.uploadedProperty,
         longitude,
         latitude,
-        listedMonth,
-        listedYear,
+        sale_month,
+        sale_year,
       };
       return addFakePropertyForHook(propertyToSave);
     },
@@ -121,4 +119,3 @@ export function useRecommend() {
     addPropertyError: addPropertyMutation.error,
   };
 }
-

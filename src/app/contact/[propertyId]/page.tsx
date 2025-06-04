@@ -58,19 +58,19 @@ export default function ContactPropertyPage() {
     setPredictionErrorText(null);
 
     const inputData: PredictionInput = {
-      fullAddress: property.address,
+      fullAddress: property.fullAddress,
       latitude: property.latitude,
       longitude: property.longitude,
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
-      livingRooms: property.receptionRooms, // Mapped from receptionRooms
-      sale_month: property.listedMonth || (new Date().getMonth() + 1),
-      sale_year: property.listedYear || new Date().getFullYear(),
+      livingRooms: property.livingRooms,
+      sale_month: property.sale_month || (new Date().getMonth() + 1),
+      sale_year: property.sale_year || new Date().getFullYear(),
       tenure: property.tenure,
-      currentEnergyRating: property.energyRating,
-      floorAreaSqM: property.area || 70, // Defaulting if area is undefined
-      outcode: REGION_OPTIONS.includes(property.region) ? property.region as typeof REGION_OPTIONS[number] : REGION_OPTIONS[0],
-      propertyType: property.type,
+      currentEnergyRating: property.currentEnergyRating,
+      floorAreaSqM: property.floorAreaSqM || 70,
+      outcode: property.outcode, // Ensure outcode is passed
+      propertyType: property.propertyType,
     };
 
     try {
@@ -93,12 +93,12 @@ export default function ContactPropertyPage() {
     if (!predictionResult || !property) return null;
 
     const listedPrice = property.price;
-    const predictedPrice = predictionResult.price;
-    const diff = predictedPrice - listedPrice;
+    const predictedPriceVal = predictionResult.price;
+    const diff = predictedPriceVal - listedPrice;
     const percentageDiff = (diff / listedPrice) * 100;
 
     let comparisonText;
-    if (Math.abs(percentageDiff) < 5) { // Within 5%
+    if (Math.abs(percentageDiff) < 5) { 
       comparisonText = "This is closely aligned with the listed price.";
     } else if (percentageDiff > 0) {
       comparisonText = `This is ${percentageDiff.toFixed(1)}% higher than the listed price.`;
@@ -108,7 +108,7 @@ export default function ContactPropertyPage() {
 
     return (
       <div className="mt-3 space-y-1">
-        <p className="text-sm font-semibold">AI Predicted Price: <span className="text-primary font-bold text-base">£{predictedPrice.toLocaleString()}</span></p>
+        <p className="text-sm font-semibold">AI Predicted Price: <span className="text-primary font-bold text-base">£{predictedPriceVal.toLocaleString()}</span></p>
         <p className="text-xs text-muted-foreground">{comparisonText}</p>
         {predictionResult.averageAreaPrice > 0 && 
             <p className="text-xs text-muted-foreground">Average for similar properties in the area: £{predictionResult.averageAreaPrice.toLocaleString()}</p>
@@ -135,7 +135,7 @@ export default function ContactPropertyPage() {
     <div className="space-y-12">
       <PageHero
         title={CONTACT_PAGE_TITLE_TEMPLATE(property.name)}
-        description={<span className="flex items-center justify-center"><MapPin size={16} className="mr-1.5" /> {property.address}</span>}
+        description={<span className="flex items-center justify-center"><MapPin size={16} className="mr-1.5" /> {property.fullAddress}</span>}
       />
 
       <div className="max-w-4xl mx-auto">
@@ -161,7 +161,7 @@ export default function ContactPropertyPage() {
               />
               <div>
                 <h3 className="font-semibold text-lg">{property.name}</h3>
-                <p className="text-muted-foreground text-sm">{property.address}</p>
+                <p className="text-muted-foreground text-sm">{property.fullAddress}</p>
               </div>
               <p className="text-2xl font-bold text-primary flex items-center">
                 <DollarSign size={24} className="mr-1" />
@@ -169,18 +169,18 @@ export default function ContactPropertyPage() {
                 <span className="text-sm font-normal text-muted-foreground ml-1">(Listed Price)</span>
               </p>
               <ul className="text-sm space-y-1 text-foreground/80">
-                <li><strong>Type:</strong> {property.type}</li>
+                <li><strong>Type:</strong> {property.propertyType}</li>
                 <li><strong>Bedrooms:</strong> {property.bedrooms}</li>
                 <li><strong>Bathrooms:</strong> {property.bathrooms}</li>
-                <li><strong>Living Rooms:</strong> {property.receptionRooms}</li>
-                {property.area && <li><strong>Area:</strong> {property.area} m²</li>}
+                <li><strong>Living Rooms:</strong> {property.livingRooms}</li>
+                {property.floorAreaSqM && <li><strong>Area:</strong> {property.floorAreaSqM} m²</li>}
                 <li><strong>Tenure:</strong> {property.tenure}</li>
-                <li><strong>Energy Rating:</strong> {property.energyRating}</li>
-                <li><strong>Region/Outcode:</strong> {property.region}</li>
+                <li><strong>Energy Rating:</strong> {property.currentEnergyRating}</li>
+                <li><strong>Outcode:</strong> {property.outcode}</li>
                 {property.longitude && property.latitude && (
                   <li><strong>Coordinates:</strong> {property.latitude.toFixed(4)}, {property.longitude.toFixed(4)}</li>
                 )}
-                <li><strong>Listed:</strong> {new Date(property.listedYear, property.listedMonth -1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</li>
+                <li><strong>Listed:</strong> {new Date(property.sale_year, property.sale_month -1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</li>
 
               </ul>
               
@@ -252,7 +252,7 @@ export default function ContactPropertyPage() {
                   </p>
                 </div>
                 <Button className="w-full mt-4" asChild>
-                   <a href={`mailto:${salesman.email}?subject=Enquiry%20about%20Property%20ID:%20${property.id}%20-%20${encodeURIComponent(property.name)}&body=Dear%20${salesman.name.split(' ')[0]},%0D%0A%0D%0AI%20am%20interested%20in%20the%20property%20'${encodeURIComponent(property.name)}'%20(ID:%20${property.id})%20located%20at%20${encodeURIComponent(property.address)}.%0D%0A%0D%0APlease%20provide%20me%20with%20more%20information.%0D%0A%0D%0AThank%20you.`}>
+                   <a href={`mailto:${salesman.email}?subject=Enquiry%20about%20Property%20ID:%20${property.id}%20-%20${encodeURIComponent(property.name)}&body=Dear%20${salesman.name.split(' ')[0]},%0D%0A%0D%0AI%20am%20interested%20in%20the%20property%20'${encodeURIComponent(property.name)}'%20(ID:%20${property.id})%20located%20at%20${encodeURIComponent(property.fullAddress)}.%0D%0A%0D%0APlease%20provide%20me%20with%20more%20information.%0D%0A%0D%0AThank%20you.`}>
                     <Mail className="mr-2 h-4 w-4" /> Email {salesman.name.split(' ')[0]}
                   </a>
                 </Button>
