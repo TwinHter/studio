@@ -1,0 +1,69 @@
+outcode,sale_year,sale_month,price,propertyType,bedrooms,bathrooms,tenure,currentEnergyRating,floorAreaSqM,fullAddress,name,description,image,dataAiHint,longitude,latitude
+E1,2023,1,650000,Terrace Property,3,1,Freehold,D,110,"10 Market St, E1","Charming E1 Home","A lovely home in E1.","https://placehold.co/600x400.png","house exterior",-0.0722,51.5154
+E1,2023,4,680000,Terrace Property,3,2,Freehold,C,120,"12 Market St, E1","Renovated E1 Property","Recently renovated.","https://placehold.co/600x401.png","modern house",-0.0720,51.5155
+E1,2023,7,660000,Purpose Built Flat,2,1,Leasehold,B,80,"Flat 5, E1 Towers, London","E1 Flat with View","Great city views.","https://placehold.co/600x402.png","apartment building",-0.0710,51.5160
+E1,2023,10,700000,Terrace Property,4,2,Freehold,D,130,"15 Market St, E1, London","Spacious E1 Terrace","Large family home.","https://placehold.co/600x403.png","large house",-0.0700,51.5165
+E1,2022,2,600000,Converted Flat,2,1,Leasehold,E,75,"1 Victorian Mews, London, E1","Historic E1 Flat","Character property.","https://placehold.co/600x404.png","old building",-0.0750,51.5140
+E1,2022,5,620000,Terrace Property,3,1,Freehold,D,100,"5 Garden Row, E1","E1 House with Garden","Nice garden space.","https://placehold.co/600x405.png","house garden",-0.0740,51.5145
+E1,2022,8,610000,Purpose Built Flat,2,2,Leasehold,C,85,"Apt 10, E1 Central, London","Central E1 Apartment","Convenient location.","https://placehold.co/600x406.png","city apartment",-0.0730,51.5150
+E1,2022,11,630000,Terrace Property,3,1,Freehold,D,105,"8 River View, E1","E1 Riverside Home","Close to the river.","https://placehold.co/600x407.png","riverside house",-0.0725,51.5152
+E1,2021,3,550000,Semi-Detached House,3,1,Freehold,E,95,"2 Park Side, E1, London","E1 Semi-Detached","Near the park.","https://placehold.co/600x408.png","suburban house",-0.0780,51.5130
+E1,2021,6,570000,Terrace Property,2,1,Freehold,D,90,"20 Old St, E1","Quaint E1 Cottage","Full of character.","https://placehold.co/600x409.png","cottage exterior",-0.0770,51.5135
+E1,2021,9,560000,Converted Flat,1,1,Leasehold,C,60,"The Loft, E1 Warehouse, London","E1 Loft Style","Industrial chic.","https://placehold.co/600x410.png","loft apartment",-0.0760,51.5138
+E1,2021,12,580000,Terrace Property,3,2,Freehold,D,115,"3 New Build, E1","Modern E1 Build","Newly constructed.","https://placehold.co/600x411.png","new house",-0.0755,51.5139
+SW1A,2023,1,1750000,Purpose Built Flat,2,2,Leasehold,B,90,"Royal Apt, St James's, SW1A","Luxury SW1A Flat","Prime location.","https://placehold.co/600x412.png","luxury apartment",-0.1357,51.4975
+SW1A,2023,5,1850000,Detached House,3,3,Freehold,C,150,"1 Palace View, Westminster, SW1A","SW1A Detached Home","Overlooking park.","https://placehold.co/600x413.png","mansion", -0.1360,51.4980
+SW1A,2022,6,1700000,Purpose Built Flat,2,2,Leasehold,B,85,"The Westminster, SW1A, London","Central SW1A Living","Heart of Westminster.","https://placehold.co/600x414.png","historic building", -0.1350,51.4970
+SW1A,2021,7,1600000,Terrace Property,3,2,Leasehold,C,120,"1 Government Mews, SW1A","SW1A Townhouse","Elegant townhouse.","https://placehold.co/600x415.png","townhouse exterior", -0.1340,51.4960
+N1,2023,2,1100000,Detached House,4,2,Freehold,C,170,"Islington Villa, Barnsbury, N1","Spacious N1 Villa","Large family villa.","https://placehold.co/600x416.png","villa",-0.1062,51.5348
+N1,2022,8,1050000,Terrace Property,3,2,Freehold,D,140,"Angel Terrace, Islington, N1, London","N1 Period Terrace","Classic period home.","https://placehold.co/600x417.png","period house",-0.1050,51.5340
+N1,2021,10,950000,Converted Flat,2,1,Leasehold,C,100,"Regents Canal Apt, N1","N1 Canal Flat","Waterside living.","https://placehold.co/600x418.png","canal apartment",-0.1040,51.5330
+E10,2023,3,470000,Semi-Detached House,3,1,Freehold,D,90,"Leyton Green, Leyton, E10","E10 Family House","Ideal for families.","https://placehold.co/600x419.png","family house",0.0030,51.5680
+E10,2022,9,450000,Terrace Property,2,1,Freehold,E,80,"Orient Way, E10, London","E10 Starter Home","Great first buy.","https://placehold.co/600x420.png","small house",0.0020,51.5670
+E11,2023,6,530000,Mid Terrace House,3,1,Freehold,C,95,"Wanstead Flats View, E11","E11 Home with View","Overlooks Wanstead Flats.","https://placehold.co/600x421.png","suburban street",0.0090,51.5700
+E11,2022,12,510000,Purpose Built Flat,2,1,Leasehold,B,70,"Station Approach, Leytonstone, E11","E11 Commuter Flat","Near the station.","https://placehold.co/600x422.png","modern block",0.0080,51.5690
+N16,2023,8,730000,Terrace Property,3,2,Freehold,D,120,"Church Street, Stoke Newington, N16","Stokey Family Home","Heart of Stoke Newington.","https://placehold.co/600x423.png","village house",-0.0700,51.5600
+N16,2022,4,700000,Converted Flat,2,1,Leasehold,C,90,"Abney Park View, N16, London","N16 Parkside Flat","Views over Abney Park.","https://placehold.co/600x424.png","park view",-0.0710,51.5610
+SE15,2023,9,590000,Mid Terrace House,3,1,Freehold,D,100,"Peckham Rye Common, SE15","Peckham Period Home","Near the common.","https://placehold.co/600x425.png","london terrace",-0.0600,51.4700
+SE15,2022,1,560000,Purpose Built Flat,2,1,Leasehold,C,75,"Bellenden Road, SE15, London","Trendy Peckham Flat","Chic Bellenden area.","https://placehold.co/600x426.png","trendy flat",-0.0610,51.4710
+W1K,2023,11,4900000,Detached House,5,5,Freehold,B,350,"Mayfair Mansion, Park Lane, W1K","Ultimate Mayfair Luxury","Unparalleled luxury.","https://placehold.co/600x427.png","luxury mansion",-0.1509,51.5128
+W1K,2022,7,4700000,Purpose Built Flat,3,3,Leasehold,A,250,"Grosvenor Square Apt, W1K, London","Prestigious W1K Flat","Overlooking Grosvenor Sq.","https://placehold.co/600x428.png","grand apartment",-0.1515,51.5120
+E14,2023,2,580000,Purpose Built Flat,2,2,Leasehold,B,85,"Canary Wharf View, E14","Docklands Modern Apt","Views of Canary Wharf.","https://placehold.co/600x429.png","docklands",0.0200,51.5050
+E14,2022,10,570000,Terrace Property,3,1,Freehold,C,100,"Isle of Dogs Cottage, E14","Charming IOD Home","Quaint island cottage.","https://placehold.co/600x430.png","island cottage",0.0150,51.5000
+E14,2021,5,550000,Semi-Detached House,2,1,Freehold,D,90,"Limehouse Cut, E14, London","Waterside E14 House","Along Limehouse Cut.","https://placehold.co/600x431.png","canal house",0.0100,51.5100
+NW3,2023,12,1900000,Detached House,4,3,Freehold,C,200,"Hampstead Heath House, NW3","Near Hampstead Heath","Close to the Heath.","https://placehold.co/600x432.png","heath house",-0.1700,51.5550
+NW3,2022,3,1800000,Semi-Detached House,3,2,Freehold,D,180,"Belsize Park Home, NW3, London","Elegant Belsize Park","Leafy residential street.","https://placehold.co/600x433.png","belsize park",-0.1650,51.5500
+NW3,2021,8,1750000,Converted Flat,2,2,Leasehold,B,150,"Primrose Hill View, NW3","Stunning Views Flat","Overlooks Primrose Hill.","https://placehold.co/600x434.png","view flat",-0.1600,51.5450
+SW3,2023,1,3000000,Terrace Property,4,3,Freehold,C,220,"Chelsea Mews House, SW3","Exclusive Chelsea Mews","Quiet mews location.","https://placehold.co/600x435.png","mews house",-0.1650,51.4900
+SW3,2022,6,2800000,Purpose Built Flat,3,2,Leasehold,B,180,"King's Road Apartment, SW3, London","Fashionable King's Road","Heart of Chelsea.","https://placehold.co/600x436.png","kings road",-0.1680,51.4880
+SW3,2021,11,2700000,Detached House,3,2,Freehold,D,200,"Sloane Square Gem, SW3","Near Sloane Square","Coveted location.","https://placehold.co/600x437.png","sloane square",-0.1600,51.4920
+W8,2023,4,3200000,Semi-Detached House,4,3,Freehold,C,250,"Kensington Garden Sq, W8","Elegant Kensington Home","On a garden square.","https://placehold.co/600x438.png","garden square",-0.1950,51.5000
+W8,2022,9,3100000,Detached House,5,4,Freehold,B,300,"Holland Park Villa, W8, London","Grand Holland Park","Stunning villa.","https://placehold.co/600x439.png","holland park",-0.2000,51.5010
+W8,2021,2,2900000,Purpose Built Flat,3,3,Leasehold,A,200,"High St Ken Apartment, W8","Luxury High Street Ken","Prime shopping location.","https://placehold.co/600x440.png","high street",-0.1900,51.4990
+WC2B,2023,7,1650000,Converted Flat,2,2,Leasehold,C,100,"Covent Garden Loft, WC2B","Theatreland Loft","Steps from theatres.","https://placehold.co/600x441.png","theatreland",-0.1200,51.5120
+WC2B,2022,1,1600000,Purpose Built Flat,2,1,Leasehold,B,90,"Drury Lane Flat, WC2B, London","Historic Drury Lane","Central location.","https://placehold.co/600x442.png","drury lane",-0.1220,51.5130
+WC2B,2021,10,1550000,Terrace Property,3,2,Leasehold,D,120,"Aldwych Townhouse, WC2B","Elegant Aldwych Home","Close to the Strand.","https://placehold.co/600x443.png","aldwych",-0.1180,51.5110
+E17,2023,3,540000,Terrace Property,3,1,Freehold,D,100,"Walthamstow Village, E17","Village Charm Home","Sought-after village.","https://placehold.co/600x444.png","village charm",0.0000,51.5800
+E17,2022,7,520000,Semi-Detached House,2,1,Freehold,C,90,"Lloyd Park Side, E17, London","Near Lloyd Park","Family-friendly.","https://placehold.co/600x445.png","lloyd park",-0.0050,51.5820
+E17,2021,12,500000,Converted Flat,2,1,Leasehold,B,80,"Hoe Street Hub, E17","Central Walthamstow","Vibrant location.","https://placehold.co/600x446.png","hoe street",-0.0100,51.5780
+E17,2023,11,550000,Terrace Property,3,1,Freehold,C,105,"Forest Road, Walthamstow, E17","Forest Road House","Good transport links.","https://placehold.co/600x447.png","forest road",-0.0150,51.5850
+E17,2022,5,525000,Purpose Built Flat,2,2,Leasehold,B,85,"Blackhorse Lane, Walthamstow, E17","Blackhorse Development","Modern development.","https://placehold.co/600x448.png","blackhorse lane",-0.0300,51.5870
+E17,2021,9,490000,End Terrace House,2,1,Freehold,D,95,"Markhouse Road, Walthamstow, E17","Markhouse Property","Conveniently located.","https://placehold.co/600x449.png","markhouse road",-0.0200,51.5750
+N6,2023,2,1450000,Detached House,4,2,Freehold,C,180,"Highgate Village, N6","Highgate Classic Home","Desirable village life.","https://placehold.co/600x450.png","highgate village",-0.1450,51.5700
+N6,2022,8,1400000,Semi-Detached House,3,2,Freehold,D,160,"Waterlow Park, Highgate, N6","Near Waterlow Park","Parkside living.","https://placehold.co/600x451.png","waterlow park",-0.1480,51.5720
+N6,2021,4,1350000,Converted Flat,3,2,Leasehold,B,140,"Archway Road View, Highgate, N6","Panoramic View Flat","Stunning London views.","https://placehold.co/600x452.png","archway road",-0.1400,51.5680
+N6,2023,10,1500000,Terrace Property,4,3,Freehold,C,190,"The Grove, Highgate, N6","Exclusive Grove House","Prestigious address.","https://placehold.co/600x453.png","the grove",-0.1500,51.5710
+N6,2022,6,1380000,Purpose Built Flat,2,2,Leasehold,B,130,"Bishopswood Road, Highgate, N6","Bishopswood Apt","Quiet residential road.","https://placehold.co/600x454.png","bishopswood road",-0.1520,51.5730
+N6,2021,1,1300000,End Terrace House,3,2,Freehold,D,170,"Southwood Lane, Highgate, N6","Southwood Property","Charming period end terrace.","https://placehold.co/600x455.png","southwood lane",-0.1420,51.5690
+SE13,2023,5,460000,Terrace Property,3,1,Freehold,D,90,"Hither Green Lane, Lewisham, SE13","Hither Green Home","Family area.","https://placehold.co/600x456.png","hither green",-0.0100,51.4500
+SE13,2022,11,440000,Semi-Detached House,2,1,Freehold,C,80,"Lee High Road, Lewisham, SE13","Lee Property","Convenient location.","https://placehold.co/600x457.png","lee high road",-0.0050,51.4520
+SE13,2021,7,420000,Converted Flat,2,1,Leasehold,B,70,"Lewisham Way, Lewisham, SE13","Lewisham Flat","Good for commuters.","https://placehold.co/600x458.png","lewisham way",0.0000,51.4550
+SE13,2023,1,470000,Mid Terrace House,3,1,Freehold,D,95,"Ladywell Road, Lewisham, SE13","Ladywell House","Close to Ladywell Fields.","https://placehold.co/600x459.png","ladywell road",-0.0150,51.4580
+SE13,2022,9,430000,Purpose Built Flat,1,1,Leasehold,C,60,"Loampit Vale, Lewisham, SE13","Loampit Vale Apt","Modern apartment.","https://placehold.co/600x460.png","loampit vale",-0.0020,51.4600
+SE13,2021,3,410000,End Terrace House,2,1,Freehold,E,85,"Albion Way, Lewisham, SE13","Albion Way Home","Residential street.","https://placehold.co/600x461.png","albion way",-0.0080,51.4530
+SW11,2023,8,860000,Terrace Property,3,2,Freehold,C,110,"Battersea Park Road, SW11","Battersea Park Home","Near the park.","https://placehold.co/600x462.png","battersea park",-0.1400,51.4800
+SW11,2022,2,840000,Semi-Detached House,2,1,Freehold,D,100,"Northcote Road, Battersea, SW11","Northcote Rd Charm","Vibrant shopping street.","https://placehold.co/600x463.png","northcote road",-0.1500,51.4750
+SW11,2021,6,820000,Converted Flat,2,2,Leasehold,B,90,"Clapham Junction, Battersea, SW11","Junction Living","Excellent transport.","https://placehold.co/600x464.png","clapham junction",-0.1600,51.4700
+SW11,2023,4,875000,Purpose Built Flat,2,2,Leasehold,B,95,"Prince of Wales Drive, Battersea, SW11","Prince of Wales Apt","Overlooking Battersea Park.","https://placehold.co/600x465.png","prince of wales drive",-0.1450,51.4820
+SW11,2022,10,830000,Mid Terrace House,3,1,Freehold,C,105,"Lavender Hill, Battersea, SW11","Lavender Hill Property","Popular residential area.","https://placehold.co/600x466.png","lavender hill",-0.1550,51.4780
+SW11,2021,12,800000,Detached House,3,2,Freehold,D,120,"Battersea Square, Battersea, SW11","Battersea Sq Home","Historic square location.","https://placehold.co/600x467.png","battersea square",-0.1650,51.4720
