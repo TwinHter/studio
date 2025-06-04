@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, TrendingUp, Home, Coins, LineChart as LineChartIcon, MapPin, Building2, Bath, Sofa, Zap, FileText, CalendarDays, Tv2 } from 'lucide-react';
+import { Loader2, TrendingUp, Home, Coins, LineChart as LineChartIcon, MapPin, Building2, Bath, Sofa, Zap, FileText, CalendarDays, Tv2, HelpCircle } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { 
@@ -24,7 +24,7 @@ import {
   REGION_OPTIONS,
   PREDICTION_FORM_DEFAULT_BEDROOMS,
   PREDICTION_FORM_DEFAULT_BATHROOMS,
-  PREDICTION_FORM_DEFAULT_LIVING_ROOMS, // Updated constant name
+  PREDICTION_FORM_DEFAULT_LIVING_ROOMS,
   PREDICTION_MONTH_OF_SALE_FORMAT_DESC
 } from '@/lib/constants';
 import type { PropertyType, EnergyRating, Tenure } from '@/types';
@@ -73,8 +73,9 @@ export default function PredictionPage() {
     },
   });
 
-  const geocodeAddress = useCallback(async (address: string) => {
-    if (address.trim().length < 10) {
+  const geocodeAddress = useCallback(async (addressToGeocode: string) => {
+    const trimmedAddress = addressToGeocode.trim();
+    if (trimmedAddress.length < 5) { // Adjusted to check based on form validation minimum
       form.setValue('longitude', undefined);
       form.setValue('latitude', undefined);
       if (form.formState.errors.fullAddress?.type === 'manual') {
@@ -84,8 +85,14 @@ export default function PredictionPage() {
     }
     setIsGeocoding(true);
     form.clearErrors('fullAddress');
+
+    let processedAddress = trimmedAddress;
+    if (!processedAddress.toLowerCase().includes('london')) {
+      processedAddress += ', London';
+    }
+
     try {
-      const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gb&limit=1`);
+      const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(processedAddress)}&countrycodes=gb&limit=1`);
       if (response.data && response.data.length > 0) {
         const { lat, lon } = response.data[0];
         form.setValue('longitude', parseFloat(lon), { shouldValidate: true });
@@ -109,10 +116,16 @@ export default function PredictionPage() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (watchedAddress !== undefined) {
+      if (watchedAddress !== undefined) { // Check if watchedAddress is defined
           const currentFormAddress = form.getValues('fullAddress');
-          if (watchedAddress === currentFormAddress) {
+          // Ensure geocodeAddress is called only if watchedAddress is the current value in the form
+          // and it's not an empty string (or very short)
+          if (watchedAddress === currentFormAddress && watchedAddress.trim().length >= 5) { 
             geocodeAddress(watchedAddress);
+          } else if (watchedAddress.trim().length < 5 && (form.getValues('latitude') !== undefined || form.getValues('longitude') !== undefined)) {
+            // Clear coordinates if address becomes too short
+            form.setValue('longitude', undefined);
+            form.setValue('latitude', undefined);
           }
       }
     }, 1000); 
@@ -137,13 +150,13 @@ export default function PredictionPage() {
       latitude: data.latitude,
       bedrooms: data.bedrooms,
       bathrooms: data.bathrooms,
-      livingRooms: data.livingRooms, // Changed from receptionRooms
-      floorAreaSqM: data.floorAreaSqM, // Changed from area
+      livingRooms: data.livingRooms,
+      floorAreaSqM: data.floorAreaSqM,
       tenure: data.tenure,
       propertyType: data.propertyType,
       currentEnergyRating: data.currentEnergyRating,
-      sale_month: sale_month, // New field
-      sale_year: sale_year,   // New field
+      sale_month: sale_month,
+      sale_year: sale_year,
     };
 
     try {
@@ -188,7 +201,7 @@ export default function PredictionPage() {
                     <FormControl>
                       <Input placeholder="e.g., 10 Downing Street, London" {...field} />
                     </FormControl>
-                    <FormDescription>Coordinates will be auto-filled after you stop typing.</FormDescription>
+                    <FormDescription>Coordinates will be auto-filled after you stop typing. If not in London, it will be appended.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -199,7 +212,24 @@ export default function PredictionPage() {
                   name="outcode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4" />Outcode</FormLabel>
+                      <div className="flex items-center justify-between mb-1">
+                        <FormLabel className="flex items-center mb-0">
+                            <MapPin className="mr-2 h-4 w-4" />Outcode
+                        </FormLabel>
+                        <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            className="p-0 h-auto text-xs text-muted-foreground hover:text-primary"
+                            asChild
+                        >
+                            <a href="https://www.royalmail.com/find-a-postcode" target="_blank" rel="noopener noreferrer" aria-label="Find outcode on Royal Mail (opens in new tab)">
+                                <HelpCircle className="mr-1 h-3 w-3" />
+                                <span className="hidden sm:inline">Find Outcode</span>
+                                <span className="sm:hidden">Help</span>
+                            </a>
+                        </Button>
+                      </div>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -470,3 +500,5 @@ export default function PredictionPage() {
     </div>
   );
 }
+
+    
