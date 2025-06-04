@@ -24,7 +24,7 @@ export default function ContactPropertyPage() {
   const propertyId = params.propertyId as string;
   const { toast } = useToast();
 
-  const { data: property, isLoading: isLoadingProperty, error: propertyError } = useQuery<Property | undefined>({
+  const { data: property, isLoading: isLoadingProperty, error: propertyError } = useQuery<Property | null>({
     queryKey: ['propertyDetails', propertyId],
     queryFn: () => fetchPropertyDetails(propertyId),
     enabled: !!propertyId,
@@ -45,7 +45,7 @@ export default function ContactPropertyPage() {
   const [predictionResult, setPredictionResult] = useState<PredictionOutput | null>(null);
   const [isPredictingPropertyPrice, setIsPredictingPropertyPrice] = useState(false);
   const [predictionErrorText, setPredictionErrorText] = useState<string | null>(null);
-  
+
   useEffect(() => {
     if (propertyError) {
       toast({ title: "Error", description: "Could not load property details.", variant: "destructive" });
@@ -100,7 +100,7 @@ export default function ContactPropertyPage() {
     const percentageDiff = (diff / listedPrice) * 100;
 
     let comparisonText;
-    if (Math.abs(percentageDiff) < 5) { 
+    if (Math.abs(percentageDiff) < 5) {
       comparisonText = "This is closely aligned with the listed price.";
     } else if (percentageDiff > 0) {
       comparisonText = `This is ${percentageDiff.toFixed(1)}% higher than the listed price.`;
@@ -112,7 +112,7 @@ export default function ContactPropertyPage() {
       <div className="mt-3 space-y-1">
         <p className="text-sm font-semibold">AI Predicted Price: <span className="text-primary font-bold text-base">£{predictedPriceVal.toLocaleString()}</span></p>
         <p className="text-xs text-muted-foreground">{comparisonText}</p>
-        {predictionResult.averageAreaPrice > 0 && 
+        {predictionResult.averageAreaPrice > 0 &&
             <p className="text-xs text-muted-foreground">Average for similar properties in the area: £{predictionResult.averageAreaPrice.toLocaleString()}</p>
         }
       </div>
@@ -129,10 +129,10 @@ export default function ContactPropertyPage() {
   }
 
   if (!property) {
-    notFound(); 
+    notFound();
     return null;
   }
-  
+
   return (
     <div className="space-y-12">
       <PageHero
@@ -185,7 +185,7 @@ export default function ContactPropertyPage() {
                 <li><strong>Listed:</strong> {new Date(property.sale_year, property.sale_month -1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</li>
 
               </ul>
-              
+
               <Separator className="my-4" />
 
               <div className="space-y-2">
@@ -219,7 +219,7 @@ export default function ContactPropertyPage() {
             </CardContent>
           </Card>
 
-          
+
           <Card className="shadow-xl animate-fadeIn" style={{animationDelay: '0.4s'}}>
             <CardHeader>
               <CardTitle className="font-headline text-2xl flex items-center"><UserCircle className="mr-2 h-6 w-6 text-primary"/>Contact Person</CardTitle>

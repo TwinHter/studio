@@ -40,12 +40,10 @@ export const fetchPricePrediction = async (data: PredictionInput): Promise<Predi
   return result;
 };
 
-export const fetchPropertyDetails = async (propertyId: string): Promise<Property | undefined> => {
+export const fetchPropertyDetails = async (propertyId: string): Promise<Property | null> => {
   const property = liveProperties.find(p => p.id === propertyId);
-  return property;
+  return property || null; // Return null if not found
 };
-
-// fetchSalesmanInfo is no longer needed as uploader info is part of Property.
 
 export const fetchFakePredictionForHook = async (input: PredictionInput): Promise<PredictionOutput> => {
   const basePredictedPrice = fakePredictionDataJson.price;
@@ -82,11 +80,11 @@ export const fetchFakePropertiesForHook = async (): Promise<Property[]> => {
 };
 
 export const addFakePropertyForHook = async (
-  propertyData: Omit<Property, 'id'> & { 
-    image: string; 
-    longitude?: number; 
-    latitude?: number; 
-    sale_month: number; 
+  propertyData: Omit<Property, 'id'> & {
+    image: string;
+    longitude?: number;
+    latitude?: number;
+    sale_month: number;
     sale_year: number;
     uploaderName: string;
     uploaderEmail: string;
@@ -95,9 +93,9 @@ export const addFakePropertyForHook = async (
 ): Promise<Property> => {
   const newProperty: Property = {
     ...propertyData,
-    id: Date.now().toString(),
+    id: Date.now().toString(), // Ensure ID is a string if it needs to be
   };
-  liveProperties.unshift(newProperty);
+  liveProperties.unshift(newProperty); // Add to the beginning of the array
   return newProperty;
 };
 
@@ -119,7 +117,7 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     const csvFilePath = path.join(process.cwd(), 'public', 'data.csv');
     const fileContent = fs.readFileSync(csvFilePath, 'utf-8');
     const lines = fileContent.trim().split(/\r?\n/);
-    
+
     parsedCsvData = lines.slice(1).map(line => {
       const values = line.split(',');
       return {
@@ -153,7 +151,7 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
   const fiveYearsAgo = currentFullYear - 5;
 
   regionSales.forEach(sale => {
-    if (sale.sale_year >= fiveYearsAgo) { 
+    if (sale.sale_year >= fiveYearsAgo) {
       const quarter = getQuarter(sale.sale_month);
       const key = `Q${quarter} ${sale.sale_year}`;
       if (!quarterlyPrices[key]) {
@@ -165,10 +163,10 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
   });
 
   const quarterlyPriceHistory: QuarterlyPricePoint[] = [];
-  for (let year = fiveYearsAgo; year <= currentFullYear; year++) { 
+  for (let year = fiveYearsAgo; year <= currentFullYear; year++) {
     for (let q = 1; q <= 4; q++) {
       if (year === currentFullYear && q > getQuarter(new Date().getMonth() + 1)) {
-        break; 
+        break;
       }
       const key = `Q${q} ${year}`;
       if (quarterlyPrices[key] && quarterlyPrices[key].count > 0) {
@@ -179,9 +177,9 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
       } else {
          if (year < currentFullYear || (year === currentFullYear && q < getQuarter(new Date().getMonth() +1))) {
             const previousQuarterData = quarterlyPriceHistory.length > 0 ? quarterlyPriceHistory[quarterlyPriceHistory.length -1] : null;
-            let estimatedPriceForMissingQuarter = regionDetails.avgPrice * (0.95 + Math.random() * 0.1); 
+            let estimatedPriceForMissingQuarter = regionDetails.avgPrice * (0.95 + Math.random() * 0.1);
             if(previousQuarterData) {
-                estimatedPriceForMissingQuarter = previousQuarterData.price * (0.995 + Math.random() * 0.01); 
+                estimatedPriceForMissingQuarter = previousQuarterData.price * (0.995 + Math.random() * 0.01);
             }
             quarterlyPriceHistory.push({
                 quarter: key,
@@ -191,7 +189,7 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
       }
     }
   }
-  
+
   quarterlyPriceHistory.sort((a, b) => {
     const [aQStr, aYStr] = a.quarter.split(" ");
     const [bQStr, bYStr] = b.quarter.split(" ");
@@ -202,23 +200,23 @@ export const fetchFakeRegionMarketDataForHook = async (regionId: string): Promis
     if (aY !== bY) return aY - bY;
     return aQ - bQ;
   });
-  
-  const limitedQuarterlyPriceHistory = quarterlyPriceHistory.slice(-12); 
+
+  const limitedQuarterlyPriceHistory = quarterlyPriceHistory.slice(-12);
 
   let currentAveragePrice = regionDetails.avgPrice;
   const allRegionSalesPrices = regionSales.map(s => s.price);
   if (allRegionSalesPrices.length > 0) {
     currentAveragePrice = Math.round(allRegionSalesPrices.reduce((sum, p) => sum + p, 0) / allRegionSalesPrices.length / 1000) * 1000;
   }
-  
+
   const outcodesWithCsvAvgPrice = londonOutcodes.map(oc => {
     const salesInOutcode = parsedCsvData.filter(s => s.outcode === oc.id);
     if (salesInOutcode.length > 0) {
       const avg = salesInOutcode.reduce((sum, s) => sum + s.price, 0) / salesInOutcode.length;
       return { ...oc, avgPrice: Math.round(avg / 1000) * 1000 };
     }
-    return oc; 
-  }).filter(oc => oc.avgPrice > 0); 
+    return oc;
+  }).filter(oc => oc.avgPrice > 0);
 
   const sortedRegions = [...outcodesWithCsvAvgPrice].sort((a, b) => b.avgPrice - a.avgPrice);
   const rank = sortedRegions.findIndex(r => r.id === regionId) + 1;
