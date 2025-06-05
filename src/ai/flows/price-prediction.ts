@@ -40,7 +40,6 @@ export type PredictionInput = z.infer<typeof PredictionInputSchema>;
 const PredictionOutputSchema = z.object({
   price: z.number().describe('The predicted price of the property.'),
   isStable: z.boolean().describe('Whether the predicted price trend for the next 12 months is stable.'),
-  averageAreaPrice: z.number().describe('The average price for similar properties in the area.'), // Keeping this as it's useful context
   priceHistoryChartData: z.array(z.object({
     month: z.string(), // e.g., "Jan 2025"
     price: z.number(),
@@ -59,7 +58,7 @@ const prompt = ai.definePrompt({
   output: {schema: PredictionOutputSchema},
   prompt: `You are an AI real estate expert specializing in London property prices.
 
-You will receive property details and must predict its price for the specified month and year of sale. You also need to determine if the price trend for the next 12 months is stable and provide an average price for similar properties in the area.
+You will receive property details and must predict its price for the specified month and year of sale. You also need to determine if the price trend for the next 12 months is stable.
 
 Property Details:
 Full Address: {{{fullAddress}}}
@@ -78,7 +77,7 @@ Sale Year: {{{sale_year}}}
 
 Consider factors such as historical price data (1991-2023), property type, location, size, condition (implied by energy rating), tenure and current market trends for the specified sale period.
 
-Output the predicted price, whether the trend is stable (isStable: true/false), average price for similar properties in the area, and the predicted price for the next 12 months.
+Output the predicted price, whether the trend is stable (isStable: true/false), and the predicted price for the next 12 months.
 
 Example for priceHistoryChartData:
 [
@@ -159,7 +158,6 @@ const predictPriceFlow = ai.defineFlow(
     const fakeOutput: PredictionOutput = {
       price: predictedSalePrice,
       isStable: randomTrend === 'stable',
-      averageAreaPrice: Math.round((predictedSalePrice * (0.88 + Math.random() * 0.17)) / 1000) * 1000,
       priceHistoryChartData: priceHistoryChartData,
     };
 

@@ -3,7 +3,6 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { PredictionInput, PredictionOutput } from '@/ai/flows/price-prediction';
 import type { Property, RegionMarketData, QuarterlyPricePoint, PropertyType, Tenure, EnergyRating } from '@/types';
 import initialPropertiesDataFromFile from '@/lib/data/properties.json';
 import { londonOutcodes } from '@/lib/data/london_outcodes_data';
@@ -32,21 +31,22 @@ interface CsvRow {
   sale_month: number;
   sale_year: number;
   price: number;
+  street?: string;
+  incode?: string;
+  livingRooms1?: number;
+  area_bin?: string;
 }
 
-// Renamed from fetchPropertyDetails
 export const getPropertyDetails = async (propertyId: string): Promise<Property | null> => {
   const property = liveProperties.find(p => p.id === propertyId);
   return property || null;
 };
 
 
-// Renamed from fetchFakePropertiesForHook
 export const getProperties = async (): Promise<Property[]> => {
   return [...liveProperties];
 };
 
-// Renamed from addFakePropertyForHook
 export const addProperty = async (
   propertyData: Omit<Property, 'id'> & {
     image: string; // data URL
@@ -84,7 +84,6 @@ function getQuarter(month: number): number {
   return 4;
 }
 
-// Renamed from fetchFakeRegionMarketDataForHook
 export const getRegionMarketData = async (regionId: string): Promise<RegionMarketData> => {
   const regionDetails = londonOutcodes.find(r => r.id === regionId);
   if (!regionDetails) {
@@ -117,7 +116,7 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
           const numVal = isFloat ? parseFloat(rawVal) : parseInt(rawVal, 10);
           return isNaN(numVal) ? undefined : numVal;
         }
-        return rawVal;
+        return rawVal.trim();
       };
 
       const rowData: CsvRow = {
@@ -138,6 +137,10 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
         sale_month: getVal('sale_month', true) || 0,
         sale_year: getVal('sale_year', true) || 0,
         price: getVal('price', true, true) || 0,
+        street: getVal('street'),
+        incode: getVal('incode'),
+        livingRooms1: getVal('livingRooms1', true),
+        area_bin: getVal('area_bin'),
       };
       return rowData;
     }).filter(row => row.outcode && row.price && row.sale_year && row.sale_month && row.price > 0);
@@ -149,7 +152,7 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
 
   const quarterlyPrices: Record<string, { total: number, count: number }> = {};
   const currentFullYear = new Date().getFullYear();
-  const fiveYearsAgo = currentFullYear - 5;
+  const fiveYearsAgo = currentFullYear - 5; // Changed from 3 to 5 years
 
   regionSales.forEach(sale => {
     if (sale.sale_year >= fiveYearsAgo && sale.sale_year <= currentFullYear) {

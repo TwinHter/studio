@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, notFound } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getPropertyDetails } from '@/services/api'; // Renamed function
+import { getPropertyDetails } from '@/services/api'; 
 import PageHero from '@/components/shared/PageHero';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ export default function ContactPropertyPage() {
 
   const { data: property, isLoading: isLoadingProperty, error: propertyError } = useQuery<Property | null>({
     queryKey: ['propertyDetails', propertyId],
-    queryFn: () => getPropertyDetails(propertyId), // Using renamed function
+    queryFn: () => getPropertyDetails(propertyId), 
     enabled: !!propertyId,
   });
 
@@ -38,7 +38,7 @@ export default function ContactPropertyPage() {
     dataAiHint: property?.uploaderName ? PLACEHOLDER_HINTS.salesmanPortrait : DEFAULT_SALESMAN_INFO.dataAiHint,
   };
 
-  const { predict } = usePredict(); // predict function from usePredict will now use axios
+  const { predict } = usePredict(); 
   const [predictionResult, setPredictionResult] = useState<PredictionOutput | null>(null);
   const [isPredictingPropertyPrice, setIsPredictingPropertyPrice] = useState(false);
   const [predictionErrorText, setPredictionErrorText] = useState<string | null>(null);
@@ -73,7 +73,7 @@ export default function ContactPropertyPage() {
     };
 
     try {
-      const result = await predict(inputData); // This now calls the API route via axios
+      const result = await predict(inputData); 
       setPredictionResult(result);
     } catch (e: any) {
       console.error("Prediction error on contact page:", e);
@@ -109,9 +109,6 @@ export default function ContactPropertyPage() {
       <div className="mt-3 space-y-1">
         <p className="text-sm font-semibold">AI Predicted Price: <span className="text-primary font-bold text-base">£{predictedPriceVal.toLocaleString()}</span></p>
         <p className="text-xs text-muted-foreground">{comparisonText}</p>
-        {predictionResult.averageAreaPrice > 0 &&
-            <p className="text-xs text-muted-foreground">Average for similar properties in the area: £{predictionResult.averageAreaPrice.toLocaleString()}</p>
-        }
       </div>
     );
   };

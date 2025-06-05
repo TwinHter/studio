@@ -444,17 +444,11 @@ export default function PredictionPage() {
             <CardTitle className="font-headline text-2xl flex items-center"><Coins className="mr-2 h-6 w-6 text-primary" />Prediction Results</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
               <div className="bg-muted p-6 rounded-lg">
                 <p className="text-sm text-muted-foreground font-medium">Predicted Price</p>
                 <p className="text-3xl font-bold text-primary">
                   £{predictionData.price.toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-muted p-6 rounded-lg">
-                <p className="text-sm text-muted-foreground font-medium">Avg. Area Price</p>
-                <p className="text-3xl font-bold text-secondary-foreground">
-                  £{predictionData.averageAreaPrice.toLocaleString()}
                 </p>
               </div>
               <div className="bg-muted p-6 rounded-lg">
