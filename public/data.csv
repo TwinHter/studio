@@ -1,103 +1,31 @@
 ID,fullAddress,postcode,country,outcode,latitude,longitude,bathrooms,bedrooms,floorAreaSqM,livingRooms,tenure,propertyType,currentEnergyRating,sale_month,sale_year,price
-0,79 Regent Street,SW1Y 4QW,England,SW1Y,51.5859784,-0.0540163,2,4,168,1,Leasehold,Terrace Property,F,12,2004,1175000
-1,19 Church Avenue,N6 6LJ,England,N6,51.4291919,-0.2612519,1,0,42,1,Leasehold,Detached House,C,7,1993,1031000
-2,112 King Road,SW1A 2AS,England,SW1A,51.6127331,0.0780335,1,4,148,2,Leasehold,Semi-Detached Bungalow,C,1,2014,2800000
-3,23 Queen Place,N12 7QR,England,N12,51.5120333,-0.0484447,2,4,140,2,Leasehold,Semi-Detached House,C,2,2003,454000
-4,168 Chapel Street,EC1R 5LJ,England,EC1R,51.5207612,-0.035767,1,2,72,1,Leasehold,Flat/Maisonette,B,7,2020,912000
-5,130 Albert Avenue,E13 0AP,England,E13,51.3758609,-0.2164099,1,0,30,0,Leasehold,Detached House,C,10,1992,217000
-6,199 Oxford Grove,E18 2AW,England,E18,51.4860903,0.0721138,2,4,143,1,Freehold,Detached House,D,2,1991,488000
-7,72 Victoria Street,E15 4LD,England,E15,51.4717746,0.1211036,1,2,68,1,Freehold,Detached House,G,5,1993,256000
-8,231 Park Road,SE16 3LN,England,SE16,51.4437218,-0.0522789,1,0,27,0,Leasehold,Terraced,C,2,2019,478000
-9,109 Chapel Avenue,E13 0AP,England,E13,51.5271033,0.1553641,1,4,135,1,Freehold,End Terrace Bungalow,E,11,2014,302000
-10,230 Victoria Street,N19 5LG,England,N19,51.6194445,-0.2111787,1,3,122,1,Shared,End Terrace House,A,1,2006,523000
-11,173 Regent Street,E13 0AP,England,E13,51.5495115,0.0985883,1,4,160,1,Shared,Mid Terrace Property,A,10,2013,298000
-12,161 Station Street,NW11 9AS,England,NW11,51.4976814,-0.1416936,1,2,74,1,Shared,Detached House,E,6,2015,1043000
-13,52 Park Road,EC2A 4LN,England,EC2A,51.3910886,0.0210273,2,4,159,1,Leasehold,Semi-Detached Property,C,12,2021,913000
-14,129 Park Street,SE26 5BN,England,SE26,51.4424164,-0.2609835,1,3,102,1,Feudal,Semi-Detached House,C,7,1997,329000
-15,132 High Street,SE9 1BA,England,SE9,51.4232874,-0.1386758,1,3,104,1,Leasehold,Detached House,A,11,2016,317000
-16,113 Chapel Street,W1F 4TR,England,W1F,51.5352344,0.0769399,2,3,114,1,Freehold,Detached Property,D,5,2022,1944000
-17,174 Victoria Road,NW4 3DJ,England,NW4,51.4253857,-0.1253412,1,0,38,1,Leasehold,Terrace Property,F,5,2008,476000
-18,72 Oxford Grove,N15 5LD,England,N15,51.4904946,0.0463555,1,4,138,2,Freehold,Semi-Detached Property,C,12,2000,401000
-19,166 Oxford Road,E11 3DL,England,E11,51.5735517,-0.0464675,1,1,55,1,Shared,Semi-Detached Property,E,6,2011,375000
-20,191 King Avenue,W10 6JG,England,W10,51.4569075,0.0050305,1,2,87,1,Leasehold,Terraced,D,8,2017,932000
-21,248 Victoria Street,N2 0NW,England,N2,51.6200626,-0.1068284,1,2,62,1,Freehold,Purpose Built Flat,G,11,2001,652000
-22,244 King Road,W1J 7NT,England,W1J,51.4774643,0.0320028,1,4,169,2,Shared,Detached House,B,11,2015,3780000
-23,95 Baker Street,E14 8AE,England,E14,51.4060491,0.1216404,2,2,96,1,Leasehold,Terraced,B,5,1999,446000
-24,179 Park Road,W1T 1UP,England,W1T,51.5368415,-0.3075576,1,3,106,1,Freehold,Detached House,C,7,2006,1639000
-25,108 King Street,SW1H 9AJ,England,SW1H,51.4323314,-0.3198749,1,0,43,0,Feudal,Semi-Detached Bungalow,B,9,2011,2068000
-26,17 Chapel Road,SE15 3BG,England,SE15,51.4590559,0.1008924,2,3,103,1,Freehold,End Terrace Property,B,6,2012,459000
-27,177 Baker Avenue,SE28 0BG,England,SE28,51.5440709,-0.2068525,1,1,47,1,Shared,Mid Terrace House,A,7,2021,250000
-28,155 Victoria Street,WC1A 2AA,England,WC1A,51.4274988,-0.0802132,1,1,60,1,Leasehold,End Terrace Bungalow,C,12,1998,1108000
-29,185 Chapel Grove,N13 5LB,England,N13,51.4308168,-0.1289275,1,0,33,0,Freehold,Mid Terrace Property,F,3,1991,382000
-30,182 Market Street,NW8 0AD,England,NW8,51.5226815,-0.2041425,1,1,55,1,Freehold,Semi-Detached House,A,5,2013,1700000
-31,234 Regent Road,WC1X 8HN,England,WC1X,51.5028674,0.1156374,2,4,144,2,Leasehold,Mid Terrace Bungalow,A,4,2011,777000
-32,220 Park Road,W1B 5AG,England,W1B,51.4212579,-0.1797434,2,4,162,1,Feudal,Mid Terrace House,E,8,2007,1711000
-33,117 Chapel Grove,NW5 1PG,England,NW5,51.5901017,-0.1427723,1,1,61,1,Leasehold,Detached House,G,5,2005,565000
-34,215 High Street,E14 8AE,England,E14,51.6435826,-0.215315,2,2,100,1,Freehold,Converted Flat,A,11,2004,387000
-35,109 Market Grove,N17 6AL,England,N17,51.5137124,-0.098243,2,2,73,1,Feudal,Detached Property,E,5,2022,386000
-36,135 Park Avenue,SW1X 7NL,England,SW1X,51.5181254,-0.0565917,1,3,134,2,Leasehold,Terraced Bungalow,E,10,2002,3894000
-37,214 Station Street,EC1M 6AA,England,EC1M,51.4160475,-0.0451392,2,4,135,1,Feudal,Detached House,A,1,2015,955000
-38,130 Oxford Road,SW11 2PD,England,SW11,51.4138218,-0.255656,1,3,105,1,Leasehold,Semi-Detached House,C,7,2009,682000
-39,169 Park Avenue,N1 6ND,England,N1,51.4307296,-0.0995148,1,1,55,1,Leasehold,End Terrace Bungalow,E,6,2014,715000
-40,180 Oxford Street,W1F 4TR,England,W1F,51.4071383,-0.3216496,1,0,34,0,Leasehold,Purpose Built Flat,A,11,1992,1234000
-41,75 Baker Grove,W1S 1RL,England,W1S,51.5441534,-0.0595408,1,2,79,1,Shared,Terraced,E,2,2017,2260000
-42,128 Church Road,N2 0NW,England,N2,51.5262249,-0.0461225,1,2,90,1,Freehold,Terraced,B,6,2001,556000
-43,180 Church Avenue,E14 8AE,England,E14,51.5010078,0.0429517,1,2,74,1,Shared,Semi-Detached Property,C,4,2014,399000
-44,113 George Street,SE14 6LP,England,SE14,51.4338584,-0.2776766,1,3,104,1,Leasehold,Semi-Detached House,D,6,2008,389000
-45,71 Regent Street,E14 8AE,England,E14,51.4396936,-0.003375,2,2,88,1,Leasehold,Terraced Bungalow,C,6,2024,373000
-46,162 Park Street,N7 8LD,England,N7,51.5803662,-0.2707948,1,2,73,1,Freehold,Terraced,G,11,1995,456000
-47,117 King Street,E10 7HQ,England,E10,51.5486924,0.1368692,1,4,125,1,Leasehold,Converted Flat,F,4,2014,336000
-48,108 Bond Street,W1W 6XH,England,W1W,51.4221354,0.0260936,1,4,162,1,Feudal,Bungalow,E,1,2018,1428000
-49,62 Victoria Street,SE19 7AA,England,SE19,51.5305048,-0.153496,1,4,125,1,Shared,Mid Terrace Bungalow,G,9,2024,452000
-50,245 Albert Avenue,SE10 0QS,England,SE10,51.4276515,0.1082291,1,3,115,1,Shared,Purpose Built Flat,F,3,1995,432000
-51,142 Bond Street,N1 6ND,England,N1,51.5867263,-0.3183584,1,0,21,1,Freehold,Converted Flat,D,8,2012,707000
-52,104 Park Avenue,SE21 8HQ,England,SE21,51.5520105,0.047438,1,4,145,1,Feudal,Bungalow,C,9,1998,689000
-53,224 Chapel Street,N1 6ND,England,N1,51.4605869,-0.2810635,1,2,92,1,Freehold,Detached House,C,11,2012,711000
-54,98 Victoria Grove,N11 3DJ,England,N11,51.4476232,-0.127135,1,0,24,1,Freehold,Terraced Bungalow,A,10,2000,438000
-55,211 Bond Street,SW18 2PT,England,SW18,51.5677479,0.0327635,1,2,85,1,Freehold,End Terrace Bungalow,E,6,2000,529000
-56,183 King Avenue,SE9 1BA,England,SE9,51.5537775,-0.1161407,1,2,72,1,Shared,Flat,G,1,2018,284000
-57,249 Bond Avenue,SE21 8HQ,England,SE21,51.4816118,-0.2431848,1,0,43,0,Feudal,Detached Property,A,2,2015,754000
-58,190 Baker Avenue,SE21 8HQ,England,SE21,51.5838766,-0.044708,1,2,79,1,Shared,Semi-Detached House,B,4,1996,718000
-59,177 Oxford Grove,W10 6JG,England,W10,51.5775031,-0.2431419,1,3,113,1,Leasehold,Bungalow Property,G,11,2007,833000
-60,233 Church Street,N19 5LG,England,N19,51.6300276,-0.0331652,1,3,107,1,Freehold,Converted Flat,A,12,2001,464000
-61,160 King Street,NW6 4NP,England,NW6,51.4133077,0.0036754,1,2,77,1,Freehold,Semi-Detached Bungalow,D,7,2001,672000
-62,166 Church Street,WC2N 4JF,England,WC2N,51.5344471,0.0125356,1,3,129,1,Shared,Semi-Detached House,B,1,2007,1542000
-63,182 George Avenue,W1W 6XH,England,W1W,51.5619367,0.0953271,1,0,44,0,Freehold,Semi-Detached Property,D,11,2003,1139000
-64,123 Station Street,W1S 1RL,England,W1S,51.540253,-0.174007,2,3,126,1,Freehold,Detached Property,B,1,2014,2562000
-65,207 King Street,SE16 3LN,England,SE16,51.4069186,0.0481795,2,4,161,1,Leasehold,End Terrace Property,B,1,2018,490000
-66,103 Albert Grove,NW9 8AG,England,NW9,51.487182,-0.2668292,2,3,102,1,Freehold,Detached House,E,7,1999,342000
-67,219 Park Street,SW1P 4PA,England,SW1P,51.5033553,0.1127585,1,3,101,2,Feudal,Flat,C,2,1993,932000
-68,147 George Grove,N17 6AL,England,N17,51.4215356,-0.1534803,1,1,59,1,Feudal,Terraced Bungalow,D,3,2001,309000
-69,165 George Street,W11 2AQ,England,W11,51.5171123,-0.2931465,1,4,158,1,Feudal,Converted Flat,A,5,2012,1970000
-70,127 George Grove,NW2 2ET,England,NW2,51.4531821,-0.1107371,1,2,64,1,Shared,Mid Terrace House,C,12,1992,404000
-71,151 Victoria Avenue,N14 6DI,England,N14,51.4719126,-0.1032354,1,4,150,2,Feudal,Mid Terrace Bungalow,G,8,1996,443000
-72,227 Regent Street,SE17 2AE,England,SE17,51.5777872,0.0480986,1,0,38,1,Feudal,Semi-Detached Property,G,6,1997,471000
-73,116 High Street,N13 5LB,England,N13,51.5314118,-0.3054074,1,3,128,1,Leasehold,Flat,B,8,2016,425000
-74,150 King Avenue,W1F 4TR,England,W1F,51.4564725,-0.0584087,1,0,28,0,Feudal,Converted Flat,F,9,2001,1264000
-75,132 Oxford Road,EC2Y 9AW,England,EC2Y,51.5418905,0.0646143,1,1,57,1,Feudal,Semi-Detached Bungalow,E,1,2018,946000
-76,187 Oxford Avenue,E17 7HL,England,E17,51.511796,-0.168147,1,0,43,0,Shared,Mid Terrace House,D,11,1996,361000
-77,234 High Grove,E1W 1UA,England,E1W,51.4643571,-0.0939793,1,1,59,1,Freehold,Mid Terrace Bungalow,A,7,2015,573000
-78,115 Market Road,SW10 9AX,England,SW10,51.4356222,0.0439938,1,1,65,1,Leasehold,Terrace Property,A,12,2012,1165000
-79,221 Baker Street,N14 6DI,England,N14,51.5641308,-0.1952483,1,0,23,0,Freehold,Detached House,C,3,1992,461000
-80,116 Market Street,SW5 0XE,England,SW5,51.4763475,-0.2079447,1,0,33,0,Shared,Purpose Built Flat,C,1,2024,704000
-81,192 George Avenue,N12 7QR,England,N12,51.4024962,-0.0093376,1,3,113,1,Freehold,Terraced,A,12,1991,441000
-82,130 Market Street,N6 6LJ,England,N6,51.6485672,-0.1193366,1,0,32,0,Freehold,Detached Property,E,6,2011,1061000
-83,117 Albert Street,N17 6AL,England,N17,51.5342795,-0.1658832,2,2,85,1,Shared,Flat/Maisonette,C,4,1999,301000
-84,82 Regent Road,E18 2AW,England,E18,51.4106819,0.1225777,1,0,21,1,Leasehold,Semi-Detached Property,F,7,2007,418000
-85,178 Chapel Avenue,NW9 8AG,England,NW9,51.5340009,0.0806303,1,4,159,1,Freehold,Terraced,D,11,1997,337000
-86,112 Oxford Road,W9 1DT,England,W9,51.5532912,0.046262,1,1,61,1,Freehold,Detached Property,B,1,2008,987000
-87,104 Albert Street,W1J 7NT,England,W1J,51.418674,-0.076894,1,0,42,0,Shared,Terraced,B,11,2006,2840000
-88,174 Regent Street,SE14 6LP,England,SE14,51.5063364,0.1026203,1,1,49,1,Leasehold,Flat,E,5,2014,396000
-89,173 High Road,WC2R 0LS,England,WC2R,51.5454619,0.0330843,1,0,30,0,Shared,Flat,A,8,2014,1406000
-90,236 Station Street,N18 2EF,England,N18,51.5151185,-0.2592829,1,4,148,2,Freehold,Mid Terrace House,C,1,2001,282000
-91,97 Chapel Avenue,SW19 8DR,England,SW19,51.5914914,-0.0260177,1,2,88,1,Freehold,Mid Terrace Bungalow,A,2,1994,666000
-92,159 George Street,E10 7HQ,England,E10,51.5932641,-0.1271352,2,2,86,1,Freehold,Semi-Detached Bungalow,E,10,1996,319000
-93,148 Bond Road,N19 5LG,England,N19,51.4473412,-0.1586068,1,3,120,1,Shared,Converted Flat,E,7,2001,433000
-94,109 Station Street,WC2E 7JH,England,WC2E,51.5823843,-0.1245213,2,3,102,1,Freehold,Flat/Maisonette,B,9,2003,1354000
-95,178 Chapel Street,SW3 6LP,England,SW3,51.5782552,-0.1177134,1,4,150,1,Freehold,Semi-Detached House,D,12,2015,2414000
-96,136 Bond Street,SE11 4DG,England,SE11,51.4811394,-0.2506094,1,3,103,1,Freehold,Detached House,E,11,2007,527000
-97,167 Baker Street,E15 4LD,England,E15,51.4545477,-0.2254433,1,3,104,1,Freehold,Bungalow,F,1,2012,290000
-98,190 Albert Road,N10 2NH,England,N10,51.4642985,-0.1480622,1,1,48,1,Freehold,Flat/Maisonette,C,10,2002,632000
-99,189 Albert Grove,E14 8AE,England,E14,51.5647505,0.1093974,1,0,44,1,Shared,Bungalow,G,9,2006,307000
-... (omitting 9900 more rows for brevity)
-9999,123 Main Street,E1 1AA,England,E1,51.5150000,-0.0750000,1,2,70,1,Freehold,Terrace Property,C,1,2023,650000
+1,1 Example Street,EX1 1EX,England,E1,51.5154,-0.0722,1,2,70,1,Freehold,Terrace Property,C,1,2022,450000
+2,2 Another Road,,England,E1,51.5160,-0.0730,2,3,100,1,Leasehold,Purpose Built Flat,B,2,2022,600000
+3,3 Test Avenue,T3 3ST,England,SW1A,51.4975,-0.1357,1,,80,1,Freehold,Detached House,D,3,2022,1200000
+4,4 Sample Close,S4 4MP,England,SW1A,51.4980,-0.1360,2,3,120,2,Leasehold,Purpose Built Flat,C,4,2022,
+5,5 Old Lane,OL5 5LN,England,N1,51.5348,-0.1062,1,1,50,1,Freehold,Converted Flat,E,5,2021,350000
+6,6 New Way,NW6 6WY,England,N1,,,1,45,0,Leasehold,Flat/Maisonette,F,6,2021,300000
+7,7 Green Path,GP7 7PT,England,SE1,51.5000,-0.0840,2,2,90,1,Freehold,Terrace Property,B,7,2023,750000
+8,8 Blue Drive,BD8 8RV,England,SE1,51.5010,-0.0850,1,3,110,1,Leasehold,Purpose Built Flat,A,8,2023,800000
+9,9 Yellow Court,YC9 9CT,England,E10,51.5680,0.0030,1,2,65,1,Freehold,Terrace Property,C,9,2020,
+10,10 Red Square,RS1 0QR,England,E10,51.5690,0.0040,2,3,95,1,Leasehold,Semi-Detached House,D,10,2020,420000
+11,11 Violet Mews,VM1 1WS,England,E11,51.5762,0.0270,1,1,40,1,Freehold,Bungalow Property,E,11,2022,320000
+12,12 Orange Place,OP1 2PL,England,E11,51.5770,0.0280,2,2,80,1,Leasehold,Detached Bungalow,C,12,2022,550000
+13,13 Indigo Walk,IW1 3LK,England,W1K,51.5128,-0.1509,3,4,200,2,Freehold,Detached House,A,1,2023,3000000
+14,14 Silver Street,SS1 4TS,England,W1K,51.5130,-0.1510,2,3,150,2,Leasehold,Purpose Built Flat,B,2,2023,2500000
+15,15 Gold Road,GR1 5RD,England,SW1P,51.4960,-0.1300,1,2,75,1,Freehold,Terrace Property,D,3,2021,900000
+16,16 Bronze Avenue,BA1 6VE,England,SW1P,51.4950,-0.1290,2,3,115,1,Leasehold,Converted Flat,C,4,2021,1100000
+17,17 High Street,HS1 7TR,England,E1,51.5140,-0.0710,1,1,55,1,Freehold,Flat/Maisonette,E,5,2020,400000
+18,18 Low Lane,LL1 8LN,England,E1,51.5130,-0.0700,1,2,60,1,Leasehold,Terrace Property,D,6,2020,420000
+19,19 Park View,PV1 9VW,England,N1,51.5330,-0.1050,2,4,130,2,Freehold,Detached House,B,7,2022,1500000
+20,20 River Side,RS2 0DE,England,N1,51.5320,-0.1040,1,3,90,1,Leasehold,Purpose Built Flat,C,8,2022,950000
+21,21 Sky Tower,ST2 1KY,England,SE1,51.5020,-0.0830,3,3,180,2,Freehold,Purpose Built Flat,A,9,2023,2200000
+22,22 Meadow Lane,ML2 2NE,England,SE1,51.5030,-0.0820,1,2,85,1,Leasehold,Terrace Property,B,10,2023,700000
+23,23 Forest Drive,FD2 3RE,England,E10,51.5700,0.0050,1,4,120,2,Freehold,Semi-Detached House,C,11,2021,480000
+24,24 Lake View,LV2 4VW,England,E10,51.5710,0.0060,2,2,75,1,Leasehold,Flat/Maisonette,D,12,2021,380000
+25,25 Hill Top,HT2 5OP,England,E11,51.5780,0.0290,1,3,100,1,Freehold,Detached Bungalow,E,1,2020,500000
+26,26 Valley Road,VR2 6AD,England,E11,51.5790,0.0300,2,4,140,2,Leasehold,Detached House,B,2,2020,750000
+27,27 Ocean Drive,OD2 7VE,England,W1K,51.5140,-0.1520,4,5,300,3,Freehold,Detached House,A,3,2022,5000000
+28,28 Sunset Strip,SS2 8IP,England,W1K,51.5150,-0.1530,2,2,120,1,Leasehold,Purpose Built Flat,B,4,2022,2000000
+29,29 Moon Crescent,MC2 9NT,England,SW1P,51.4940,-0.1280,1,1,60,1,Freehold,Terrace Property,C,5,2023,850000
+30,30 Star Avenue,SA3 0UE,England,SW1P,51.4930,-0.1270,2,3,100,2,Leasehold,Converted Flat,D,6,2023,1000000

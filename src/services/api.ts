@@ -14,27 +14,27 @@ const propertiesFilePath = path.join(process.cwd(), 'src', 'lib', 'data', 'prope
 let liveProperties: Property[] = [...initialPropertiesDataFromFile] as Property[];
 
 interface CsvRow {
-  ID: string;
-  fullAddress: string;
-  postcode: string;
-  country: string;
-  outcode: string;
+  ID?: string;
+  fullAddress?: string;
+  postcode?: string;
+  country?: string;
+  outcode?: string;
   latitude?: number;
   longitude?: number;
-  bathrooms: number;
-  bedrooms: number;
-  floorAreaSqM: number;
-  livingRooms: number;
-  tenure: Tenure;
-  propertyType: PropertyType;
-  currentEnergyRating: EnergyRating;
-  sale_month: number;
-  sale_year: number;
-  price: number;
+  bathrooms?: number;
+  bedrooms?: number;
+  floorAreaSqM?: number;
+  livingRooms?: number;
+  tenure?: Tenure;
+  propertyType?: PropertyType;
+  currentEnergyRating?: EnergyRating;
+  sale_month?: number;
+  sale_year?: number;
+  price?: number;
   street?: string;
   incode?: string;
-  livingRooms1?: number;
-  area_bin?: string;
+  livingRooms1?: number; // This was in your new CSV, keeping for robust parsing if needed elsewhere
+  area_bin?: string;    // This was in your new CSV, keeping for robust parsing if needed elsewhere
 }
 
 export const getPropertyDetails = async (propertyId: string): Promise<Property | null> => {
@@ -97,7 +97,7 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
     const lines = fileContent.trim().split(/\r?\n/);
 
     const headerLine = lines[0];
-    const headers = headerLine.split(',').map(h => h.trim());
+    const headers = headerLine.split(',').map(h => h.trim().toLowerCase()); // Normalize headers to lowercase
     
     const headerMap = headers.reduce((acc, h, i) => {
         acc[h] = i;
@@ -107,11 +107,17 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
 
     parsedCsvData = lines.slice(1).map((line, lineIndex) => {
       const values = line.split(',');
-      const getVal = (colName: string, isNumeric = false, isFloat = false) => {
-        const valIndex = headerMap[colName];
+      
+      const getVal = (colName: string, isNumeric = false, isFloat = false): string | number | undefined => {
+        const lowerColName = colName.toLowerCase();
+        const valIndex = headerMap[lowerColName];
         if (valIndex === undefined || valIndex >= values.length) return undefined;
+        
         const rawVal = values[valIndex];
-        if (rawVal === undefined || rawVal.trim() === '') return undefined;
+        if (rawVal === undefined || rawVal.trim() === '' || rawVal.trim().toLowerCase() === 'null') {
+          return undefined;
+        }
+        
         if (isNumeric) {
           const numVal = isFloat ? parseFloat(rawVal) : parseInt(rawVal, 10);
           return isNaN(numVal) ? undefined : numVal;
@@ -119,31 +125,31 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
         return rawVal.trim();
       };
 
+      // This CsvRow mapping needs to align with the "older" format of your CSV.
+      // I am assuming the "older" format had at least these fields relevant for map statistics:
+      // outcode, sale_year, sale_month, price, latitude, longitude
+      // And possibly these for property details: bedrooms, bathrooms, propertyType, tenure
       const rowData: CsvRow = {
-        ID: getVal('ID') || `row_${lineIndex}`,
-        fullAddress: getVal('fullAddress') || '',
-        postcode: getVal('postcode') || '',
-        country: getVal('country') || '',
-        outcode: getVal('outcode') || '',
-        latitude: getVal('latitude', true, true),
-        longitude: getVal('longitude', true, true),
-        bathrooms: getVal('bathrooms', true) || 0,
-        bedrooms: getVal('bedrooms', true) || 0,
-        floorAreaSqM: getVal('floorAreaSqM', true, true) || 0,
-        livingRooms: getVal('livingRooms', true) || 0,
-        tenure: (getVal('tenure') || 'Unknown') as Tenure,
-        propertyType: (getVal('propertyType') || 'Unknown') as PropertyType,
-        currentEnergyRating: (getVal('currentEnergyRating') || 'Unknown') as EnergyRating,
-        sale_month: getVal('sale_month', true) || 0,
-        sale_year: getVal('sale_year', true) || 0,
-        price: getVal('price', true, true) || 0,
-        street: getVal('street'),
-        incode: getVal('incode'),
-        livingRooms1: getVal('livingRooms1', true),
-        area_bin: getVal('area_bin'),
+        ID: getVal('ID') as string | undefined,
+        fullAddress: getVal('fullAddress') as string | undefined,
+        outcode: getVal('outcode') as string | undefined,
+        latitude: getVal('latitude', true, true) as number | undefined,
+        longitude: getVal('longitude', true, true) as number | undefined,
+        bedrooms: getVal('bedrooms', true) as number | undefined,
+        bathrooms: getVal('bathrooms', true) as number | undefined,
+        propertyType: getVal('propertyType') as PropertyType | undefined,
+        tenure: getVal('tenure') as Tenure | undefined,
+        sale_month: getVal('sale_month', true) as number | undefined,
+        sale_year: getVal('sale_year', true) as number | undefined,
+        price: getVal('price', true, true) as number | undefined,
       };
       return rowData;
-    }).filter(row => row.outcode && row.price && row.sale_year && row.sale_month && row.price > 0);
+    }).filter(row => 
+        row.outcode && 
+        typeof row.price === 'number' && row.price > 0 &&
+        typeof row.sale_year === 'number' &&
+        typeof row.sale_month === 'number'
+    );
   } catch (error) {
     console.error("Failed to read or parse data.csv:", error);
   }
@@ -152,10 +158,10 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
 
   const quarterlyPrices: Record<string, { total: number, count: number }> = {};
   const currentFullYear = new Date().getFullYear();
-  const fiveYearsAgo = currentFullYear - 5; // Changed from 3 to 5 years
+  const fiveYearsAgo = currentFullYear - 5;
 
   regionSales.forEach(sale => {
-    if (sale.sale_year >= fiveYearsAgo && sale.sale_year <= currentFullYear) {
+    if (sale.sale_year && sale.sale_month && sale.price && sale.sale_year >= fiveYearsAgo && sale.sale_year <= currentFullYear) {
       const quarter = getQuarter(sale.sale_month);
       const key = `Q${quarter} ${sale.sale_year}`;
       if (!quarterlyPrices[key]) {
@@ -207,15 +213,15 @@ export const getRegionMarketData = async (regionId: string): Promise<RegionMarke
   const limitedQuarterlyPriceHistory = quarterlyPriceHistory.slice(-12);
 
   let currentAveragePrice = regionDetails.avgPrice;
-  const allRegionSalesPrices = regionSales.map(s => s.price);
+  const allRegionSalesPrices = regionSales.map(s => s.price).filter(p => typeof p === 'number') as number[];
   if (allRegionSalesPrices.length > 0) {
     currentAveragePrice = Math.round(allRegionSalesPrices.reduce((sum, p) => sum + p, 0) / allRegionSalesPrices.length / 1000) * 1000;
   }
 
   const outcodesWithCsvAvgPrice = londonOutcodes.map(oc => {
-    const salesInOutcode = parsedCsvData.filter(s => s.outcode === oc.id);
+    const salesInOutcode = parsedCsvData.filter(s => s.outcode === oc.id && typeof s.price === 'number');
     if (salesInOutcode.length > 0) {
-      const avg = salesInOutcode.reduce((sum, s) => sum + s.price, 0) / salesInOutcode.length;
+      const avg = salesInOutcode.reduce((sum, s) => sum + (s.price as number), 0) / salesInOutcode.length;
       return { ...oc, avgPrice: Math.round(avg / 1000) * 1000 };
     }
     return oc;
