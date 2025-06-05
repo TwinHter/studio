@@ -14,7 +14,7 @@ export function usePredict() {
   const mutation = useMutation<PredictionOutput, Error, PredictionInput>({
     mutationFn: async (inputData: PredictionInput) => {
       // Use axios to POST to the FastAPI backend endpoint
-      const response = await axios.post<PredictionOutput>(`${fastapiBaseUrl}/predict`, inputData);
+      const response = await axios.post<PredictionOutput>(`${fastapiBaseUrl}/model`, inputData);
       return response.data;
     },
     onSuccess: (data, variables) => {
@@ -53,3 +53,4 @@ export function usePredict() {
     resetPrediction: mutation.reset,
   };
 }
+
