@@ -96,12 +96,12 @@ export default function IntroductionPage() {
               <p dangerouslySetInnerHTML={{ __html: INTRO_ACCURACY_TEXT }} />
               <div className="bg-muted/50 p-4 rounded-md text-center border">
                 <Image
-                  src="https://placehold.co/600x300.png"
-                  alt="Sample accuracy chart"
+                  src="/images/model_accuracy_chart.png"
+                  alt="Model Accuracy Metrics Chart"
                   width={600}
                   height={300}
-                  className="rounded-md mx-auto shadow-md"
-                  data-ai-hint={PLACEHOLDER_HINTS.accuracyChart}
+                  className="rounded-md mx-auto shadow-md object-contain"
+                  data-ai-hint="metrics chart"
                 />
                 <p className="text-sm text-muted-foreground mt-2">{INTRO_ACCURACY_CHART_TEXT}</p>
               </div>
